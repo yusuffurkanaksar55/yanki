@@ -1,0 +1,171 @@
+# Test Report
+
+## 2026-07-19 - Supabase And GitHub Project Connection
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- npm: 11.9.0
+- Supabase CLI: 2.109.1
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+
+### Commands executed
+
+- `npm install -D supabase`
+- `npx supabase init`
+- `npx supabase link --project-ref daxaymcmtbmummrxdyjy`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint`
+- `npx supabase db lint --linked`
+- `npx supabase db push --yes`
+- `npx supabase migration list`
+- `npm run check`
+
+### Passed
+
+- Supabase CLI installed with npm audit reporting 0 vulnerabilities.
+- Supabase project initialized locally.
+- Supabase remote project linked.
+- Remote push dry-run showed only `20260719132911_initial_security_foundation.sql`.
+- Remote linked lint found no schema errors.
+- Remote migration list shows local and remote timestamp `20260719132911`.
+- `npm run check` passed with 3 test files and 8 tests.
+
+### Failed
+
+- Initial `npm install -D supabase` failed inside the sandbox with an `EACCES` registry/cache error; rerun with approved escalation succeeded.
+- `npx supabase db lint` without `--linked` failed because no local Supabase/Postgres stack was running.
+
+### Skipped
+
+- Local `supabase db reset` skipped because Docker/local Supabase stack is not running.
+- Local database lint skipped; linked remote lint was used instead.
+
+### Manual tests
+
+- Verified remote migration plan with dry-run before applying.
+- Verified remote migration state after applying.
+
+### Security checks
+
+- Added test coverage that RLS is enabled on all foundation tables.
+- Added test coverage that no evaluator-linked submission content columns are introduced.
+- Verified remote lint reports no schema errors.
+
+### Remaining risks
+
+- No runtime authentication, authorization policies, Edge Functions, anonymous credential flow, encryption flow, or reporting flow exists yet.
+- Local Supabase stack requires Docker before local DB reset/lint can run.
+
+## 2026-07-16 - React Vite Application Scaffold
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- npm: 11.9.0
+- Frontend: React 19.2.7, Vite 8.1.5, TypeScript 6.0.3, Vitest 4.1.10
+- Database: not configured.
+- Supabase: not configured.
+
+### Commands executed
+
+- `npm install react react-dom`
+- `npm install -D @vitejs/plugin-react vite typescript vitest jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh globals tailwindcss@3.4.17 postcss autoprefixer @types/react @types/react-dom @types/node`
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run build`
+- `npm run check`
+- Manual health check for `http://127.0.0.1:5173/`
+- Follow-up health check for `http://127.0.0.1:5173/`
+
+### Passed
+
+- Dependency install completed with npm audit reporting 0 vulnerabilities.
+- `npm run lint` passed.
+- `npm run typecheck` passed after fixing `vite.config.ts`.
+- `npm test` passed with 2 test files and 5 tests.
+- `npm run build` passed and generated production assets under `dist/`.
+- `npm run check` passed the full lint, typecheck, test, and build pipeline.
+- Dev server responded with HTTP 200 during the start command at `http://127.0.0.1:5173/`.
+
+### Failed
+
+- Initial `npm run typecheck` failed because Vitest config used Vite's `defineConfig`; fixed by importing from `vitest/config`.
+- Initial dev-server background start failed because the Windows process environment had duplicate `Path` and `PATH` keys; fixed by normalizing the process environment before `Start-Process`.
+- Follow-up dev-server health checks failed after shell command cleanup, so the dev server should be started manually with `npm run dev` when actively testing.
+
+### Skipped
+
+- Supabase database checks skipped because no Supabase project exists yet.
+- End-to-end tests skipped because no real authenticated user flow exists yet.
+
+### Manual tests
+
+- Started Vite dev server on `http://127.0.0.1:5173/` during command execution.
+- Verified the root URL returned HTTP 200 during startup.
+- Verified a later independent health check did not remain connected after shell cleanup.
+
+### Security checks
+
+- Verified no evaluation submission or reporting runtime flow was introduced.
+- Verified Turkish UI text is centralized in `src/locales/tr/messages.ts`.
+- Existing documentation tests still verify identity separation, encrypted payload storage, thresholded access, and self-access prevention documentation.
+
+### Remaining risks
+
+- No runtime authentication, authorization, RLS, encryption, anonymous credential, or reporting controls exist yet.
+- Dev-server verification is local only and not a production deployment.
+- Long-lived dev server processes may need to be run manually in an active terminal in this environment.
+
+## 2026-07-16 - Project Memory Foundation
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- npm: 11.9.0
+- Database: not configured.
+- Supabase: not configured.
+
+### Commands executed
+
+- `npm test`
+- `npm run check`
+
+### Passed
+
+- `npm test`: 1 suite, 4 tests passed, 0 failed.
+- `npm run check`: executed `npm test`; 1 suite, 4 tests passed, 0 failed.
+
+### Failed
+
+None.
+
+### Skipped
+
+- Application linting skipped because the application stack is not installed.
+- Type checking skipped because TypeScript is not installed.
+- Build skipped because no application exists yet.
+- Supabase database checks skipped because no Supabase project exists yet.
+- End-to-end tests skipped because no UI exists yet.
+
+### Manual tests
+
+None yet.
+
+### Security checks
+
+- Verified required documentation files exist.
+- Verified evaluator identity separation is documented.
+- Verified server-side encrypted payload storage is documented.
+- Verified thresholded and scoped result access is documented.
+
+### Remaining risks
+
+- No runtime security controls exist yet.
+- No RLS policies exist yet.
+- No encryption implementation exists yet.
+- No anonymous credential implementation exists yet.

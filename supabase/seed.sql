@@ -1,0 +1,2 @@
+-- Local development seed file.
+-- Do not insert production data or sensitive evaluation content here.
