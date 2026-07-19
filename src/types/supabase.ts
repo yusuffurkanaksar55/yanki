@@ -119,6 +119,99 @@ export type Database = {
         }
         Relationships: []
       }
+      user_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by_user_id: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by_user_id: string | null
+          invited_role_code: string
+          invited_scope_id: string | null
+          invited_scope_type: string
+          revoked_at: string | null
+          token_hash: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by_user_id?: string | null
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          invited_by_user_id?: string | null
+          invited_role_code: string
+          invited_scope_id?: string | null
+          invited_scope_type: string
+          revoked_at?: string | null
+          token_hash: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by_user_id?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by_user_id?: string | null
+          invited_role_code?: string
+          invited_scope_id?: string | null
+          invited_scope_type?: string
+          revoked_at?: string | null
+          token_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_invitations_invited_role_code_fkey"
+            columns: ["invited_role_code"]
+            isOneToOne: false
+            referencedRelation: "app_roles"
+            referencedColumns: ["role_code"]
+          },
+          {
+            foreignKeyName: "user_invitations_invited_scope_type_fkey"
+            columns: ["invited_scope_type"]
+            isOneToOne: false
+            referencedRelation: "scope_types"
+            referencedColumns: ["scope_type"]
+          },
+        ]
+      }
+      user_profiles: {
+        Row: {
+          activated_at: string | null
+          created_at: string
+          display_name: string | null
+          email: string
+          onboarding_status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activated_at?: string | null
+          created_at?: string
+          display_name?: string | null
+          email: string
+          onboarding_status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activated_at?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          onboarding_status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_role_assignments: {
         Row: {
           created_at: string

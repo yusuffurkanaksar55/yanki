@@ -58,11 +58,12 @@ For local Vite development, configure Supabase Auth with:
   - `http://127.0.0.1:5173`
   - `http://localhost:5173`
 
-The current frontend auth client uses email/password sign-in and password reset request. Microsoft Entra ID and invitation onboarding are planned future phases.
+The current frontend auth client uses email/password sign-in and password reset request. Authenticated users are gated by their own active `user_profiles` row. Microsoft Entra ID and trusted invitation creation/redemption Edge Functions are planned future phases.
 
 Current baseline rules:
 
-- RLS is enabled on all public tables created by the migration.
-- No client policies are created yet, so access is default-deny.
+- RLS is enabled on all public tables created by migrations.
+- `user_profiles` has one self-read policy for authenticated users.
+- `user_invitations` has no client-facing policies and stores only hashed invitation secrets.
 - No plaintext evaluation scores, comments, lessons learned content, or evaluator-to-response linkage are stored.
 - Sensitive evaluation submission and reporting flows must be implemented through trusted server-side functions later.

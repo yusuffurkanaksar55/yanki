@@ -6,9 +6,9 @@ Secure company-internal web platform for anonymous employee, team, project, mana
 
 ## Current Status
 
-The repository is in application scaffold phase. It contains persistent project memory, security architecture notes, authorization boundaries, initial data model documentation, ADRs, a React + TypeScript + Vite application shell, Tailwind CSS styling, ESLint, TypeScript checking, Vitest, and React Testing Library tests.
+The repository is in application scaffold phase. It contains persistent project memory, security architecture notes, authorization boundaries, initial data model documentation, ADRs, a React + TypeScript + Vite application shell, Supabase Auth/profile onboarding foundation, Tailwind CSS styling, ESLint, TypeScript checking, Vitest, and React Testing Library tests.
 
-No production Supabase schema, Edge Functions, authentication flow, authorization enforcement, anonymous credential flow, or encryption runtime has been implemented yet.
+No production Edge Functions, invitation redemption flow, evaluation authorization enforcement, anonymous credential flow, or encryption runtime has been implemented yet.
 
 ## Target Stack
 
@@ -57,11 +57,11 @@ These commands currently validate the React application scaffold, documentation 
 
 The remote Supabase project is linked to project ref `daxaymcmtbmummrxdyjy`. Public frontend environment examples are documented in `.env.example`; real local values belong in `.env.local`, which is ignored by Git.
 
-The initial migration creates a default-deny security foundation only. It does not create evaluation submission tables or store sensitive evaluation content.
+The applied migrations create a default-deny security foundation plus user profile and invitation onboarding tables. They do not create evaluation submission tables or store sensitive evaluation content.
 
 ## Authentication
 
-The frontend includes a typed Supabase Auth client foundation with email/password sign-in, password reset request, local-session sign-out, runtime public environment validation, and React context-based session state.
+The frontend includes a typed Supabase Auth client foundation with email/password sign-in, password reset request, local-session sign-out, runtime public environment validation, React context-based session state, and own-profile gating.
 
 Only public Supabase values are used in the browser. Service-role keys, database URLs, and encryption keys must stay out of frontend code and Git.
 

@@ -67,6 +67,7 @@ export const tr = {
       notStarted: "Başlamadı"
     },
     session: {
+      profile: "Profil",
       signedInAs: "Oturum",
       signOut: "Çıkış yap",
       signingOut: "Çıkış yapılıyor"
@@ -128,6 +129,35 @@ export const tr = {
       AUTH_SIGN_OUT_FAILED:
         "Çıkış yapılırken bir hata oluştu.",
       genericError: "Beklenmeyen bir hata oluştu."
+    }
+  },
+  profile: {
+    loading: {
+      title: "Profil kontrol ediliyor",
+      description: "Davet ve kullanıcı profil bilgilerin güvenli şekilde okunuyor."
+    },
+    missing: {
+      title: "Davet kaydı bekleniyor",
+      description:
+        "Oturum açıldı, ancak bu hesap için kullanıcı profili henüz oluşturulmamış. Davet bağlantını kontrol et veya sistem yöneticisinden yeni davet iste."
+    },
+    inactive: {
+      title: "Profil aktif değil",
+      description:
+        "Bu hesap için davetli katılım süreci henüz tamamlanmamış veya erişim geçici olarak durdurulmuş."
+    },
+    blocked: {
+      title: "Profil bilgisi okunamadı"
+    },
+    session: {
+      signedInAs: "Oturum",
+      signOut: "Çıkış yap",
+      signingOut: "Çıkış yapılıyor"
+    },
+    feedback: {
+      PROFILE_READ_FAILED:
+        "Profil bilgisi okunurken bir hata oluştu. Lütfen daha sonra tekrar dene.",
+      genericError: "Beklenmeyen bir profil hatası oluştu."
     }
   }
 } as const;

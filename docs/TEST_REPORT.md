@@ -1,5 +1,67 @@
 # Test Report
 
+## 2026-07-19 - User Profile And Invitation Onboarding Foundation
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- npm: 11.9.0
+- Supabase CLI: 2.109.1
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+
+### Commands executed
+
+- `npm test`
+- `npm run typecheck`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+- `npx supabase db push --yes`
+- `npx supabase gen types typescript --linked`
+- `npx supabase migration list`
+- `npm run check`
+
+### Passed
+
+- `npm test` passed with 6 test files and 21 tests.
+- `npm run typecheck` passed after regenerating Supabase database types.
+- Initial `npx supabase db push --dry-run` showed only `20260719171413_user_profile_invitation_foundation.sql` would be applied.
+- `npx supabase db lint --linked` found no schema errors before and after applying the migration.
+- `npx supabase db push --yes` applied `20260719171413_user_profile_invitation_foundation.sql` to the linked remote project.
+- Linked Supabase database types were regenerated and include `user_profiles` and `user_invitations`.
+- `npx supabase migration list` showed both local migrations applied remotely.
+- Final `npx supabase db push --dry-run` reported the remote database is up to date.
+- `npm run check` passed lint, typecheck, Vitest, and production build.
+
+### Failed
+
+- The first `npm test` run failed because a test stub had a missing closing parenthesis and a SQL policy regex was too broad; both were fixed before the final passing run.
+- `npx supabase db push --yes` applied the migration successfully but emitted a Docker migration-catalog cache warning.
+
+### Skipped
+
+- Local `supabase db reset` and local DB lint were skipped because the local Supabase Docker stack remains unverified in this shell.
+- Playwright end-to-end tests skipped because Playwright is not installed and invitation redemption is not implemented yet.
+
+### Manual tests
+
+- Verified generated `src/types/supabase.ts` contains `user_profiles`, `user_invitations`, `onboarding_status`, and `token_hash`.
+- Verified Supabase remote migration list contains local and remote timestamps `20260719132911` and `20260719171413`.
+
+### Security checks
+
+- Verified RLS is enabled on all public tables created by migrations.
+- Verified `user_profiles` exposes only authenticated own-profile select access.
+- Verified `user_invitations` has RLS and no client-facing policy.
+- Verified invitation records use `token_hash` and do not add raw token columns.
+- Verified no evaluator-linked submission content columns were introduced.
+
+### Remaining risks
+
+- Invitation creation, invitation redemption, profile activation, and role assignment still require trusted Edge Functions.
+- UI auth/profile gates are not sensitive authorization boundaries.
+- Sensitive evaluation workflows, anonymous credentials, encrypted submissions, and reporting remain unimplemented.
+
 ## 2026-07-19 - Supabase Auth Typed Client Foundation
 
 ### Environment

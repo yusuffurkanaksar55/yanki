@@ -4,6 +4,7 @@ import { AuthPage } from "./AuthPage";
 import { useAuth } from "./AuthContext";
 
 type AuthGateRenderProps = {
+  readonly userId: string;
   readonly userEmail: string | null;
   readonly isSigningOut: boolean;
   readonly onSignOut: () => Promise<void>;
@@ -14,7 +15,8 @@ type AuthGateProps = {
 };
 
 export function AuthGate({ children }: AuthGateProps) {
-  const { status, userEmail, isSubmitting, signOut, feedback } = useAuth();
+  const { status, session, userEmail, isSubmitting, signOut, feedback } =
+    useAuth();
 
   if (status === "checking") {
     return (
@@ -43,9 +45,23 @@ export function AuthGate({ children }: AuthGateProps) {
     return <AuthPage />;
   }
 
+  if (!session?.user.id) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-mist px-6 text-ink">
+        <section className="w-full max-w-lg rounded-lg border border-red-200 bg-white p-6 shadow-sm">
+          <h1 className="text-xl font-semibold">{tr.auth.configuration.title}</h1>
+          <p className="mt-3 text-sm leading-6 text-slate-700">
+            {tr.auth.feedback.AUTH_SESSION_READ_FAILED}
+          </p>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <>
       {children({
+        userId: session.user.id,
         userEmail,
         isSigningOut: isSubmitting,
         onSignOut: signOut

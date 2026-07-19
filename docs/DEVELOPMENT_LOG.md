@@ -1,5 +1,65 @@
 # Development Log
 
+## 2026-07-19 - User Profile And Invitation Onboarding Foundation
+
+### Objective
+
+Implement the first safe user profile bootstrap and invitation onboarding foundation without exposing privileged invitation management or sensitive evaluation workflows to the browser.
+
+### Changes
+
+- Added `user_profiles` with RLS and a narrow authenticated own-profile select policy.
+- Added `user_invitations` with hashed invitation secrets, scope/role metadata, lifecycle constraints, RLS, and no client-facing policies.
+- Regenerated linked Supabase database types.
+- Added injectable profile service and authenticated profile gate.
+- Added Turkish profile loading, missing invitation, inactive profile, and profile-read error states.
+- Updated the dashboard to display the active profile display name.
+- Added component and migration tests for profile gating, invitation hash storage, RLS coverage, and no direct invitation client policies.
+- Added ADR-0006 for the profile/invitation onboarding foundation.
+
+### Files affected
+
+- `supabase/migrations/20260719171413_user_profile_invitation_foundation.sql`
+- `src/types/supabase.ts`
+- `src/features/profiles/*`
+- `src/features/authentication/AuthGate.tsx`
+- `src/features/dashboard/DashboardPage.tsx`
+- `src/app/*`
+- `src/locales/tr/messages.ts`
+- `tests/*`
+- `docs/*`
+- `docs/decisions/ADR-0006-use-profile-invitation-onboarding-foundation.md`
+
+### Database changes
+
+Applied remote migration `20260719171413_user_profile_invitation_foundation.sql` to Supabase project `daxaymcmtbmummrxdyjy`.
+
+### Security impact
+
+Positive foundation impact. The first client-readable database policy is limited to `auth.uid() = user_id` on `user_profiles`. Invitation records remain hidden from frontend clients and store only `token_hash`, not raw invitation secrets. No evaluation content, plaintext scores, comments, lessons learned payloads, anonymous credential values, service-role credentials, or encryption keys were added.
+
+### Tests performed
+
+- `npm test`
+- `npm run typecheck`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+- `npx supabase db push --yes`
+- `npx supabase gen types typescript --linked`
+- `npx supabase migration list`
+- `npm run check`
+
+### Result
+
+Profile and invitation onboarding foundation was implemented. Application checks passed with 6 test files and 21 tests. The linked Supabase project shows both local migrations applied and the remote database is up to date.
+
+### Remaining work
+
+- Implement trusted Edge Functions for invitation creation, redemption, profile activation, and scoped role assignment.
+- Add protected administration screens for profile, invitation, role, and scope management.
+- Implement scoped evaluation authorization policies before sensitive workflows.
+- Add Playwright end-to-end coverage after a full invitation redemption flow exists.
+
 ## 2026-07-19 - Supabase Auth Typed Client Foundation
 
 ### Objective

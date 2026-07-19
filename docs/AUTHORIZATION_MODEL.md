@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and has an initial default-deny Supabase foundation. Runtime policies and Edge Function authorization checks are not implemented yet.
+Authorization is documented and has an initial default-deny Supabase foundation plus a narrow own-profile read policy. Runtime evaluation policies and Edge Function authorization checks are not implemented yet.
 
 ## Principles
 
@@ -14,9 +14,11 @@ Authorization is documented and has an initial default-deny Supabase foundation.
 
 ## Current Database Foundation
 
-The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. RLS is enabled without client-facing policies, so frontend access remains default-deny until explicit policies are added.
+The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. The profile/invitation migration creates `user_profiles` and `user_invitations`.
 
-The current frontend auth gate only controls UI visibility. It is not a sensitive authorization boundary.
+RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `user_invitations`, roles, role assignments, and audit events remain default-deny to frontend clients.
+
+The current frontend auth and profile gates only control UI visibility. They are not sensitive authorization boundaries.
 
 ## Roles
 

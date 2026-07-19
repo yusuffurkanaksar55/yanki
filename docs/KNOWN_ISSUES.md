@@ -8,7 +8,7 @@ High
 
 ### Description
 
-The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, and default-deny Supabase schema foundation. Scoped authorization policies, anonymous credentials, encrypted submissions, and reporting are not implemented yet.
+The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, and profile/invitation onboarding foundation. Scoped evaluation authorization policies, anonymous credentials, encrypted submissions, and reporting are not implemented yet.
 
 ### Impact
 
@@ -20,7 +20,7 @@ Use the application scaffold only for frontend foundation work. Do not treat the
 
 ### Planned resolution
 
-Implement invitation onboarding, scoped authorization, explicit RLS policies, Edge Functions, anonymous credentials, and encrypted submission flows in separate reviewable phases.
+Implement invitation creation/redemption Edge Functions, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
 
 ### Related tests
 
@@ -86,7 +86,7 @@ Medium
 
 ### Description
 
-Docker Desktop is installed, but `docker` is not available on PATH in the current shell. The default Docker binary path exists, but reading Docker config emitted a user-profile permission warning.
+Docker Desktop is installed, but `docker` is not available on PATH in the current shell. The default Docker binary path exists, reading Docker config emitted a user-profile permission warning, and Supabase CLI migration catalog caching later received a Docker Desktop API 500 image-inspection response.
 
 ### Impact
 

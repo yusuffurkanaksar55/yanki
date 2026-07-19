@@ -50,12 +50,14 @@ const readinessItems = [
 ] as const;
 
 type DashboardPageProps = {
+  readonly profileDisplayName?: string | null;
   readonly userEmail?: string | null;
   readonly isSigningOut?: boolean;
   readonly onSignOut?: () => Promise<void>;
 };
 
 export function DashboardPage({
+  profileDisplayName,
   userEmail,
   isSigningOut = false,
   onSignOut
@@ -88,6 +90,14 @@ export function DashboardPage({
             </nav>
             {onSignOut ? (
               <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+                {profileDisplayName ? (
+                  <span>
+                    {tr.dashboard.session.profile}{" "}
+                    <strong className="font-semibold text-slate-800">
+                      {profileDisplayName}
+                    </strong>
+                  </span>
+                ) : null}
                 {userEmail ? (
                   <span>
                     {tr.dashboard.session.signedInAs}{" "}

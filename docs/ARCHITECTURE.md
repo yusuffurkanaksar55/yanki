@@ -2,7 +2,7 @@
 
 ## Status
 
-Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has an initial default-deny security foundation migration. A typed Supabase Auth client foundation is implemented.
+Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has initial default-deny security plus profile/invitation onboarding migrations. A typed Supabase Auth client and own-profile gate are implemented.
 
 ## Target System
 
@@ -84,6 +84,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Dashboard feature: `src/features/dashboard/DashboardPage.tsx`
 - Turkish messages: `src/locales/tr/messages.ts`
 - Authentication context and UI: `src/features/authentication/`
+- Profile onboarding gate and service: `src/features/profiles/`
 - Typed Supabase client: `src/lib/supabase/client.ts`
 - Generated database types: `src/types/supabase.ts`
 - Global styles: `src/index.css`
@@ -95,10 +96,11 @@ User-facing Turkish strings must be centralized under a future localization modu
 - CLI config: `supabase/config.toml`
 - Seed file: `supabase/seed.sql`
 - Initial migration: `supabase/migrations/20260719132911_initial_security_foundation.sql`
+- Profile/invitation migration: `supabase/migrations/20260719171413_user_profile_invitation_foundation.sql`
 - Setup notes: `docs/SUPABASE_SETUP.md`
 - Linked remote project ref: `daxaymcmtbmummrxdyjy`
 
-The initial migration creates only `app_roles`, `scope_types`, `user_role_assignments`, and `audit_events`. RLS is enabled on all four tables with no client policies.
+The initial migration creates `app_roles`, `scope_types`, `user_role_assignments`, and `audit_events`. The profile/invitation migration creates `user_profiles` and `user_invitations`. RLS is enabled on all public tables. `user_profiles` has one narrow authenticated self-read policy. `user_invitations` has no client-facing policies and is reserved for trusted server-side invitation flows.
 
 ## Current Authentication Scaffold
 
@@ -106,5 +108,8 @@ The initial migration creates only `app_roles`, `scope_types`, `user_role_assign
 - Supabase auth service boundary: `src/features/authentication/authService.ts`
 - Auth provider and gate: `src/features/authentication/AuthProvider.tsx`, `src/features/authentication/AuthGate.tsx`
 - Turkish auth page: `src/features/authentication/AuthPage.tsx`
+- Own-profile service and gate: `src/features/profiles/profileService.ts`, `src/features/profiles/ProfileGate.tsx`
 
 The auth service is injectable so unit and component tests do not call the network. Browser runtime uses only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+
+The profile service is injectable and reads only the authenticated user's own profile row. A signed-in user without an active profile sees a Turkish invitation onboarding state instead of the dashboard.

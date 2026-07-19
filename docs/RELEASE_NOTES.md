@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2026-07-19 - User Profile And Invitation Onboarding Foundation
+
+This is not a product release. The project now has `user_profiles` and `user_invitations` tables, a narrow own-profile read policy, generated Supabase types, an authenticated profile gate, and Turkish onboarding states for users without an active profile.
+
+No production invitation creation/redemption, Microsoft Entra ID, sensitive evaluation submission, encryption, or reporting workflow is available yet.
+
 ## 2026-07-19 - Supabase Auth Client Foundation
 
 This is not a product release. The frontend now has a typed Supabase Auth client foundation with email/password sign-in, password reset request, local-session sign-out, session-state gating, runtime public environment validation, and tests.

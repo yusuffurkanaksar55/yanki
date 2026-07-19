@@ -2,7 +2,7 @@
 
 ## Status
 
-An initial Supabase migration exists for the default-deny security foundation. The complete evaluation data model is still conceptual and must be implemented in future reviewed phases.
+Supabase migrations exist for the default-deny security foundation and the profile/invitation onboarding foundation. The complete evaluation data model is still conceptual and must be implemented in future reviewed phases.
 
 Generated TypeScript database types are stored in `src/types/supabase.ts` and should be regenerated after schema changes.
 
@@ -39,10 +39,16 @@ Implemented foundation tables:
 - `scope_types`
 - `user_role_assignments`
 - `audit_events`
+- `user_profiles`
+- `user_invitations`
 
 ## Identity Domain
 
-Identity-domain tables store users, roles, organization hierarchy, memberships, manager assignments, projects, and evaluation assignments. These records may identify users and eligibility.
+Identity-domain tables store users, roles, organization hierarchy, memberships, manager assignments, projects, evaluation assignments, user profiles, and invitations. These records may identify users and eligibility.
+
+`user_profiles` stores identity and onboarding metadata for authenticated users. Authenticated users can read only their own row.
+
+`user_invitations` stores invitation metadata and `token_hash` only. It has no frontend client policy; future trusted Edge Functions must create invitations, validate raw invitation secrets, activate profiles, and assign scoped roles.
 
 ## Anonymous Content Domain
 
