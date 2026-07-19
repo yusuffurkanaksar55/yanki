@@ -21,6 +21,13 @@
 - `npx supabase db push --yes`
 - `npx supabase migration list`
 - `npm run check`
+- `git init`
+- `git remote add origin https://github.com/yusuffurkanaksar55/yanki.git`
+- `git commit -m "chore: scaffold app and supabase foundation"`
+- `git fetch origin main`
+- `git merge origin/main --allow-unrelated-histories`
+- `git commit -m "chore: merge yanki remote baseline"`
+- `git push -u origin main`
 
 ### Passed
 
@@ -31,11 +38,18 @@
 - Remote linked lint found no schema errors.
 - Remote migration list shows local and remote timestamp `20260719132911`.
 - `npm run check` passed with 3 test files and 8 tests.
+- Git repository initialized and remote `origin` configured.
+- GitHub authentication succeeded through Git Credential Manager.
+- Local `main` pushed to `yusuffurkanaksar55/yanki`.
 
 ### Failed
 
 - Initial `npm install -D supabase` failed inside the sandbox with an `EACCES` registry/cache error; rerun with approved escalation succeeded.
 - `npx supabase db lint` without `--linked` failed because no local Supabase/Postgres stack was running.
+- Git metadata writes required escalation in this sandbox.
+- Initial GitHub push failed before credentials were available; Git Credential Manager account was used.
+- Push was rejected once because remote `main` already contained an initial README commit; resolved with a non-destructive merge.
+- Supabase npm scripts attempted to write telemetry under the user profile and required escalation in this sandbox.
 
 ### Skipped
 

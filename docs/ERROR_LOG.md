@@ -104,6 +104,76 @@ Record Docker availability separately from remote migration status.
 - `npx supabase migration list`
 - `npx supabase db lint --linked`
 
+## ERR-20260719-004 - Supabase npm scripts require telemetry write permission
+
+### Context
+
+Supabase helper npm scripts were added after installing the CLI as a project dependency.
+
+### Symptoms
+
+`npm run supabase:lint:linked` and `npm run supabase:migrations` failed inside the sandbox with `EPERM` while writing `C:\Users\Yusuf_Furkan\.supabase\telemetry.json.tmp...`.
+
+### Root cause
+
+The sandbox cannot write Supabase CLI telemetry/cache files in the user profile directory.
+
+### Incorrect approach
+
+Assuming Supabase npm scripts would have the same filesystem permissions as previously escalated direct CLI commands.
+
+### Correct solution
+
+Run Supabase CLI commands with approved escalation in this environment, or run them from a normal user terminal outside the sandbox.
+
+### Prevention
+
+Document Supabase CLI user-profile writes as an environment limitation and do not include Supabase remote checks in `npm run check` until the environment supports them reliably.
+
+### Related files
+
+- `package.json`
+
+### Related tests
+
+- `npm run supabase:lint:linked`
+- `npm run supabase:migrations`
+
+## ERR-20260719-005 - GitHub push required credential and remote baseline handling
+
+### Context
+
+The local repository was initialized and connected to GitHub repository `yusuffurkanaksar55/yanki`.
+
+### Symptoms
+
+The first push failed without network access, the next push failed because Git credentials could not be read from a non-interactive prompt, and the authenticated push was rejected because remote `main` already contained an initial commit.
+
+### Root cause
+
+The sandbox restricts network access by default, Git Credential Manager was not configured as the local credential helper, and the remote repository had a pre-existing README commit.
+
+### Incorrect approach
+
+Assuming the remote repository was empty and that HTTPS Git credentials would be available without configuring the credential helper.
+
+### Correct solution
+
+Enable Git Credential Manager for the repo, fetch remote `main`, merge the unrelated remote baseline without force pushing, resolve the README conflict, and push the merged history.
+
+### Prevention
+
+Always fetch and inspect remote history before pushing to a user-created repository. Do not force push over remote work unless the user explicitly requests it.
+
+### Related files
+
+- `README.md`
+
+### Related tests
+
+- `git fetch origin main`
+- `git push -u origin main`
+
 ## ERR-20260716-001 - Vitest config type mismatch
 
 ### Context

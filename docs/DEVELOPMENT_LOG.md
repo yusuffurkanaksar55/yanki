@@ -46,11 +46,10 @@ Positive foundation impact. RLS is enabled on all public tables created by the m
 
 ### Result
 
-Supabase remote project was linked and the initial migration was applied. Application checks passed.
+Supabase remote project was linked and the initial migration was applied. GitHub remote `yusuffurkanaksar55/yanki` was connected and `main` was pushed. Application checks passed.
 
 ### Remaining work
 
-- Initialize Git and push to GitHub repository `yusuffurkanaksar55/yanki`.
 - Install GitHub CLI if PR creation through CLI is required.
 - Generate Supabase database types.
 - Implement authentication and invitation onboarding.

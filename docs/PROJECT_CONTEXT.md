@@ -53,7 +53,7 @@ Authorization is not implemented. The intended model is scoped role-based access
 
 ## Known Limitations
 
-- The repository is not yet initialized as a Git repository in the current workspace.
+- Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
 - Runtime security controls are not implemented.
 - No generated database types or Edge Functions exist yet.
 - No real authentication, authorization, encryption, or anonymity controls are implemented yet.
@@ -63,6 +63,7 @@ Authorization is not implemented. The intended model is scoped role-based access
 - 2026-07-16: Created the initial persistent project memory foundation and documentation validation test.
 - 2026-07-16: Scaffolded the React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library application foundation.
 - 2026-07-19: Linked Supabase project `daxaymcmtbmummrxdyjy` and applied the initial default-deny security foundation migration.
+- 2026-07-19: Initialized Git, connected GitHub remote `yusuffurkanaksar55/yanki`, and pushed `main`.
 
 ## Current Development Priorities
 

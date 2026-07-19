@@ -24,3 +24,4 @@
 - The linked Supabase project ref is `daxaymcmtbmummrxdyjy`.
 - Docker Desktop is required before local Supabase stack commands can run.
 - GitHub repository target is `yusuffurkanaksar55/yanki`.
+- GitHub remote `origin` is configured as `https://github.com/yusuffurkanaksar55/yanki.git`.
