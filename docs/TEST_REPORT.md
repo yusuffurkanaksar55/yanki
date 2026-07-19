@@ -1,5 +1,73 @@
 # Test Report
 
+## 2026-07-19 - Administration And Project Cycle Foundation
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- npm: 11.9.0
+- Supabase CLI: 2.109.1
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+
+### Commands executed
+
+- `npm test`
+- `npm run typecheck`
+- `npm run lint`
+- `node --check scripts/create-demo-fixture.mjs`
+- `npx supabase db push --dry-run`
+- `npx supabase db push --yes`
+- `npx supabase gen types typescript --linked`
+- `npx supabase migration list`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+- `npm run check`
+
+### Passed
+
+- Final `npm test` passed with 9 test files and 42 tests.
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `node --check scripts/create-demo-fixture.mjs` passed.
+- Initial `npx supabase db push --dry-run` showed only `20260719184052_project_evaluation_cycle_foundation.sql` would be applied.
+- `npx supabase db push --yes` applied `20260719184052_project_evaluation_cycle_foundation.sql` to the linked remote project.
+- Linked Supabase database types were regenerated and include `projects`, `project_memberships`, and `evaluation_cycles`.
+- `npx supabase migration list` showed local and remote timestamps `20260719132911`, `20260719171413`, `20260719174459`, `20260719181013`, and `20260719184052`.
+- Final `npx supabase db push --dry-run` reported the remote database is up to date.
+- `npx supabase db lint --linked` found no schema errors after applying the migration.
+- `npm run check` passed lint, typecheck, Vitest with 9 test files and 42 tests, and production build.
+
+### Failed
+
+- The first `npm test` run failed because `Proje bitiş tarihi` intentionally appears in both a workflow list and date policy field; the test was updated to allow multiple matches.
+- `npx supabase db push --yes` applied the migration successfully but emitted the known Docker migration-catalog cache warning.
+
+### Skipped
+
+- Local `supabase db reset` and local DB lint were skipped because the local Supabase Docker stack remains unverified in this shell.
+- Playwright end-to-end tests skipped because Playwright is not installed and production administration write flows are not implemented yet.
+- `npm run fixture:demo` was not rerun after this migration because it rotates synthetic passwords and should be run only when the tester is ready to receive fresh credentials.
+
+### Manual tests
+
+- Verified generated `src/types/supabase.ts` contains the new project and evaluation-cycle tables.
+- Verified Supabase remote migration list contains all local migration timestamps.
+
+### Security checks
+
+- Verified RLS is enabled on `projects`, `project_memberships`, and `evaluation_cycles`.
+- Verified no client-facing policies were added to the project/evaluation-cycle configuration tables.
+- Verified evaluation cycles are time-bound with `opens_at`, `closes_at`, and `closes_at > opens_at`.
+- Verified no fixed participant-count opening rule was added.
+- Verified no evaluator-linked submission content, score, comment, plaintext, service-role credential, or encryption key was added.
+
+### Remaining risks
+
+- The administration shell is not a sensitive authorization boundary.
+- Production administration writes still require trusted Edge Functions and scoped RLS policies.
+- Evaluation assignments, anonymous credentials, encrypted submissions, and reporting remain unimplemented.
+
 ## 2026-07-19 - Authenticated Workspace Context Foundation
 
 ### Environment

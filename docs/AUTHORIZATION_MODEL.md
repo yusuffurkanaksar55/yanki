@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and has an initial default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, and own-workspace context RPC. Runtime evaluation policies and Edge Function authorization checks are not implemented yet.
+Authorization is documented and has an initial default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, own-workspace context RPC, and default-deny project/evaluation-cycle configuration foundation. Runtime evaluation policies and Edge Function authorization checks are not implemented yet.
 
 ## Principles
 
@@ -14,13 +14,13 @@ Authorization is documented and has an initial default-deny Supabase foundation,
 
 ## Current Database Foundation
 
-The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`.
+The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`. The project/evaluation-cycle migration creates `projects`, `project_memberships`, and `evaluation_cycles`.
 
-RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `get_my_workspace_context()` allows authenticated users to read only their own non-sensitive role, unit, and manager context. `user_invitations`, roles, role assignments, audit events, and organization hierarchy tables remain default-deny to frontend clients.
+RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `get_my_workspace_context()` allows authenticated users to read only their own non-sensitive role, unit, and manager context. `user_invitations`, roles, role assignments, audit events, organization hierarchy tables, project tables, and evaluation-cycle tables remain default-deny to frontend clients.
 
 `PLATFORM` is the only null-id global scope. `ORGANIZATION`, `DEPARTMENT`, `UNIT`, `TEAM`, `PROJECT`, and `EVALUATION_CYCLE` scopes must carry an explicit `scope_id`.
 
-The current frontend auth and profile gates only control UI visibility. They are not sensitive authorization boundaries.
+The current frontend auth, profile, workspace, and administration gates only control UI visibility. They are not sensitive authorization boundaries.
 
 ## Roles
 

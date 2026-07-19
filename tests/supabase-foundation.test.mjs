@@ -20,6 +20,10 @@ const workspaceContextMigrationPath = join(
   migrationsDir,
   "20260719181013_workspace_context_rpc.sql"
 );
+const projectEvaluationCycleMigrationPath = join(
+  migrationsDir,
+  "20260719184052_project_evaluation_cycle_foundation.sql"
+);
 
 function readMigration(path) {
   return readFileSync(path, "utf8");
@@ -156,5 +160,47 @@ describe("Supabase security foundation", () => {
     expect(migration).not.toMatch(/\bcomment_text\b/i);
     expect(migration).not.toMatch(/\bsubmission\b/i);
     expect(migration).not.toMatch(/\bevaluator\b/i);
+  });
+
+  it("creates default-deny project and evaluation-cycle configuration tables", () => {
+    const migration = readMigration(projectEvaluationCycleMigrationPath);
+    const configurationTables = [
+      "projects",
+      "project_memberships",
+      "evaluation_cycles"
+    ];
+
+    for (const tableName of configurationTables) {
+      expect(migration).toMatch(new RegExp(`create table public\\.${tableName}`));
+      expect(migration).toMatch(
+        new RegExp(`alter table public\\.${tableName} enable row level security;`)
+      );
+      expect(migration).not.toMatch(
+        new RegExp(`create policy[^;]+on public\\.${tableName}`, "i")
+      );
+    }
+  });
+
+  it("keeps evaluation cycles time-bound without a participant-count opening rule", () => {
+    const migration = readMigration(projectEvaluationCycleMigrationPath);
+
+    expect(migration).toMatch(/opens_at timestamptz not null/);
+    expect(migration).toMatch(/closes_at timestamptz not null/);
+    expect(migration).toMatch(/evaluation_cycles_valid_window check \(closes_at > opens_at\)/);
+    expect(migration).toMatch(/anonymity_threshold integer not null default 4/);
+    expect(migration).not.toMatch(/participant_count/i);
+    expect(migration).not.toMatch(/minimum_participant/i);
+    expect(migration).not.toMatch(/required_participant/i);
+  });
+
+  it("guards project-scoped evaluation cycles without content tables", () => {
+    const migration = readMigration(projectEvaluationCycleMigrationPath);
+
+    expect(migration).toMatch(/validate_evaluation_cycle_project_scope/);
+    expect(migration).toMatch(/project_organization_id <> new\.organization_id/);
+    expect(migration).not.toMatch(/\bscore\b/i);
+    expect(migration).not.toMatch(/\bcomment_text\b/i);
+    expect(migration).not.toMatch(/\bsubmission\b/i);
+    expect(migration).not.toMatch(/\bplaintext\b/i);
   });
 });

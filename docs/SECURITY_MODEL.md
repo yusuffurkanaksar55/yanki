@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the intended security model. The repository currently contains Supabase default-deny RLS foundation tables, a typed Supabase Auth client foundation, profile/invitation onboarding foundation, organization hierarchy foundation, and authenticated workspace context RPC, but no production evaluation submission, encryption, reporting, or scoped authorization runtime.
+This document describes the intended security model. The repository currently contains Supabase default-deny RLS foundation tables, a typed Supabase Auth client foundation, profile/invitation onboarding foundation, organization hierarchy foundation, authenticated workspace context RPC, project/evaluation-cycle configuration foundation, and a protected administration shell, but no production evaluation submission, encryption, reporting, or scoped authorization runtime.
 
 ## Security Objectives
 
@@ -75,6 +75,8 @@ Organization hierarchy records are identity-domain metadata and remain inaccessi
 
 The workspace context RPC returns only the authenticated user's own non-sensitive profile, role, membership, and manager context. It must not return evaluation submissions, scores, comments, lessons learned payloads, anonymous credentials, decrypted content, or evaluator-to-response relationships.
 
+Project and evaluation-cycle configuration tables are identity/configuration-domain metadata. They remain inaccessible to frontend clients until trusted administrative authorization is implemented. The administration shell is not a sensitive authorization boundary and must not be used to justify direct table access.
+
 ## Anonymity Threshold
 
 The default minimum result threshold is 4 submissions per reportable group. The threshold must be configurable per evaluation cycle, but lowering it below the documented security minimum requires an explicit administrative warning and recorded decision.
@@ -94,6 +96,7 @@ Database readers may see ciphertext and non-sensitive metadata only. Database en
 ## Remaining Security Work
 
 - Implement invitation creation and redemption through trusted Edge Functions.
+- Implement trusted project and evaluation-cycle management functions before enabling writes from the administration shell.
 - Add narrowly scoped Supabase RLS policies only after server-side authorization flows are designed.
 - Implement Edge Functions for anonymous credential issuance, redemption, encryption, and reporting.
 - Implement key management and key rotation procedures.

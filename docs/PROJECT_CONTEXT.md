@@ -15,7 +15,9 @@ The repository currently contains the documentation foundation and a React, Type
 - User profile onboarding: authenticated profile gate implemented with Turkish pending, inactive, and error states.
 - Organization hierarchy: configurable organizations, units, memberships, manager assignments, and demo fixture script foundation implemented.
 - Workspace context: authenticated own-context RPC and dashboard context panel implemented.
-- Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, and workspace context RPC migrations applied.
+- Administration UI: protected hash-route administration shell implemented for admin-like roles.
+- Project and evaluation-cycle configuration: default-deny project, project membership, and time-bound evaluation-cycle foundation implemented.
+- Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, workspace context RPC, project, and evaluation-cycle migrations applied.
 - Edge Functions: not implemented.
 - Anonymous credential flow: documented, not implemented.
 - Encryption flow: documented, not implemented.
@@ -47,7 +49,7 @@ The repository currently contains the documentation foundation and a React, Type
 
 ## Current Database Structure
 
-The applied Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, `user_invitations`, `organizations`, `organization_units`, `organization_unit_memberships`, `manager_assignments`, and `get_my_workspace_context()`. RLS is enabled on all public tables. The only client-facing table policy allows authenticated users to read their own `user_profiles` row. The workspace context RPC returns only the caller's own non-sensitive role, unit, and manager context. Invitation and organization administration records remain default-deny to frontend clients. The conceptual complete data model is documented in `docs/DATA_MODEL.md`.
+The applied Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, `user_invitations`, `organizations`, `organization_units`, `organization_unit_memberships`, `manager_assignments`, `projects`, `project_memberships`, `evaluation_cycles`, and `get_my_workspace_context()`. RLS is enabled on all public tables. The only client-facing table policy allows authenticated users to read their own `user_profiles` row. The workspace context RPC returns only the caller's own non-sensitive role, unit, and manager context. Invitation, organization, project, and evaluation-cycle administration records remain default-deny to frontend clients. The conceptual complete data model is documented in `docs/DATA_MODEL.md`.
 
 ## Current Authentication Model
 
@@ -62,7 +64,7 @@ Authorization is not implemented. The intended model is scoped role-based access
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
 - Runtime authorization, encryption, anonymous credential, and reporting controls are not implemented.
 - No Edge Functions exist yet.
-- No invitation issuance/redemption Edge Function, Microsoft Entra ID, administrative hierarchy UI, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
+- No invitation issuance/redemption Edge Function, Microsoft Entra ID, production administrative write workflow, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
 - Synthetic test users were created by running `npm run fixture:demo`, and at least one login was verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
@@ -75,12 +77,13 @@ Authorization is not implemented. The intended model is scoped role-based access
 - 2026-07-19: Added user profile and invitation onboarding foundation.
 - 2026-07-19: Added configurable organization hierarchy and demo fixture foundation.
 - 2026-07-19: Added authenticated workspace context RPC and dashboard panel.
+- 2026-07-19: Added protected administration shell and default-deny project/evaluation-cycle foundation.
 
 ## Current Development Priorities
 
-1. Implement invitation creation and redemption Edge Functions.
-2. Add protected administration screens for profile, invitation, role, hierarchy, project, and evaluation-date management.
-3. Implement project and time-bound evaluation cycle management.
-4. Implement scoped authorization policies before sensitive evaluation workflows.
+1. Implement trusted Edge Functions for invitation, profile, role, hierarchy, project, and evaluation-cycle management.
+2. Add production create/update forms for project and evaluation-date management.
+3. Implement scoped authorization policies before sensitive evaluation workflows.
+4. Implement evaluation assignments and anonymous credential issuance.
 5. Implement anonymous credentials and encrypted submissions before reporting.
 6. Add Playwright end-to-end tests after real navigation and authentication flows exist.

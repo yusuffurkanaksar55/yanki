@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { AdministrationPage } from "../features/administration/AdministrationPage";
 import { AuthGate } from "../features/authentication/AuthGate";
 import { AuthProvider } from "../features/authentication/AuthProvider";
 import type { AuthService } from "../features/authentication/authService";
@@ -13,11 +15,15 @@ type AppProps = {
   readonly workspaceContextService?: WorkspaceContextService;
 };
 
+type AppRoute = "dashboard" | "administration";
+
 export function App({
   authService,
   profileService,
   workspaceContextService
 }: AppProps) {
+  const route = useHashRoute();
+
   return (
     <AuthProvider service={authService}>
       <AuthGate>
@@ -32,13 +38,25 @@ export function App({
             {({ profile }) => (
               <WorkspaceContextGate service={workspaceContextService}>
                 {({ workspaceContext }) => (
-                  <DashboardPage
-                    isSigningOut={isSigningOut}
-                    onSignOut={onSignOut}
-                    profileDisplayName={profile.display_name}
-                    userEmail={userEmail}
-                    workspaceContext={workspaceContext}
-                  />
+                  <>
+                    {route === "administration" ? (
+                      <AdministrationPage
+                        isSigningOut={isSigningOut}
+                        onSignOut={onSignOut}
+                        profileDisplayName={profile.display_name}
+                        userEmail={userEmail}
+                        workspaceContext={workspaceContext}
+                      />
+                    ) : (
+                      <DashboardPage
+                        isSigningOut={isSigningOut}
+                        onSignOut={onSignOut}
+                        profileDisplayName={profile.display_name}
+                        userEmail={userEmail}
+                        workspaceContext={workspaceContext}
+                      />
+                    )}
+                  </>
                 )}
               </WorkspaceContextGate>
             )}
@@ -47,4 +65,32 @@ export function App({
       </AuthGate>
     </AuthProvider>
   );
+}
+
+function useHashRoute(): AppRoute {
+  const [route, setRoute] = useState(readRouteFromHash);
+
+  useEffect(() => {
+    function handleHashChange() {
+      setRoute(readRouteFromHash());
+    }
+
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, []);
+
+  return route;
+}
+
+function readRouteFromHash(): AppRoute {
+  if (typeof window === "undefined") {
+    return "dashboard";
+  }
+
+  return window.location.hash === "#administration"
+    ? "administration"
+    : "dashboard";
 }

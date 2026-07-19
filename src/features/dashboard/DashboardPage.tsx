@@ -4,12 +4,16 @@ import type {
   WorkspaceMembership,
   WorkspaceRole
 } from "../workspace/workspaceContextService";
+import {
+  canAccessAdministration,
+  isAdministrationRole
+} from "../workspace/workspaceAuthorization";
 
 const baseNavigationItems = [
-  tr.navigation.dashboard,
-  tr.navigation.cycles,
-  tr.navigation.projects,
-  tr.navigation.reports
+  { href: "#dashboard", label: tr.navigation.dashboard },
+  { href: "#content", label: tr.navigation.cycles },
+  { href: "#content", label: tr.navigation.projects },
+  { href: "#content", label: tr.navigation.reports }
 ];
 
 const metricCards = [
@@ -70,9 +74,7 @@ export function DashboardPage({
   workspaceContext
 }: DashboardPageProps) {
   const navigationItems = getNavigationItems(workspaceContext);
-  const hasAdministrationRole = hasAnyAdministrationRole(
-    workspaceContext?.roles ?? []
-  );
+  const hasAdministrationRole = canAccessAdministration(workspaceContext);
 
   return (
     <div className="min-h-screen bg-mist text-ink">
@@ -93,10 +95,10 @@ export function DashboardPage({
                 <a
                   aria-current={index === 0 ? "page" : undefined}
                   className="rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2"
-                  href="#content"
-                  key={item}
+                  href={item.href}
+                  key={item.label}
                 >
-                  {item}
+                  {item.label}
                 </a>
               ))}
             </nav>
@@ -348,25 +350,15 @@ function ContextList({
 
 function getNavigationItems(
   workspaceContext: WorkspaceContext | null | undefined
-): readonly string[] {
-  if (hasAnyAdministrationRole(workspaceContext?.roles ?? [])) {
-    return [...baseNavigationItems, tr.navigation.administration];
+): readonly { readonly href: string; readonly label: string }[] {
+  if (canAccessAdministration(workspaceContext)) {
+    return [
+      ...baseNavigationItems,
+      { href: "#administration", label: tr.navigation.administration }
+    ];
   }
 
   return baseNavigationItems;
-}
-
-function hasAnyAdministrationRole(roles: readonly WorkspaceRole[]): boolean {
-  return roles.some((role) => isAdministrationRole(role.roleCode));
-}
-
-function isAdministrationRole(roleCode: string): boolean {
-  return [
-    "SYSTEM_ADMIN",
-    "PROJECT_MANAGER",
-    "C_LEVEL_REVIEWER",
-    "BOARD_REVIEWER"
-  ].includes(roleCode);
 }
 
 function formatRole(role: WorkspaceRole): string {

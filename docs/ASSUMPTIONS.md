@@ -32,3 +32,4 @@
 - Development and acceptance testing can use synthetic users instead of live employees.
 - The default synthetic hierarchy is CEO, HR admin, team leader, and three employees, but real organization structures must remain configurable.
 - Demo fixture users require a service-role key provided through a local environment variable and are not created by normal `npm run check`.
+- The demo fixture may create a synthetic project and time-bound evaluation cycle for acceptance testing; these records remain non-production data.

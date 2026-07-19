@@ -76,6 +76,21 @@ const units = [
   }
 ];
 
+const demoProject = {
+  name: "Yanki Demo Project",
+  code: "YANKI-DEMO",
+  description: "Synthetic project for local administration and evaluation-cycle testing.",
+  startsOn: "2026-07-19",
+  completesOn: "2026-07-19"
+};
+
+const demoEvaluationCycle = {
+  name: "Yanki Demo Project Completion Evaluation",
+  cycleType: "PROJECT_COMPLETION",
+  opensAt: "2026-07-19T00:00:00+03:00",
+  closesAt: "2026-07-30T23:59:00+03:00"
+};
+
 const supabaseUrl = readRequiredEnvironment("SUPABASE_URL");
 const serviceRoleKey = readRequiredEnvironment("SUPABASE_SERVICE_ROLE_KEY");
 const emailDomain = process.env.TEST_EMAIL_DOMAIN?.trim() || "example.com";
@@ -93,6 +108,7 @@ const organizationRecord = await upsertOrganization();
 const unitRecords = await upsertUnits(organizationRecord.id);
 const accountRecords = await upsertAccounts(organizationRecord.id, unitRecords);
 await upsertManagerAssignments(organizationRecord.id, unitRecords, accountRecords);
+await upsertProjectAndEvaluationCycle(organizationRecord.id, accountRecords);
 
 console.log("Demo fixture is ready.");
 console.table(createdCredentials);
@@ -390,6 +406,194 @@ async function upsertManagerAssignments(
       throw error;
     }
   }
+}
+
+async function upsertProjectAndEvaluationCycle(organizationId, accountRecords) {
+  const project = await upsertProject(organizationId, accountRecords);
+
+  await upsertProjectMemberships(project.id, accountRecords);
+  await upsertProjectManagerRole(project.id, accountRecords);
+  await upsertEvaluationCycle(organizationId, project.id, accountRecords);
+}
+
+async function upsertProject(organizationId, accountRecords) {
+  const projectManager = requireAccountRecord(accountRecords, "team_leader");
+  const creator = requireAccountRecord(accountRecords, "hr_admin");
+
+  const payload = {
+    organization_id: organizationId,
+    name: demoProject.name,
+    code: demoProject.code,
+    description: demoProject.description,
+    status: "ACTIVE",
+    project_manager_user_id: projectManager.userId,
+    starts_on: demoProject.startsOn,
+    completes_on: demoProject.completesOn,
+    created_by_user_id: creator.userId
+  };
+
+  const { data: existingProject, error: readError } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .eq("code", demoProject.code)
+    .maybeSingle();
+
+  if (readError) {
+    throw readError;
+  }
+
+  const { data, error } = existingProject
+    ? await supabase
+        .from("projects")
+        .update(payload)
+        .eq("id", existingProject.id)
+        .select("id")
+        .single()
+    : await supabase.from("projects").insert(payload).select("id").single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+async function upsertProjectMemberships(projectId, accountRecords) {
+  const memberships = [
+    { accountKey: "ceo", membershipKind: "SPONSOR" },
+    { accountKey: "team_leader", membershipKind: "PROJECT_MANAGER" },
+    { accountKey: "employee_1", membershipKind: "MEMBER" },
+    { accountKey: "employee_2", membershipKind: "MEMBER" },
+    { accountKey: "employee_3", membershipKind: "MEMBER" }
+  ];
+
+  for (const membership of memberships) {
+    const account = requireAccountRecord(accountRecords, membership.accountKey);
+    await upsertProjectMembership(
+      projectId,
+      account.userId,
+      membership.membershipKind
+    );
+  }
+}
+
+async function upsertProjectMembership(projectId, userId, membershipKind) {
+  const { data: existingMembership, error: readError } = await supabase
+    .from("project_memberships")
+    .select("id")
+    .eq("project_id", projectId)
+    .eq("user_id", userId)
+    .eq("membership_kind", membershipKind)
+    .is("ends_at", null)
+    .maybeSingle();
+
+  if (readError) {
+    throw readError;
+  }
+
+  const payload = {
+    project_id: projectId,
+    user_id: userId,
+    membership_kind: membershipKind
+  };
+
+  const { error } = existingMembership
+    ? await supabase
+        .from("project_memberships")
+        .update(payload)
+        .eq("id", existingMembership.id)
+    : await supabase.from("project_memberships").insert(payload);
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function upsertProjectManagerRole(projectId, accountRecords) {
+  const account = requireAccountRecord(accountRecords, "team_leader");
+
+  const { data: existingRole, error: readError } = await supabase
+    .from("user_role_assignments")
+    .select("id")
+    .eq("user_id", account.userId)
+    .eq("role_code", "PROJECT_MANAGER")
+    .eq("scope_type", "PROJECT")
+    .eq("scope_id", projectId)
+    .is("ends_at", null)
+    .maybeSingle();
+
+  if (readError) {
+    throw readError;
+  }
+
+  const payload = {
+    user_id: account.userId,
+    role_code: "PROJECT_MANAGER",
+    scope_type: "PROJECT",
+    scope_id: projectId
+  };
+
+  const { error } = existingRole
+    ? await supabase
+        .from("user_role_assignments")
+        .update(payload)
+        .eq("id", existingRole.id)
+    : await supabase.from("user_role_assignments").insert(payload);
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function upsertEvaluationCycle(organizationId, projectId, accountRecords) {
+  const creator = requireAccountRecord(accountRecords, "hr_admin");
+
+  const payload = {
+    organization_id: organizationId,
+    project_id: projectId,
+    name: demoEvaluationCycle.name,
+    cycle_type: demoEvaluationCycle.cycleType,
+    status: "OPEN",
+    project_completed_on: demoProject.completesOn,
+    opens_at: demoEvaluationCycle.opensAt,
+    closes_at: demoEvaluationCycle.closesAt,
+    anonymity_threshold: 4,
+    created_by_user_id: creator.userId
+  };
+
+  const { data: existingCycle, error: readError } = await supabase
+    .from("evaluation_cycles")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .eq("project_id", projectId)
+    .eq("name", demoEvaluationCycle.name)
+    .maybeSingle();
+
+  if (readError) {
+    throw readError;
+  }
+
+  const { error } = existingCycle
+    ? await supabase
+        .from("evaluation_cycles")
+        .update(payload)
+        .eq("id", existingCycle.id)
+    : await supabase.from("evaluation_cycles").insert(payload);
+
+  if (error) {
+    throw error;
+  }
+}
+
+function requireAccountRecord(accountRecords, key) {
+  const account = accountRecords.get(key);
+
+  if (!account) {
+    throw new Error(`Fixture account ${key} was not created.`);
+  }
+
+  return account;
 }
 
 function createPassword() {

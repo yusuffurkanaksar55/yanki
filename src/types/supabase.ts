@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -95,6 +95,69 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "scope_types"
             referencedColumns: ["scope_type"]
+          },
+        ]
+      }
+      evaluation_cycles: {
+        Row: {
+          anonymity_threshold: number
+          closes_at: string
+          created_at: string
+          created_by_user_id: string | null
+          cycle_type: string
+          id: string
+          name: string
+          opens_at: string
+          organization_id: string
+          project_completed_on: string | null
+          project_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          anonymity_threshold?: number
+          closes_at: string
+          created_at?: string
+          created_by_user_id?: string | null
+          cycle_type?: string
+          id?: string
+          name: string
+          opens_at: string
+          organization_id: string
+          project_completed_on?: string | null
+          project_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          anonymity_threshold?: number
+          closes_at?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          cycle_type?: string
+          id?: string
+          name?: string
+          opens_at?: string
+          organization_id?: string
+          project_completed_on?: string | null
+          project_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_cycles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_cycles_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -276,6 +339,100 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      project_memberships: {
+        Row: {
+          created_at: string
+          ends_at: string | null
+          id: string
+          membership_kind: string
+          project_id: string
+          starts_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          membership_kind?: string
+          project_id: string
+          starts_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          membership_kind?: string
+          project_id?: string
+          starts_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_memberships_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          code: string | null
+          completes_on: string | null
+          created_at: string
+          created_by_user_id: string | null
+          description: string | null
+          id: string
+          name: string
+          organization_id: string
+          project_manager_user_id: string | null
+          starts_on: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          completes_on?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          project_manager_user_id?: string | null
+          starts_on?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          completes_on?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          project_manager_user_id?: string | null
+          starts_on?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scope_types: {
         Row: {

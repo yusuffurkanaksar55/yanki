@@ -119,6 +119,86 @@ export const tr = {
         "Bu hesapta yönetim rolü var. Organizasyon, davet, proje ve değerlendirme süresi ayarları ayrı yönetim akışında ilerleyecek."
     }
   },
+  administration: {
+    eyebrow: "Korumalı yönetim",
+    title: "Yönetim alanı",
+    summary:
+      "Davet, rol, organizasyon, proje ve değerlendirme süresi ayarları için ayrı yönetim görünümü.",
+    roles: {
+      sectionLabel: "Yönetim rolleri",
+      title: "Etkin yönetim kapsamı",
+      description: "Bu oturumda yönetim görünümünü açan rol ve kapsamlar."
+    },
+    workflowsSectionLabel: "Yönetim iş akışları",
+    workflows: [
+      {
+        status: "Edge Function bekliyor",
+        title: "Kullanıcı ve davetler",
+        description:
+          "Davet oluşturma, davet iptali ve profil durumları trusted backend üzerinden ilerleyecek.",
+        items: [
+          "Davet oluşturma",
+          "Davet iptali",
+          "Profil aktivasyonu"
+        ]
+      },
+      {
+        status: "Yetkilendirme bekliyor",
+        title: "Rol ve hiyerarşi",
+        description:
+          "Birden fazla admin, CEO, proje müdürü ve takım lideri kapsamlı rol atamalarıyla yönetilecek.",
+        items: [
+          "Birim yönetimi",
+          "Rol kapsamı",
+          "Yönetici ilişkisi"
+        ]
+      },
+      {
+        status: "Model temeli",
+        title: "Projeler",
+        description:
+          "Proje adı, proje müdürü, proje üyeleri ve proje bitiş tarihi yönetim akışına hazırlanıyor.",
+        items: [
+          "Proje kaydı",
+          "Proje üyeleri",
+          "Proje bitiş tarihi"
+        ]
+      },
+      {
+        status: "Tarih bazlı",
+        title: "Değerlendirme süreleri",
+        description:
+          "Değerlendirmeler sabit kişi sayısına bağlı olmadan açılabilecek ve kapanış tarihiyle sınırlandırılacak.",
+        items: [
+          "Açılış zamanı",
+          "Kapanış tarihi",
+          "Anonimlik eşiği"
+        ]
+      }
+    ],
+    datePolicy: {
+      title: "Proje ve değerlendirme tarihleri",
+      description:
+        "Proje tamamlanma tarihi ve son değerlendirme tarihi yönetim akışının temel tarih alanlarıdır.",
+      projectCompletionLabel: "Proje bitiş tarihi",
+      evaluationCloseLabel: "Değerlendirme kapanış tarihi",
+      configuredBy: "Admin veya yetkilendirilmiş proje müdürü"
+    },
+    safeguards: {
+      title: "Güvenlik sınırı",
+      items: [
+        "Yönetim görünümü değerlendirme içeriği okumaz.",
+        "Hassas işlemler frontend rol kontrolüne bırakılmaz.",
+        "Edge Function ve RLS kontrolleri eklenmeden üretim işlemi açılmaz."
+      ]
+    },
+    blocked: {
+      title: "Yönetim yetkisi yok",
+      description:
+        "Bu görünüm için yönetim rolü gerekir. Nihai izinler yine trusted backend ve RLS tarafından doğrulanacaktır.",
+      backLink: "Kontrol paneline dön"
+    }
+  },
   auth: {
     loading: "Oturum durumu kontrol ediliyor.",
     pageTitle: "Güvenli giriş",

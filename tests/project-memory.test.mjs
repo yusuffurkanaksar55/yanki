@@ -29,7 +29,8 @@ const requiredFiles = [
   "docs/decisions/ADR-0005-use-typed-supabase-auth-client.md",
   "docs/decisions/ADR-0006-use-profile-invitation-onboarding-foundation.md",
   "docs/decisions/ADR-0007-use-configurable-organization-hierarchy-foundation.md",
-  "docs/decisions/ADR-0008-use-authenticated-workspace-context-rpc.md"
+  "docs/decisions/ADR-0008-use-authenticated-workspace-context-rpc.md",
+  "docs/decisions/ADR-0009-use-default-deny-project-evaluation-cycle-foundation.md"
 ];
 
 function readProjectFile(relativePath) {

@@ -2,7 +2,7 @@
 
 ## Status
 
-Supabase migrations exist for the default-deny security foundation, profile/invitation onboarding foundation, configurable organization hierarchy foundation, and authenticated own-workspace context RPC. The complete evaluation data model is still conceptual and must be implemented in future reviewed phases.
+Supabase migrations exist for the default-deny security foundation, profile/invitation onboarding foundation, configurable organization hierarchy foundation, authenticated own-workspace context RPC, and project/evaluation-cycle configuration foundation. The complete anonymous submission data model is still conceptual and must be implemented in future reviewed phases.
 
 Generated TypeScript database types are stored in `src/types/supabase.ts` and should be regenerated after schema changes.
 
@@ -21,7 +21,7 @@ Planned tables:
 - `team_memberships`
 - `manager_assignments`
 - `projects`
-- `project_members`
+- `project_memberships`
 - `question_templates`
 - `questions`
 - `template_questions`
@@ -45,6 +45,9 @@ Implemented foundation tables:
 - `organization_units`
 - `organization_unit_memberships`
 - `manager_assignments`
+- `projects`
+- `project_memberships`
+- `evaluation_cycles`
 
 Implemented foundation functions:
 
@@ -66,6 +69,12 @@ Identity-domain tables store users, roles, organization hierarchy, memberships, 
 
 `manager_assignments` stores direct manager, functional manager, and executive sponsor relationships.
 
+`projects` stores identity-domain project metadata, including project manager, status, and optional start/completion dates.
+
+`project_memberships` stores project participation and project-management membership metadata.
+
+`evaluation_cycles` stores time-bound evaluation configuration with open and close timestamps, optional project completion date, cycle type, status, and anonymity threshold. It does not require a fixed participant count to open a cycle.
+
 `get_my_workspace_context()` returns the authenticated caller's own profile, roles, memberships, and manager relationships as non-sensitive JSON. It is not an evaluation content API and must not include scores, comments, submissions, anonymous credentials, or decrypted payloads.
 
 ## Anonymous Content Domain
@@ -82,9 +91,9 @@ No anonymous content-domain table has been implemented yet.
 - UTC timestamps for persistence.
 - Intentional indexes for authorization checks, scope lookups, assignment lookup, cycle filtering, and report aggregation.
 
-## Planned Project And Evaluation Cycle Data
+## Project And Evaluation Cycle Data
 
-Future project and evaluation-cycle tables must support multiple administrators and delegated project managers. Evaluation cycles may be opened without a fixed participant-count requirement, but they must be time-bound with configurable open and close dates. Project completion dates and evaluation close dates must be set through trusted administrative flows rather than direct frontend table access.
+Project and evaluation-cycle tables support multiple administrators and delegated project managers at the data-model level. Evaluation cycles may be opened without a fixed participant-count requirement, but they are time-bound with configurable open and close dates. Project completion dates and evaluation close dates must be set through trusted administrative flows rather than direct frontend table access.
 
 ## Migration Rules
 

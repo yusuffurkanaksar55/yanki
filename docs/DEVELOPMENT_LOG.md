@@ -1,5 +1,69 @@
 # Development Log
 
+## 2026-07-19 - Administration And Project Cycle Foundation
+
+### Objective
+
+Add a protected administration shell and a default-deny project/evaluation-cycle configuration foundation so admins and delegated project managers can later manage project completion and evaluation close dates through trusted flows.
+
+### Changes
+
+- Added `projects`, `project_memberships`, and `evaluation_cycles` with RLS enabled and no frontend policies.
+- Added date-window constraints for projects and evaluation cycles.
+- Added `validate_evaluation_cycle_project_scope()` to keep project-scoped cycles inside the same organization.
+- Added hash-route handling for `#dashboard` and `#administration`.
+- Added a protected Turkish administration shell for admin-like roles.
+- Added shared workspace administration-role helpers.
+- Updated the demo fixture to create `Yanki Demo Project`, project memberships, a scoped project-manager role, and a project-completion evaluation cycle closing on 2026-07-30.
+- Regenerated linked Supabase database types.
+- Added ADR-0009 for the default-deny project/evaluation-cycle foundation.
+
+### Files affected
+
+- `supabase/migrations/20260719184052_project_evaluation_cycle_foundation.sql`
+- `src/types/supabase.ts`
+- `src/app/App.tsx`
+- `src/features/administration/*`
+- `src/features/dashboard/DashboardPage.tsx`
+- `src/features/workspace/workspaceAuthorization.ts`
+- `src/locales/tr/messages.ts`
+- `scripts/create-demo-fixture.mjs`
+- `tests/*`
+- `docs/*`
+- `docs/decisions/ADR-0009-use-default-deny-project-evaluation-cycle-foundation.md`
+
+### Database changes
+
+Applied remote migration `20260719184052_project_evaluation_cycle_foundation.sql` to Supabase project `daxaymcmtbmummrxdyjy`.
+
+### Security impact
+
+Positive foundation impact. New tables are identity/configuration-domain records and remain default-deny to frontend clients. The administration shell is a UI boundary only and does not grant sensitive access. No evaluation response content, plaintext scores, comments, lessons learned payloads, anonymous credential values, service-role credentials, or encryption keys were added.
+
+### Tests performed
+
+- `npm test`
+- `npm run typecheck`
+- `npm run lint`
+- `node --check scripts/create-demo-fixture.mjs`
+- `npx supabase db push --dry-run`
+- `npx supabase db push --yes`
+- `npx supabase gen types typescript --linked`
+- `npx supabase migration list`
+- `npx supabase db lint --linked`
+- `npm run check`
+
+### Result
+
+Administration shell and project/evaluation-cycle configuration foundation were implemented. Application checks passed with 9 test files and 42 tests. The linked Supabase project shows all five local migrations applied and the remote database is up to date.
+
+### Remaining work
+
+- Implement trusted Edge Functions for administration write actions.
+- Add production forms for invitation, role, hierarchy, project, and evaluation-cycle management.
+- Implement evaluation assignments and anonymous credential issuance.
+- Implement encrypted submissions and thresholded reporting.
+
 ## 2026-07-19 - Authenticated Workspace Context Foundation
 
 ### Objective

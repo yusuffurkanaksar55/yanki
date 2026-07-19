@@ -21,6 +21,21 @@ The default scenario models the user's requested hierarchy without hard-coding t
 
 The application must support other organization structures through configurable organization units, memberships, role scopes, and manager assignments.
 
+## Baseline Project Scenario
+
+The fixture also creates a synthetic project and time-bound evaluation cycle:
+
+| Fixture key | Value |
+| --- | --- |
+| Project name | Yanki Demo Project |
+| Project code | YANKI-DEMO |
+| Project manager | Demo Team Leader |
+| Project completion date | 2026-07-19 |
+| Evaluation cycle | Yanki Demo Project Completion Evaluation |
+| Evaluation close date | 2026-07-30 |
+
+The evaluation cycle can be opened without a fixed participant count requirement. Reporting still requires the configured anonymity threshold before results can be shown.
+
 ## Runtime Requirements
 
 The fixture script requires server-side Supabase privileges and must be run outside the browser:

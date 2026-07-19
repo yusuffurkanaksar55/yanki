@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2026-07-19 - Administration And Project Cycle Foundation
+
+This is not a product release. The project now has a protected administration shell for admin-like roles, default-deny project and evaluation-cycle configuration tables, and a demo fixture that creates a synthetic project with a 2026-07-30 evaluation close date.
+
+No production administration write action, invitation redemption, sensitive evaluation submission, encryption, or reporting workflow is available yet.
+
 ## 2026-07-19 - Authenticated Workspace Context Foundation
 
 This is not a product release. Signed-in users can now see their own non-sensitive role, unit, and manager context on the dashboard through a narrow authenticated Supabase RPC. Admin-like roles also see a Turkish administration entry point.

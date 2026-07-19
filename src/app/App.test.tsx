@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { tr } from "../locales/tr/messages";
 import type { AuthService } from "../features/authentication/authService";
@@ -14,6 +14,14 @@ import type {
 } from "../features/workspace/workspaceContextService";
 
 describe("App", () => {
+  beforeEach(() => {
+    window.history.replaceState(null, "", "/");
+  });
+
+  afterEach(() => {
+    window.history.replaceState(null, "", "/");
+  });
+
   it("renders the Turkish dashboard shell after an authenticated session is available", async () => {
     const profileService = createProfileServiceStub(createProfileStub());
 
@@ -43,8 +51,56 @@ describe("App", () => {
     expect(screen.getByText(tr.dashboard.workspace.title)).toBeInTheDocument();
     expect(screen.getByText(/Product Team/)).toBeInTheDocument();
     expect(screen.getByText("Demo CEO")).toBeInTheDocument();
+    const administrationLink = screen.getByRole("link", {
+      name: tr.navigation.administration
+    });
+
+    expect(administrationLink).toBeInTheDocument();
+    expect(administrationLink).toHaveAttribute("href", "#administration");
+  });
+
+  it("renders the protected administration shell for an administration route", async () => {
+    window.history.replaceState(null, "", "/#administration");
+
+    render(
+      <App
+        authService={createAuthServiceStub(createSessionStub())}
+        profileService={createProfileServiceStub(createProfileStub())}
+        workspaceContextService={createWorkspaceContextServiceStub(
+          createWorkspaceContextStub()
+        )}
+      />
+    );
+
     expect(
-      screen.getByRole("link", { name: tr.navigation.administration })
+      await screen.findByRole("heading", { name: tr.administration.title })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(tr.administration.datePolicy.evaluationCloseLabel)
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText(tr.administration.datePolicy.projectCompletionLabel)
+        .length
+    ).toBeGreaterThan(0);
+  });
+
+  it("blocks the administration route when the workspace has no administration role", async () => {
+    window.history.replaceState(null, "", "/#administration");
+
+    render(
+      <App
+        authService={createAuthServiceStub(createSessionStub())}
+        profileService={createProfileServiceStub(createProfileStub())}
+        workspaceContextService={createWorkspaceContextServiceStub(
+          createEmployeeWorkspaceContextStub()
+        )}
+      />
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: tr.administration.blocked.title
+      })
     ).toBeInTheDocument();
   });
 
@@ -124,6 +180,30 @@ function createWorkspaceContextStub(): WorkspaceContext {
         relationshipType: "DIRECT_MANAGER"
       }
     ]
+  };
+}
+
+function createEmployeeWorkspaceContextStub(): WorkspaceContext {
+  return {
+    roles: [
+      {
+        roleCode: "EMPLOYEE",
+        scopeType: "TEAM",
+        scopeId: "team-id"
+      }
+    ],
+    memberships: [
+      {
+        organizationId: "organization-id",
+        organizationName: "Yanki Demo Organization",
+        unitId: "team-id",
+        unitName: "Product Team",
+        unitType: "TEAM",
+        membershipKind: "MEMBER",
+        isPrimary: true
+      }
+    ],
+    managers: []
   };
 }
 
