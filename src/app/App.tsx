@@ -4,13 +4,20 @@ import type { AuthService } from "../features/authentication/authService";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { ProfileGate } from "../features/profiles/ProfileGate";
 import type { ProfileService } from "../features/profiles/profileService";
+import { WorkspaceContextGate } from "../features/workspace/WorkspaceContextGate";
+import type { WorkspaceContextService } from "../features/workspace/workspaceContextService";
 
 type AppProps = {
   readonly authService?: AuthService;
   readonly profileService?: ProfileService;
+  readonly workspaceContextService?: WorkspaceContextService;
 };
 
-export function App({ authService, profileService }: AppProps) {
+export function App({
+  authService,
+  profileService,
+  workspaceContextService
+}: AppProps) {
   return (
     <AuthProvider service={authService}>
       <AuthGate>
@@ -23,12 +30,17 @@ export function App({ authService, profileService }: AppProps) {
             userId={userId}
           >
             {({ profile }) => (
-              <DashboardPage
-                isSigningOut={isSigningOut}
-                onSignOut={onSignOut}
-                profileDisplayName={profile.display_name}
-                userEmail={userEmail}
-              />
+              <WorkspaceContextGate service={workspaceContextService}>
+                {({ workspaceContext }) => (
+                  <DashboardPage
+                    isSigningOut={isSigningOut}
+                    onSignOut={onSignOut}
+                    profileDisplayName={profile.display_name}
+                    userEmail={userEmail}
+                    workspaceContext={workspaceContext}
+                  />
+                )}
+              </WorkspaceContextGate>
             )}
           </ProfileGate>
         )}

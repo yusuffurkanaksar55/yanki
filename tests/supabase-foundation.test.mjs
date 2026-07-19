@@ -16,6 +16,10 @@ const organizationHierarchyMigrationPath = join(
   migrationsDir,
   "20260719174459_organization_hierarchy_foundation.sql"
 );
+const workspaceContextMigrationPath = join(
+  migrationsDir,
+  "20260719181013_workspace_context_rpc.sql"
+);
 
 function readMigration(path) {
   return readFileSync(path, "utf8");
@@ -127,5 +131,30 @@ describe("Supabase security foundation", () => {
     expect(migration).toMatch(/Organization unit hierarchy cannot contain cycles/);
     expect(migration).toMatch(/manager_user_id <> direct_report_user_id/);
     expect(migration).toMatch(/relationship_type in \(/);
+  });
+
+  it("exposes only the authenticated user's workspace context through RPC", () => {
+    const migration = readMigration(workspaceContextMigrationPath);
+
+    expect(migration).toMatch(/create or replace function public\.get_my_workspace_context\(\)/);
+    expect(migration).toMatch(/security definer/);
+    expect(migration).toMatch(/set search_path = public/);
+    expect(migration).toMatch(/where user_id = auth\.uid\(\)/);
+    expect(migration).toMatch(/where membership\.user_id = auth\.uid\(\)/);
+    expect(migration).toMatch(
+      /where manager_assignment\.direct_report_user_id = auth\.uid\(\)/
+    );
+    expect(migration).toMatch(
+      /grant execute on function public\.get_my_workspace_context\(\) to authenticated;/
+    );
+  });
+
+  it("keeps workspace context RPC free of evaluation content", () => {
+    const migration = readMigration(workspaceContextMigrationPath);
+
+    expect(migration).not.toMatch(/\bscore\b/i);
+    expect(migration).not.toMatch(/\bcomment_text\b/i);
+    expect(migration).not.toMatch(/\bsubmission\b/i);
+    expect(migration).not.toMatch(/\bevaluator\b/i);
   });
 });

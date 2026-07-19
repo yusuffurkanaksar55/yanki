@@ -1,5 +1,65 @@
 # Development Log
 
+## 2026-07-19 - Authenticated Workspace Context Foundation
+
+### Objective
+
+Expose each signed-in user's own non-sensitive organization context after login, while preserving default-deny access to role, invitation, hierarchy, and evaluation-content data.
+
+### Changes
+
+- Added `get_my_workspace_context()` as a `security definer` Supabase RPC filtered by `auth.uid()`.
+- Granted RPC execution only to authenticated users.
+- Regenerated linked Supabase database types.
+- Added injectable workspace context service and authenticated workspace context gate.
+- Added a Turkish dashboard panel for the current user's roles, memberships, and managers.
+- Added a Turkish administration entry point for admin-like roles without adding sensitive management actions yet.
+- Recorded product decisions that roles are not singletons and evaluation cycles are time-bound without a fixed participant-count opening requirement.
+- Added ADR-0008 for the authenticated workspace context RPC.
+
+### Files affected
+
+- `supabase/migrations/20260719181013_workspace_context_rpc.sql`
+- `src/types/supabase.ts`
+- `src/features/workspace/*`
+- `src/features/dashboard/DashboardPage.tsx`
+- `src/app/*`
+- `src/locales/tr/messages.ts`
+- `tests/*`
+- `docs/*`
+- `docs/decisions/ADR-0008-use-authenticated-workspace-context-rpc.md`
+
+### Database changes
+
+Applied remote migration `20260719181013_workspace_context_rpc.sql` to Supabase project `daxaymcmtbmummrxdyjy`.
+
+### Security impact
+
+Positive foundation impact. The RPC returns only the authenticated caller's own non-sensitive profile, role, membership, and manager context. It does not expose evaluation submissions, scores, comments, lessons learned payloads, anonymous credential values, decrypted content, service-role credentials, or encryption keys.
+
+### Tests performed
+
+- `npm test`
+- `npm run lint`
+- `npm run typecheck`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+- `npx supabase db push --yes`
+- `npx supabase gen types typescript --linked`
+- `npx supabase migration list`
+- `npm run check`
+
+### Result
+
+Authenticated workspace context foundation was implemented. Application checks passed with 8 test files and 33 tests. The linked Supabase project shows all four local migrations applied and the remote database is up to date.
+
+### Remaining work
+
+- Implement invitation creation and redemption Edge Functions.
+- Add protected administration screens for profile, invitation, role, hierarchy, project, and evaluation-date management.
+- Implement project and time-bound evaluation cycle management.
+- Implement scoped authorization policies before sensitive evaluation workflows.
+
 ## 2026-07-19 - Organization Hierarchy And Demo Fixture Foundation
 
 ### Objective

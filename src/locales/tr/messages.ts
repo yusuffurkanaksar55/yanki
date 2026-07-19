@@ -8,7 +8,8 @@ export const tr = {
     dashboard: "Kontrol paneli",
     cycles: "Süreçler",
     projects: "Projeler",
-    reports: "Raporlar"
+    reports: "Raporlar",
+    administration: "Yönetim"
   },
   dashboard: {
     eyebrow: "Hazırlık görünümü",
@@ -71,6 +72,51 @@ export const tr = {
       signedInAs: "Oturum",
       signOut: "Çıkış yap",
       signingOut: "Çıkış yapılıyor"
+    },
+    workspace: {
+      sectionLabel: "Çalışma bağlamı",
+      title: "Çalışma bağlamı",
+      description:
+        "Bu oturum için tanımlı rol, organizasyon ve yönetici bilgileri.",
+      labels: {
+        roles: "Roller",
+        memberships: "Birimler",
+        managers: "Yöneticiler"
+      },
+      empty: {
+        roles: "Rol ataması yok.",
+        memberships: "Birim üyeliği yok.",
+        managers: "Yönetici ataması yok.",
+        managerName: "Tanımlı yönetici"
+      },
+      roleLabels: {
+        SYSTEM_ADMIN: "Sistem yöneticisi",
+        EMPLOYEE: "Çalışan",
+        TEAM_LEADER: "Takım lideri",
+        PROJECT_MANAGER: "Proje müdürü",
+        C_LEVEL_REVIEWER: "C-Level gözlemci",
+        BOARD_REVIEWER: "Yönetim kurulu gözlemcisi"
+      },
+      scopeLabels: {
+        PLATFORM: "Platform",
+        ORGANIZATION: "Organizasyon",
+        DEPARTMENT: "Departman",
+        UNIT: "Birim",
+        TEAM: "Takım",
+        PROJECT: "Proje",
+        EVALUATION_CYCLE: "Değerlendirme süreci"
+      },
+      unitTypeLabels: {
+        DEPARTMENT: "Departman",
+        UNIT: "Birim",
+        TEAM: "Takım",
+        CUSTOM: "Özel yapı"
+      }
+    },
+    administration: {
+      title: "Yönetim görünümü",
+      description:
+        "Bu hesapta yönetim rolü var. Organizasyon, davet, proje ve değerlendirme süresi ayarları ayrı yönetim akışında ilerleyecek."
     }
   },
   auth: {
@@ -158,6 +204,17 @@ export const tr = {
       PROFILE_READ_FAILED:
         "Profil bilgisi okunurken bir hata oluştu. Lütfen daha sonra tekrar dene.",
       genericError: "Beklenmeyen bir profil hatası oluştu."
+    }
+  },
+  workspace: {
+    loading: "Çalışma bağlamı kontrol ediliyor.",
+    blocked: {
+      title: "Çalışma bağlamı okunamadı"
+    },
+    feedback: {
+      WORKSPACE_CONTEXT_READ_FAILED:
+        "Rol ve organizasyon bilgileri okunurken bir hata oluştu.",
+      genericError: "Beklenmeyen bir çalışma bağlamı hatası oluştu."
     }
   }
 } as const;

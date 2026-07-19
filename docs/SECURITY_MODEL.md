@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the intended security model. The repository currently contains Supabase default-deny RLS foundation tables, a typed Supabase Auth client foundation, profile/invitation onboarding foundation, and organization hierarchy foundation, but no production evaluation submission, encryption, reporting, or scoped authorization runtime.
+This document describes the intended security model. The repository currently contains Supabase default-deny RLS foundation tables, a typed Supabase Auth client foundation, profile/invitation onboarding foundation, organization hierarchy foundation, and authenticated workspace context RPC, but no production evaluation submission, encryption, reporting, or scoped authorization runtime.
 
 ## Security Objectives
 
@@ -72,6 +72,8 @@ The current auth client supports email/password sign-in, password reset request,
 Invitation records store only hashed invitation secrets and remain inaccessible to frontend clients. Raw invitation secrets must never be stored in the database, browser, logs, Git, documentation, or generated UI.
 
 Organization hierarchy records are identity-domain metadata and remain inaccessible to frontend clients until trusted administrative authorization is implemented. Demo fixture credentials must be generated at runtime and must not be committed.
+
+The workspace context RPC returns only the authenticated user's own non-sensitive profile, role, membership, and manager context. It must not return evaluation submissions, scores, comments, lessons learned payloads, anonymous credentials, decrypted content, or evaluator-to-response relationships.
 
 ## Anonymity Threshold
 

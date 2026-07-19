@@ -27,6 +27,11 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 - System administrators cannot view evaluation content.
 - No reviewer may identify the evaluator.
 - Evaluation content must not be readable directly from the database.
+- There may be multiple system administrators, C-Level reviewers, project managers, team leaders, and reviewers.
+- Administration may use a separate page or management interface from the employee dashboard.
+- Evaluation workflows may be opened without a fixed participant count requirement.
+- Evaluation workflows are time-bound and may have configurable close dates.
+- Administrators, or project managers delegated by administrators, may set project completion dates and evaluation close dates.
 - The website interface is Turkish.
 - Source code and technical artifacts are English.
 - Development history, errors, decisions, and tests are preserved in the repository.
@@ -41,6 +46,8 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 - `BOARD_REVIEWER`
 
 Users may hold multiple roles. Roles must be scoped to organization, department, unit, team, project, or another explicit authorization boundary.
+
+No role is a singleton. A tenant may have multiple users with the same role when explicitly assigned.
 
 ## Evaluation Modes
 

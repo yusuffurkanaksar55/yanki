@@ -1,6 +1,11 @@
 import { tr } from "../../locales/tr/messages";
+import type {
+  WorkspaceContext,
+  WorkspaceMembership,
+  WorkspaceRole
+} from "../workspace/workspaceContextService";
 
-const navigationItems = [
+const baseNavigationItems = [
   tr.navigation.dashboard,
   tr.navigation.cycles,
   tr.navigation.projects,
@@ -54,14 +59,21 @@ type DashboardPageProps = {
   readonly userEmail?: string | null;
   readonly isSigningOut?: boolean;
   readonly onSignOut?: () => Promise<void>;
+  readonly workspaceContext?: WorkspaceContext | null;
 };
 
 export function DashboardPage({
   profileDisplayName,
   userEmail,
   isSigningOut = false,
-  onSignOut
+  onSignOut,
+  workspaceContext
 }: DashboardPageProps) {
+  const navigationItems = getNavigationItems(workspaceContext);
+  const hasAdministrationRole = hasAnyAdministrationRole(
+    workspaceContext?.roles ?? []
+  );
+
   return (
     <div className="min-h-screen bg-mist text-ink">
       <header className="border-b border-slate-200 bg-white">
@@ -147,6 +159,13 @@ export function DashboardPage({
           </div>
         </section>
 
+        {workspaceContext ? (
+          <WorkspaceContextSection
+            hasAdministrationRole={hasAdministrationRole}
+            workspaceContext={workspaceContext}
+          />
+        ) : null}
+
         <section
           aria-label={tr.dashboard.metricsSectionLabel}
           className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
@@ -217,5 +236,171 @@ export function DashboardPage({
         </div>
       </main>
     </div>
+  );
+}
+
+function WorkspaceContextSection({
+  hasAdministrationRole,
+  workspaceContext
+}: {
+  readonly hasAdministrationRole: boolean;
+  readonly workspaceContext: WorkspaceContext;
+}) {
+  const primaryMembership =
+    workspaceContext.memberships.find((membership) => membership.isPrimary) ??
+    workspaceContext.memberships[0];
+
+  return (
+    <section
+      aria-label={tr.dashboard.workspace.sectionLabel}
+      className="mt-8 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]"
+    >
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">
+              {tr.dashboard.workspace.title}
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              {tr.dashboard.workspace.description}
+            </p>
+          </div>
+          {primaryMembership ? (
+            <span className="inline-flex w-fit rounded-md bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+              {formatUnitType(primaryMembership.unitType)}
+            </span>
+          ) : null}
+        </div>
+
+        <dl className="mt-5 grid gap-4 sm:grid-cols-3">
+          <ContextList
+            emptyText={tr.dashboard.workspace.empty.roles}
+            items={workspaceContext.roles.map(formatRole)}
+            label={tr.dashboard.workspace.labels.roles}
+          />
+          <ContextList
+            emptyText={tr.dashboard.workspace.empty.memberships}
+            items={workspaceContext.memberships.map(formatMembership)}
+            label={tr.dashboard.workspace.labels.memberships}
+          />
+          <ContextList
+            emptyText={tr.dashboard.workspace.empty.managers}
+            items={workspaceContext.managers.map(formatManager)}
+            label={tr.dashboard.workspace.labels.managers}
+          />
+        </dl>
+      </div>
+
+      {hasAdministrationRole ? (
+        <section className="rounded-lg border border-pine/20 bg-emerald-50 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-emerald-950">
+            {tr.dashboard.administration.title}
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-emerald-950">
+            {tr.dashboard.administration.description}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {workspaceContext.roles
+              .filter((role) => isAdministrationRole(role.roleCode))
+              .map((role) => (
+                <span
+                  className="rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-emerald-950 ring-1 ring-emerald-200"
+                  key={`${role.roleCode}-${role.scopeType}-${role.scopeId ?? "global"}`}
+                >
+                  {formatRole(role)}
+                </span>
+              ))}
+          </div>
+        </section>
+      ) : null}
+    </section>
+  );
+}
+
+function ContextList({
+  emptyText,
+  items,
+  label
+}: {
+  readonly emptyText: string;
+  readonly items: readonly string[];
+  readonly label: string;
+}) {
+  return (
+    <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+      <dt className="text-sm font-semibold text-slate-800">{label}</dt>
+      <dd className="mt-3">
+        {items.length > 0 ? (
+          <ul className="space-y-2">
+            {items.map((item) => (
+              <li className="text-sm leading-6 text-slate-700" key={item}>
+                {item}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm leading-6 text-slate-500">{emptyText}</p>
+        )}
+      </dd>
+    </div>
+  );
+}
+
+function getNavigationItems(
+  workspaceContext: WorkspaceContext | null | undefined
+): readonly string[] {
+  if (hasAnyAdministrationRole(workspaceContext?.roles ?? [])) {
+    return [...baseNavigationItems, tr.navigation.administration];
+  }
+
+  return baseNavigationItems;
+}
+
+function hasAnyAdministrationRole(roles: readonly WorkspaceRole[]): boolean {
+  return roles.some((role) => isAdministrationRole(role.roleCode));
+}
+
+function isAdministrationRole(roleCode: string): boolean {
+  return [
+    "SYSTEM_ADMIN",
+    "PROJECT_MANAGER",
+    "C_LEVEL_REVIEWER",
+    "BOARD_REVIEWER"
+  ].includes(roleCode);
+}
+
+function formatRole(role: WorkspaceRole): string {
+  const roleLabel =
+    tr.dashboard.workspace.roleLabels[
+      role.roleCode as keyof typeof tr.dashboard.workspace.roleLabels
+    ] ?? role.roleCode;
+  const scopeLabel =
+    tr.dashboard.workspace.scopeLabels[
+      role.scopeType as keyof typeof tr.dashboard.workspace.scopeLabels
+    ] ?? role.scopeType;
+
+  return `${roleLabel} / ${scopeLabel}`;
+}
+
+function formatMembership(membership: WorkspaceMembership): string {
+  return `${membership.organizationName} / ${membership.unitName}`;
+}
+
+function formatManager(manager: {
+  readonly managerDisplayName: string | null;
+  readonly managerEmail: string | null;
+}): string {
+  return (
+    manager.managerDisplayName ??
+    manager.managerEmail ??
+    tr.dashboard.workspace.empty.managerName
+  );
+}
+
+function formatUnitType(unitType: string): string {
+  return (
+    tr.dashboard.workspace.unitTypeLabels[
+      unitType as keyof typeof tr.dashboard.workspace.unitTypeLabels
+    ] ?? unitType
   );
 }

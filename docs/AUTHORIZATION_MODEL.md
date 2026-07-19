@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and has an initial default-deny Supabase foundation plus a narrow own-profile read policy and record-backed organization hierarchy foundation. Runtime evaluation policies and Edge Function authorization checks are not implemented yet.
+Authorization is documented and has an initial default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, and own-workspace context RPC. Runtime evaluation policies and Edge Function authorization checks are not implemented yet.
 
 ## Principles
 
@@ -16,7 +16,7 @@ Authorization is documented and has an initial default-deny Supabase foundation 
 
 The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`.
 
-RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `user_invitations`, roles, role assignments, audit events, and organization hierarchy tables remain default-deny to frontend clients.
+RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `get_my_workspace_context()` allows authenticated users to read only their own non-sensitive role, unit, and manager context. `user_invitations`, roles, role assignments, audit events, and organization hierarchy tables remain default-deny to frontend clients.
 
 `PLATFORM` is the only null-id global scope. `ORGANIZATION`, `DEPARTMENT`, `UNIT`, `TEAM`, `PROJECT`, and `EVALUATION_CYCLE` scopes must carry an explicit `scope_id`.
 
@@ -38,7 +38,7 @@ Can access authorized anonymous aggregate results for users in assigned scope af
 
 ### `PROJECT_MANAGER`
 
-Can manage assigned projects according to explicit scope. Can be evaluated. Cannot infer evaluator identities or view own results unless a separate approved reviewer role and scope explicitly permits it.
+Can manage assigned projects according to explicit scope. When delegated by an administrator, can configure project completion dates and evaluation close dates for assigned projects. Can be evaluated. Cannot infer evaluator identities or view own results unless a separate approved reviewer role and scope explicitly permits it.
 
 ### `C_LEVEL_REVIEWER`
 

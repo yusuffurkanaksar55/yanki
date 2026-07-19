@@ -2,7 +2,7 @@
 
 ## Status
 
-Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has initial default-deny security, profile/invitation onboarding, and organization hierarchy migrations. A typed Supabase Auth client and own-profile gate are implemented.
+Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has initial default-deny security, profile/invitation onboarding, organization hierarchy, and workspace context migrations. A typed Supabase Auth client, own-profile gate, and own-workspace context panel are implemented.
 
 ## Target System
 
@@ -85,6 +85,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Turkish messages: `src/locales/tr/messages.ts`
 - Authentication context and UI: `src/features/authentication/`
 - Profile onboarding gate and service: `src/features/profiles/`
+- Workspace context gate and service: `src/features/workspace/`
 - Typed Supabase client: `src/lib/supabase/client.ts`
 - Generated database types: `src/types/supabase.ts`
 - Global styles: `src/index.css`
@@ -98,12 +99,13 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Initial migration: `supabase/migrations/20260719132911_initial_security_foundation.sql`
 - Profile/invitation migration: `supabase/migrations/20260719171413_user_profile_invitation_foundation.sql`
 - Organization hierarchy migration: `supabase/migrations/20260719174459_organization_hierarchy_foundation.sql`
+- Workspace context RPC migration: `supabase/migrations/20260719181013_workspace_context_rpc.sql`
 - Setup notes: `docs/SUPABASE_SETUP.md`
 - Demo fixture notes: `docs/TEST_FIXTURES.md`
 - Demo fixture script: `scripts/create-demo-fixture.mjs`
 - Linked remote project ref: `daxaymcmtbmummrxdyjy`
 
-The initial migration creates `app_roles`, `scope_types`, `user_role_assignments`, and `audit_events`. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`, and adds `PLATFORM` as the global scope type. RLS is enabled on all public tables. `user_profiles` has one narrow authenticated self-read policy. Invitation and hierarchy administration tables have no client-facing policies and are reserved for trusted server-side flows.
+The initial migration creates `app_roles`, `scope_types`, `user_role_assignments`, and `audit_events`. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`, and adds `PLATFORM` as the global scope type. The workspace context migration creates `get_my_workspace_context()`. RLS is enabled on all public tables. `user_profiles` has one narrow authenticated self-read policy. Invitation and hierarchy administration tables have no client-facing policies and are reserved for trusted server-side flows.
 
 ## Current Authentication Scaffold
 
@@ -112,7 +114,10 @@ The initial migration creates `app_roles`, `scope_types`, `user_role_assignments
 - Auth provider and gate: `src/features/authentication/AuthProvider.tsx`, `src/features/authentication/AuthGate.tsx`
 - Turkish auth page: `src/features/authentication/AuthPage.tsx`
 - Own-profile service and gate: `src/features/profiles/profileService.ts`, `src/features/profiles/ProfileGate.tsx`
+- Own-workspace context service and gate: `src/features/workspace/workspaceContextService.ts`, `src/features/workspace/WorkspaceContextGate.tsx`
 
 The auth service is injectable so unit and component tests do not call the network. Browser runtime uses only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
 
 The profile service is injectable and reads only the authenticated user's own profile row. A signed-in user without an active profile sees a Turkish invitation onboarding state instead of the dashboard.
+
+The workspace context service is injectable and reads only the authenticated user's own non-sensitive role, unit, and manager context through `get_my_workspace_context()`.

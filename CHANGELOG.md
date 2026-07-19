@@ -20,3 +20,4 @@ All notable changes to this project are documented in this file.
 - Added Supabase Auth client foundation with email/password sign-in, password reset request, local sign-out, environment validation, and tests.
 - Added user profile and invitation onboarding foundation with own-profile gating, hashed invitation records, generated database types, and tests.
 - Added configurable organization hierarchy foundation and service-role-only demo fixture script for synthetic test users.
+- Added authenticated own-workspace context RPC, workspace context dashboard panel, and admin-like management entry point.

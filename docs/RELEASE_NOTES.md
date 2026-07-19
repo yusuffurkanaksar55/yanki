@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2026-07-19 - Authenticated Workspace Context Foundation
+
+This is not a product release. Signed-in users can now see their own non-sensitive role, unit, and manager context on the dashboard through a narrow authenticated Supabase RPC. Admin-like roles also see a Turkish administration entry point.
+
+No production administration UI, project/evaluation-date management, sensitive evaluation submission, encryption, or reporting workflow is available yet.
+
 ## 2026-07-19 - Organization Hierarchy And Demo Fixture Foundation
 
 This is not a product release. The project now has configurable organization roots, organization units, memberships, manager assignments, explicit record-backed organization scopes, and a local service-role-only demo fixture script for the synthetic CEO/HR/team scenario.

@@ -8,6 +8,10 @@ import type {
   ProfileService,
   UserProfile
 } from "../features/profiles/profileService";
+import type {
+  WorkspaceContext,
+  WorkspaceContextService
+} from "../features/workspace/workspaceContextService";
 
 describe("App", () => {
   it("renders the Turkish dashboard shell after an authenticated session is available", async () => {
@@ -17,6 +21,9 @@ describe("App", () => {
       <App
         authService={createAuthServiceStub(createSessionStub())}
         profileService={profileService}
+        workspaceContextService={createWorkspaceContextServiceStub(
+          createWorkspaceContextStub()
+        )}
       />
     );
 
@@ -33,6 +40,12 @@ describe("App", () => {
     expect(screen.getByText(tr.dashboard.privacy.threshold)).toBeInTheDocument();
     expect(screen.getByText("person@example.com")).toBeInTheDocument();
     expect(screen.getByText("Person Example")).toBeInTheDocument();
+    expect(screen.getByText(tr.dashboard.workspace.title)).toBeInTheDocument();
+    expect(screen.getByText(/Product Team/)).toBeInTheDocument();
+    expect(screen.getByText("Demo CEO")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: tr.navigation.administration })
+    ).toBeInTheDocument();
   });
 
   it("shows invitation onboarding when an authenticated user has no profile yet", async () => {
@@ -67,6 +80,50 @@ function createAuthServiceStub(session: Session | null): AuthService {
     signInWithPassword: vi.fn(async () => undefined),
     requestPasswordReset: vi.fn(async () => undefined),
     signOut: vi.fn(async () => undefined)
+  };
+}
+
+function createWorkspaceContextServiceStub(
+  workspaceContext: WorkspaceContext
+): WorkspaceContextService {
+  return {
+    getMyWorkspaceContext: vi.fn(async () => workspaceContext)
+  };
+}
+
+function createWorkspaceContextStub(): WorkspaceContext {
+  return {
+    roles: [
+      {
+        roleCode: "TEAM_LEADER",
+        scopeType: "TEAM",
+        scopeId: "team-id"
+      },
+      {
+        roleCode: "PROJECT_MANAGER",
+        scopeType: "PROJECT",
+        scopeId: "project-id"
+      }
+    ],
+    memberships: [
+      {
+        organizationId: "organization-id",
+        organizationName: "Yanki Demo Organization",
+        unitId: "team-id",
+        unitName: "Product Team",
+        unitType: "TEAM",
+        membershipKind: "LEADER",
+        isPrimary: true
+      }
+    ],
+    managers: [
+      {
+        managerUserId: "ceo-id",
+        managerDisplayName: "Demo CEO",
+        managerEmail: "ceo@example.com",
+        relationshipType: "DIRECT_MANAGER"
+      }
+    ]
   };
 }
 

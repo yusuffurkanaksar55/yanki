@@ -1,5 +1,68 @@
 # Test Report
 
+## 2026-07-19 - Authenticated Workspace Context Foundation
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- npm: 11.9.0
+- Supabase CLI: 2.109.1
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+
+### Commands executed
+
+- `npm test`
+- `npm run lint`
+- `npm run typecheck`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+- `npx supabase db push --yes`
+- `npx supabase gen types typescript --linked`
+- `npx supabase migration list`
+- `npm run check`
+
+### Passed
+
+- Final `npm test` passed with 8 test files and 33 tests.
+- `npm run lint` passed.
+- `npm run typecheck` passed after regenerating Supabase database types.
+- Initial `npx supabase db push --dry-run` showed only `20260719181013_workspace_context_rpc.sql` would be applied.
+- `npx supabase db lint --linked` found no schema errors before and after applying the migration.
+- `npx supabase db push --yes` applied `20260719181013_workspace_context_rpc.sql` to the linked remote project.
+- Linked Supabase database types were regenerated and include `get_my_workspace_context`.
+- `npx supabase migration list` showed local and remote timestamps `20260719132911`, `20260719171413`, `20260719174459`, and `20260719181013`.
+- Final `npx supabase db push --dry-run` reported the remote database is up to date.
+- `npm run check` passed lint, typecheck, Vitest with 8 test files and 33 tests, and production build.
+
+### Failed
+
+- The first `npm test` run failed because a component assertion expected exact `Product Team` text while the rendered section also included adjacent role and manager text; the assertion was narrowed before the final passing run.
+- `npx supabase db push --yes` applied the migration successfully but emitted the known Docker migration-catalog cache warning.
+
+### Skipped
+
+- Local `supabase db reset` and local DB lint were skipped because the local Supabase Docker stack remains unverified in this shell.
+- Playwright end-to-end tests skipped because Playwright is not installed and full invitation redemption/browser workflow coverage has not been added yet.
+
+### Manual tests
+
+- Verified generated `src/types/supabase.ts` contains `get_my_workspace_context`.
+- Verified Supabase remote migration list contains all local migration timestamps.
+- The user confirmed that a synthetic fixture account could sign in before this workspace-context phase.
+
+### Security checks
+
+- Verified the workspace context RPC is `security definer`, has `set search_path = public`, filters profile, roles, memberships, and manager relationships by `auth.uid()`, and grants execute only to authenticated users.
+- Verified the RPC migration does not introduce score, comment, submission, evaluator, or plaintext evaluation-content fields.
+- Verified frontend tests inject the workspace context service and do not call the network.
+
+### Remaining risks
+
+- Administration screens and sensitive management actions are not implemented yet.
+- Project completion dates and evaluation close dates are documented but not implemented in schema or UI yet.
+- Sensitive evaluation workflows, anonymous credentials, encrypted submissions, and reporting remain unimplemented.
+
 ## 2026-07-19 - Organization Hierarchy And Demo Fixture Foundation
 
 ### Environment

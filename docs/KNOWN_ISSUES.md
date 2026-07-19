@@ -8,7 +8,7 @@ High
 
 ### Description
 
-The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, profile/invitation onboarding foundation, and organization hierarchy foundation. Scoped evaluation authorization policies, anonymous credentials, encrypted submissions, and reporting are not implemented yet.
+The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, profile/invitation onboarding foundation, organization hierarchy foundation, and authenticated own-workspace context RPC. Scoped evaluation authorization policies, anonymous credentials, encrypted submissions, and reporting are not implemented yet.
 
 ### Impact
 
@@ -20,11 +20,37 @@ Use the application scaffold only for frontend foundation work. Do not treat the
 
 ### Planned resolution
 
-Run synthetic fixture setup with service-role credentials, then implement invitation creation/redemption Edge Functions, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
+Implement invitation creation/redemption Edge Functions, protected administration screens, project/evaluation-date management, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
 
 ### Related tests
 
-`tests/project-memory.test.mjs`, `src/app/App.test.tsx`
+`tests/project-memory.test.mjs`, `src/app/App.test.tsx`, `src/features/workspace/WorkspaceContextGate.test.tsx`
+
+## ISSUE-005 - Administration and evaluation-cycle management are not implemented
+
+### Severity
+
+High
+
+### Description
+
+The product requires multiple administrators, CEOs/C-Level users, project managers, and team leaders, plus management flows for project completion dates and evaluation close dates. The dashboard now has a Turkish administration entry point for admin-like roles, but there are no protected administration pages or server-side management actions yet.
+
+### Impact
+
+Admins and delegated project managers cannot yet create or manage projects, invitations, role assignments, hierarchy records, project completion dates, or evaluation close dates through the application.
+
+### Workaround
+
+Use the current synthetic fixture only for login and workspace-context verification. Do not manage production organization or evaluation data manually from the browser.
+
+### Planned resolution
+
+Build trusted Edge Functions and protected administration screens for invitation, profile, role, hierarchy, project, and time-bound evaluation-cycle management.
+
+### Related tests
+
+`tests/supabase-foundation.test.mjs`, `src/app/App.test.tsx`
 
 ## ISSUE-002 - Git repository is not initialized in the workspace
 
