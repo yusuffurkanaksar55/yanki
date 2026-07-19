@@ -1,5 +1,71 @@
 # Test Report
 
+## 2026-07-19 - Supabase Auth Typed Client Foundation
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- npm: 11.9.0
+- Supabase CLI: 2.109.1
+- Supabase JS: installed from npm as `@supabase/supabase-js`
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+
+### Commands executed
+
+- `npm install @supabase/supabase-js`
+- `npx supabase gen types typescript --linked`
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run build`
+- `npm run check`
+- `npm run supabase:lint:linked`
+- `npm run supabase:migrations`
+- `npm run supabase:push:dry-run`
+- Docker binary check at `C:\Program Files\Docker\Docker\resources\bin\docker.exe`
+
+### Passed
+
+- `@supabase/supabase-js` installed with npm audit reporting 0 vulnerabilities.
+- Linked Supabase database types were generated.
+- `npm run lint` passed.
+- `npm run typecheck` passed.
+- `npm test` passed with 5 test files and 15 tests.
+- `npm run build` passed.
+- `npm run check` passed.
+- `npm run supabase:lint:linked` found no schema errors.
+- `npm run supabase:migrations` showed local and remote migration `20260719132911`.
+- `npm run supabase:push:dry-run` reported the remote database is up to date.
+
+### Failed
+
+- Initial `npm install @supabase/supabase-js` failed inside the sandbox with an `EACCES` registry/cache error; rerun with approved escalation succeeded.
+- Initial linked type generation inside the sandbox hit Supabase telemetry write permission issues; rerun with approved escalation produced a clean generated file.
+- Initial typecheck failed after splitting auth context because `SignInCredentials` import was missing; fixed.
+- Initial auth page tests failed because DOM cleanup was not configured; fixed in `vitest.setup.ts`.
+
+### Skipped
+
+- Local `supabase db reset` and local DB lint were skipped because Docker is installed but not available on PATH in this shell, and Docker config access emitted a user-profile permission warning.
+- Playwright end-to-end tests skipped because Playwright is not installed and auth flows are not yet covered by browser automation.
+
+### Manual tests
+
+- Verified Docker binary exists at the default Docker Desktop path.
+- Verified linked Supabase remote state through migration list and dry-run.
+
+### Security checks
+
+- Verified auth UI tests do not call the network.
+- Verified browser client uses only public Supabase URL and anon key values.
+- Verified no service-role key, database URL, encryption key, evaluation content, or anonymous credential value was added.
+
+### Remaining risks
+
+- UI auth gate is not a sensitive authorization boundary.
+- Invitation onboarding, Microsoft Entra ID, scoped RLS policies, Edge Functions, encrypted submission flow, and anonymous credential flow remain unimplemented.
+
 ## 2026-07-19 - Supabase And GitHub Project Connection
 
 ### Environment

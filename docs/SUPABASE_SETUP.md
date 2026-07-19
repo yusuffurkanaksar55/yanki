@@ -15,6 +15,7 @@ npx supabase --version
 npx supabase init
 npx supabase login
 npx supabase link --project-ref daxaymcmtbmummrxdyjy
+npx supabase gen types typescript --linked > src/types/supabase.ts
 ```
 
 Do not commit access tokens, database passwords, service-role keys, encryption keys, or OAuth secrets.
@@ -47,6 +48,17 @@ Use `db push --dry-run` before remote changes. Never run destructive linked rese
 ## Security Baseline
 
 The initial migration creates only foundational authorization and safe audit metadata tables. It intentionally does not create evaluation submission content tables yet.
+
+## Auth Dashboard Settings
+
+For local Vite development, configure Supabase Auth with:
+
+- Site URL: `http://127.0.0.1:5173`
+- Additional redirect URLs:
+  - `http://127.0.0.1:5173`
+  - `http://localhost:5173`
+
+The current frontend auth client uses email/password sign-in and password reset request. Microsoft Entra ID and invitation onboarding are planned future phases.
 
 Current baseline rules:
 

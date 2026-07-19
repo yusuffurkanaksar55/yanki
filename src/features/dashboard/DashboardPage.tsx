@@ -49,7 +49,17 @@ const readinessItems = [
   }
 ] as const;
 
-export function DashboardPage() {
+type DashboardPageProps = {
+  readonly userEmail?: string | null;
+  readonly isSigningOut?: boolean;
+  readonly onSignOut?: () => Promise<void>;
+};
+
+export function DashboardPage({
+  userEmail,
+  isSigningOut = false,
+  onSignOut
+}: DashboardPageProps) {
   return (
     <div className="min-h-screen bg-mist text-ink">
       <header className="border-b border-slate-200 bg-white">
@@ -60,21 +70,47 @@ export function DashboardPage() {
             </p>
             <p className="mt-1 text-xl font-semibold">{tr.app.name}</p>
           </div>
-          <nav
-            aria-label={tr.navigation.primaryAriaLabel}
-            className="flex flex-wrap gap-2"
-          >
-            {navigationItems.map((item, index) => (
-              <a
-                aria-current={index === 0 ? "page" : undefined}
-                className="rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2"
-                href="#content"
-                key={item}
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
+          <div className="flex flex-col gap-3 md:items-end">
+            <nav
+              aria-label={tr.navigation.primaryAriaLabel}
+              className="flex flex-wrap gap-2"
+            >
+              {navigationItems.map((item, index) => (
+                <a
+                  aria-current={index === 0 ? "page" : undefined}
+                  className="rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2"
+                  href="#content"
+                  key={item}
+                >
+                  {item}
+                </a>
+              ))}
+            </nav>
+            {onSignOut ? (
+              <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+                {userEmail ? (
+                  <span>
+                    {tr.dashboard.session.signedInAs}{" "}
+                    <strong className="font-semibold text-slate-800">
+                      {userEmail}
+                    </strong>
+                  </span>
+                ) : null}
+                <button
+                  className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:text-slate-400"
+                  disabled={isSigningOut}
+                  onClick={() => {
+                    void onSignOut();
+                  }}
+                  type="button"
+                >
+                  {isSigningOut
+                    ? tr.dashboard.session.signingOut
+                    : tr.dashboard.session.signOut}
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       </header>
 

@@ -11,7 +11,7 @@ The repository currently contains the documentation foundation and a React, Type
 ## Current Implementation Status
 
 - Application UI: initial Turkish dashboard shell implemented.
-- Authentication: not implemented.
+- Authentication: typed Supabase Auth client foundation implemented for email/password sign-in, password reset request, local-session sign-out, and session-state gating.
 - Supabase schema: initial default-deny security foundation migration applied.
 - Edge Functions: not implemented.
 - Anonymous credential flow: documented, not implemented.
@@ -41,11 +41,11 @@ The repository currently contains the documentation foundation and a React, Type
 
 ## Current Database Structure
 
-No database migrations exist yet. The conceptual data model is documented in `docs/DATA_MODEL.md`.
+The initial Supabase migration creates `app_roles`, `scope_types`, `user_role_assignments`, and `audit_events` with RLS enabled and no client-facing policies. The conceptual complete data model is documented in `docs/DATA_MODEL.md`.
 
 ## Current Authentication Model
 
-Authentication is not implemented. The intended model is Supabase Auth with email/password, invitation-based onboarding, password reset, and Microsoft Entra ID support with tenant restrictions where required.
+The frontend uses Supabase Auth through an injectable typed service boundary. Implemented client flows include email/password sign-in, password reset request, local-session sign-out, and session-state observation. Invitation-based onboarding, Microsoft Entra ID, tenant restrictions, and server-side authorization checks are not implemented yet.
 
 ## Current Authorization Model
 
@@ -54,9 +54,9 @@ Authorization is not implemented. The intended model is scoped role-based access
 ## Known Limitations
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
-- Runtime security controls are not implemented.
-- No generated database types or Edge Functions exist yet.
-- No real authentication, authorization, encryption, or anonymity controls are implemented yet.
+- Runtime authorization, encryption, anonymous credential, and reporting controls are not implemented.
+- No Edge Functions exist yet.
+- No invitation onboarding, Microsoft Entra ID, scoped RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
 
 ## Recent Major Changes
 
@@ -64,12 +64,12 @@ Authorization is not implemented. The intended model is scoped role-based access
 - 2026-07-16: Scaffolded the React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library application foundation.
 - 2026-07-19: Linked Supabase project `daxaymcmtbmummrxdyjy` and applied the initial default-deny security foundation migration.
 - 2026-07-19: Initialized Git, connected GitHub remote `yusuffurkanaksar55/yanki`, and pushed `main`.
+- 2026-07-19: Added typed Supabase Auth client foundation and generated database types.
 
 ## Current Development Priorities
 
 1. Initialize version control if it is not already managed outside this workspace.
-2. Generate database types from the linked Supabase project.
-3. Implement authentication and invitation onboarding.
-4. Implement scoped authorization policies and Edge Functions before sensitive evaluation workflows.
-5. Implement anonymous credentials and encrypted submissions before reporting.
-6. Add Playwright end-to-end tests after real navigation and authentication flows exist.
+2. Implement invitation onboarding and user profile bootstrap.
+3. Implement scoped authorization policies and Edge Functions before sensitive evaluation workflows.
+4. Implement anonymous credentials and encrypted submissions before reporting.
+5. Add Playwright end-to-end tests after real navigation and authentication flows exist.

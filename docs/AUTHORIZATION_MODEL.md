@@ -16,6 +16,8 @@ Authorization is documented and has an initial default-deny Supabase foundation.
 
 The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. RLS is enabled without client-facing policies, so frontend access remains default-deny until explicit policies are added.
 
+The current frontend auth gate only controls UI visibility. It is not a sensitive authorization boundary.
+
 ## Roles
 
 ### `SYSTEM_ADMIN`

@@ -1,5 +1,67 @@
 # Development Log
 
+## 2026-07-19 - Supabase Auth Typed Client Foundation
+
+### Objective
+
+Implement the first safe Supabase Auth frontend foundation with generated database types, runtime public environment validation, typed Supabase client creation, injectable auth service, Turkish auth UI, and focused tests.
+
+### Changes
+
+- Installed `@supabase/supabase-js`.
+- Generated linked Supabase database types into `src/types/supabase.ts`.
+- Added runtime public environment validation.
+- Added lazy typed browser Supabase client.
+- Added injectable Supabase Auth service boundary.
+- Added auth provider, auth gate, sign-in UI, password reset request UI, and local-session sign-out integration.
+- Added unit and component tests for environment validation, sign-in form behavior, password reset request, authenticated dashboard gating, and unauthenticated auth page rendering.
+- Added ADR-0005 for the typed Supabase Auth client foundation.
+
+### Files affected
+
+- `package.json`
+- `package-lock.json`
+- `vitest.setup.ts`
+- `src/config/*`
+- `src/lib/supabase/*`
+- `src/types/supabase.ts`
+- `src/features/authentication/*`
+- `src/features/dashboard/DashboardPage.tsx`
+- `src/app/*`
+- `src/locales/tr/messages.ts`
+- `docs/*`
+- `docs/decisions/ADR-0005-use-typed-supabase-auth-client.md`
+
+### Database changes
+
+None.
+
+### Security impact
+
+Positive frontend foundation impact. The browser client uses only public Supabase URL and anon key values. No service-role key, database password, encryption key, evaluation content, anonymous credential, or privileged authorization rule was added to the frontend.
+
+### Tests performed
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run build`
+- `npm run check`
+- `npm run supabase:lint:linked`
+- `npm run supabase:migrations`
+- `npm run supabase:push:dry-run`
+
+### Result
+
+Auth client foundation was implemented. Application checks passed with 5 test files and 15 tests. Linked Supabase lint passed and the remote database was up to date.
+
+### Remaining work
+
+- Implement invitation onboarding and user profile bootstrap.
+- Implement Microsoft Entra ID provider support.
+- Design explicit scoped RLS policies and Edge Functions.
+- Add Playwright end-to-end auth tests after stable browser automation setup.
+
 ## 2026-07-19 - Supabase And GitHub Project Connection
 
 ### Objective

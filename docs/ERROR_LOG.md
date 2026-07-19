@@ -1,5 +1,110 @@
 # Error Log
 
+## ERR-20260719-006 - Supabase JS install failed inside sandbox
+
+### Context
+
+`@supabase/supabase-js` was added for the typed browser Auth client foundation.
+
+### Symptoms
+
+`npm install @supabase/supabase-js` failed with an `EACCES` fetch/cache error.
+
+### Root cause
+
+The sandboxed command could not complete npm registry/cache access.
+
+### Incorrect approach
+
+Assuming dependency installation would succeed inside the restricted sandbox.
+
+### Correct solution
+
+Rerun the install command with approved escalation.
+
+### Prevention
+
+When npm registry access fails with sandbox-like network/cache errors, rerun with explicit escalation and record the result.
+
+### Related files
+
+- `package.json`
+- `package-lock.json`
+
+### Related tests
+
+- `npm run check`
+
+## ERR-20260719-007 - Generated Supabase types were attempted without telemetry write permission
+
+### Context
+
+Linked Supabase database types were generated with `npx supabase gen types typescript --linked`.
+
+### Symptoms
+
+The first sandboxed command emitted Supabase telemetry write errors for `C:\Users\Yusuf_Furkan\.supabase\telemetry.json.tmp...`.
+
+### Root cause
+
+The Supabase CLI writes telemetry/cache files under the user profile, which the sandbox cannot write.
+
+### Incorrect approach
+
+Capturing generated CLI output inside the sandbox without first accounting for telemetry write failures.
+
+### Correct solution
+
+Rerun type generation with approved escalation and overwrite `src/types/supabase.ts` with clean CLI output.
+
+### Prevention
+
+Run Supabase CLI generation commands with approved escalation in this environment, or run them from a normal terminal.
+
+### Related files
+
+- `src/types/supabase.ts`
+
+### Related tests
+
+- `npm run typecheck`
+- `npm test`
+
+## ERR-20260719-008 - Auth tests retained DOM between cases
+
+### Context
+
+React Testing Library tests were added for the authentication page.
+
+### Symptoms
+
+Tests found multiple inputs with the same label after prior test renders remained in the document.
+
+### Root cause
+
+Automatic cleanup was not configured for Vitest.
+
+### Incorrect approach
+
+Assuming React Testing Library cleanup was automatic in the current Vitest setup.
+
+### Correct solution
+
+Add `afterEach(cleanup)` in `vitest.setup.ts`.
+
+### Prevention
+
+Keep cleanup in the global Vitest setup file and prefer isolated render helpers in component tests.
+
+### Related files
+
+- `vitest.setup.ts`
+- `src/features/authentication/AuthPage.test.tsx`
+
+### Related tests
+
+- `npm test`
+
 ## ERR-20260719-001 - Supabase CLI install failed inside sandbox
 
 ### Context

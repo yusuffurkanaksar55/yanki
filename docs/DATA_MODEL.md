@@ -4,6 +4,8 @@
 
 An initial Supabase migration exists for the default-deny security foundation. The complete evaluation data model is still conceptual and must be implemented in future reviewed phases.
 
+Generated TypeScript database types are stored in `src/types/supabase.ts` and should be regenerated after schema changes.
+
 ## Core Entities
 
 Planned tables:

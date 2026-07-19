@@ -65,6 +65,69 @@ export const tr = {
     status: {
       documented: "Belgelendi",
       notStarted: "Başlamadı"
+    },
+    session: {
+      signedInAs: "Oturum",
+      signOut: "Çıkış yap",
+      signingOut: "Çıkış yapılıyor"
+    }
+  },
+  auth: {
+    loading: "Oturum durumu kontrol ediliyor.",
+    pageTitle: "Güvenli giriş",
+    pageSummary:
+      "Şirket hesabınla giriş yaparak yalnızca sana atanmış değerlendirme işlemlerine erişebilirsin.",
+    securityHighlights: [
+      {
+        title: "Yetkili erişim",
+        description:
+          "Hassas işlemler yalnızca doğrulanmış oturumla başlatılacak."
+      },
+      {
+        title: "Gizlilik sınırı",
+        description:
+          "Değerlendirme içerikleri frontend tarafında saklanmayacak."
+      }
+    ],
+    configuration: {
+      title: "Bağlantı ayarları eksik"
+    },
+    signIn: {
+      title: "Oturum aç",
+      description:
+        "Supabase Auth e-posta ve şifre girişinin ilk temel akışı."
+    },
+    form: {
+      emailLabel: "E-posta adresi",
+      passwordLabel: "Şifre",
+      signInButton: "Giriş yap",
+      submitting: "İşleniyor"
+    },
+    passwordReset: {
+      title: "Şifremi unuttum",
+      emailLabel: "Şifre sıfırlama e-postası",
+      submitButton: "Sıfırlama bağlantısı gönder"
+    },
+    validation: {
+      emailRequired: "E-posta adresi zorunludur.",
+      emailInvalid: "Geçerli bir e-posta adresi gir.",
+      passwordRequired: "Şifre zorunludur.",
+      passwordTooShort: "Şifre en az 6 karakter olmalıdır."
+    },
+    feedback: {
+      passwordResetRequested:
+        "Şifre sıfırlama bağlantısı e-posta adresine gönderildiyse kısa süre içinde ulaşacaktır.",
+      configurationError:
+        "Supabase bağlantı ayarları eksik veya hatalı. .env.local dosyasını kontrol et.",
+      AUTH_SESSION_READ_FAILED:
+        "Oturum bilgisi okunurken bir hata oluştu.",
+      AUTH_SIGN_IN_FAILED:
+        "E-posta veya şifre bilgileri doğrulanamadı.",
+      AUTH_PASSWORD_RESET_FAILED:
+        "Şifre sıfırlama bağlantısı gönderilemedi.",
+      AUTH_SIGN_OUT_FAILED:
+        "Çıkış yapılırken bir hata oluştu.",
+      genericError: "Beklenmeyen bir hata oluştu."
     }
   }
 } as const;

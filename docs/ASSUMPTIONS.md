@@ -25,3 +25,6 @@
 - Docker Desktop is required before local Supabase stack commands can run.
 - GitHub repository target is `yusuffurkanaksar55/yanki`.
 - GitHub remote `origin` is configured as `https://github.com/yusuffurkanaksar55/yanki.git`.
+- Supabase Auth Email provider is enabled in the dashboard.
+- Supabase Auth Site URL is configured as `http://127.0.0.1:5173`.
+- Supabase Auth redirect URLs include `http://127.0.0.1:5173` and `http://localhost:5173`.

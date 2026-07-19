@@ -16,3 +16,5 @@ All notable changes to this project are documented in this file.
 - Added package lock for installed application dependencies.
 - Added Supabase CLI project setup, frontend env examples, and initial default-deny security migration.
 - Applied initial Supabase migration to remote project `daxaymcmtbmummrxdyjy`.
+- Added typed Supabase generated database types.
+- Added Supabase Auth client foundation with email/password sign-in, password reset request, local sign-out, environment validation, and tests.

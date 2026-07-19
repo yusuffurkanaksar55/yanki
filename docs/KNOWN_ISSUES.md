@@ -1,6 +1,6 @@
 # Known Issues
 
-## ISSUE-001 - Runtime security flows are not implemented
+## ISSUE-001 - Runtime sensitive evaluation flows are not implemented
 
 ### Severity
 
@@ -8,11 +8,11 @@ High
 
 ### Description
 
-The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library scaffold. Supabase authentication, scoped authorization, RLS policies, anonymous credentials, encrypted submissions, and reporting are not implemented yet.
+The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, and default-deny Supabase schema foundation. Scoped authorization policies, anonymous credentials, encrypted submissions, and reporting are not implemented yet.
 
 ### Impact
 
-No production authentication, authorization, encryption, anonymity, reporting, or database protection is available yet.
+No production sensitive evaluation submission, authorization, encryption, anonymity, or reporting workflow is available yet.
 
 ### Workaround
 
@@ -20,7 +20,7 @@ Use the application scaffold only for frontend foundation work. Do not treat the
 
 ### Planned resolution
 
-Create the Supabase structure, then implement authentication, scoped authorization, RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
+Implement invitation onboarding, scoped authorization, explicit RLS policies, Edge Functions, anonymous credentials, and encrypted submission flows in separate reviewable phases.
 
 ### Related tests
 
@@ -78,7 +78,7 @@ Install GitHub CLI and authenticate with `gh auth login`.
 
 None.
 
-## ISSUE-004 - Local Supabase Docker stack is not running
+## ISSUE-004 - Local Supabase Docker stack is not verified
 
 ### Severity
 
@@ -86,19 +86,19 @@ Medium
 
 ### Description
 
-Local `supabase db lint` cannot connect because the local Supabase/Postgres stack is not running.
+Docker Desktop is installed, but `docker` is not available on PATH in the current shell. The default Docker binary path exists, but reading Docker config emitted a user-profile permission warning.
 
 ### Impact
 
-Local `supabase db reset`, local database linting, and local Studio workflows cannot be used yet.
+Local `supabase db reset`, local database linting, and local Studio workflows have not been verified yet.
 
 ### Workaround
 
-Use linked remote lint for now. Start Docker Desktop before local Supabase workflows.
+Use linked remote lint for now. Add Docker to PATH or run Docker-aware commands from a normal terminal.
 
 ### Planned resolution
 
-Install or start Docker Desktop, then run `npx supabase start`, `npx supabase db reset`, and `npx supabase db lint --local`.
+Verify Docker CLI access, then run `npx supabase start`, `npx supabase db reset`, and `npx supabase db lint --local`.
 
 ### Related tests
 

@@ -14,12 +14,14 @@
     "supabase:migrations": "npx supabase migration list",
     "supabase:lint:linked": "npx supabase db lint --linked",
     "supabase:push:dry-run": "npx supabase db push --dry-run",
+    "supabase:types": "npx supabase gen types typescript --linked > src/types/supabase.ts",
     "check": "npm run lint && npm run typecheck && npm test && npm run build"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.7",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

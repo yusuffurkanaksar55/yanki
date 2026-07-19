@@ -2,7 +2,7 @@
 
 ## Status
 
-Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has an initial default-deny security foundation migration.
+Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has an initial default-deny security foundation migration. A typed Supabase Auth client foundation is implemented.
 
 ## Target System
 
@@ -83,6 +83,9 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Root app: `src/app/App.tsx`
 - Dashboard feature: `src/features/dashboard/DashboardPage.tsx`
 - Turkish messages: `src/locales/tr/messages.ts`
+- Authentication context and UI: `src/features/authentication/`
+- Typed Supabase client: `src/lib/supabase/client.ts`
+- Generated database types: `src/types/supabase.ts`
 - Global styles: `src/index.css`
 - Vite and Vitest config: `vite.config.ts`
 - ESLint config: `eslint.config.js`
@@ -96,3 +99,12 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Linked remote project ref: `daxaymcmtbmummrxdyjy`
 
 The initial migration creates only `app_roles`, `scope_types`, `user_role_assignments`, and `audit_events`. RLS is enabled on all four tables with no client policies.
+
+## Current Authentication Scaffold
+
+- Public environment validation: `src/config/environment.ts`
+- Supabase auth service boundary: `src/features/authentication/authService.ts`
+- Auth provider and gate: `src/features/authentication/AuthProvider.tsx`, `src/features/authentication/AuthGate.tsx`
+- Turkish auth page: `src/features/authentication/AuthPage.tsx`
+
+The auth service is injectable so unit and component tests do not call the network. Browser runtime uses only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.

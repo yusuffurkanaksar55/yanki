@@ -48,6 +48,7 @@ npm run check
 npm run supabase:migrations
 npm run supabase:lint:linked
 npm run supabase:push:dry-run
+npm run supabase:types
 ```
 
 These commands currently validate the React application scaffold, documentation foundation, lint rules, type checking, unit/component tests, and production build.
@@ -57,6 +58,12 @@ These commands currently validate the React application scaffold, documentation 
 The remote Supabase project is linked to project ref `daxaymcmtbmummrxdyjy`. Public frontend environment examples are documented in `.env.example`; real local values belong in `.env.local`, which is ignored by Git.
 
 The initial migration creates a default-deny security foundation only. It does not create evaluation submission tables or store sensitive evaluation content.
+
+## Authentication
+
+The frontend includes a typed Supabase Auth client foundation with email/password sign-in, password reset request, local-session sign-out, runtime public environment validation, and React context-based session state.
+
+Only public Supabase values are used in the browser. Service-role keys, database URLs, and encryption keys must stay out of frontend code and Git.
 
 ## Documentation Map
 

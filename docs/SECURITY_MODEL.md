@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the intended security model. The repository currently contains an initial Supabase default-deny RLS foundation, but no production evaluation submission, encryption, reporting, or authorization runtime.
+This document describes the intended security model. The repository currently contains an initial Supabase default-deny RLS foundation and a typed Supabase Auth client foundation, but no production evaluation submission, encryption, reporting, or scoped authorization runtime.
 
 ## Security Objectives
 
@@ -62,6 +62,12 @@ Decryption is allowed only in trusted server-side reporting flows after:
 - Request schema validation
 
 Raw decrypted individual responses must not be returned to reviewers.
+
+## Browser Authentication Boundary
+
+The browser Supabase client uses only public project URL and anon key values. It must never receive service-role credentials, database passwords, encryption keys, decrypted payloads, anonymous credential values, or privileged authorization decisions.
+
+The current auth client supports email/password sign-in, password reset request, local-session sign-out, and session-state observation. This improves access gating in the UI, but sensitive authorization still must be enforced in Edge Functions and RLS.
 
 ## Anonymity Threshold
 

@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2026-07-19 - Supabase Auth Client Foundation
+
+This is not a product release. The frontend now has a typed Supabase Auth client foundation with email/password sign-in, password reset request, local-session sign-out, session-state gating, runtime public environment validation, and tests.
+
+No production invitation onboarding, Microsoft Entra ID, sensitive evaluation submission, encryption, or reporting workflow is available yet.
+
 ## 2026-07-19 - Supabase Security Foundation
 
 This is not a product release. The project is now linked to Supabase project `daxaymcmtbmummrxdyjy` and has an initial default-deny RLS security foundation migration.
