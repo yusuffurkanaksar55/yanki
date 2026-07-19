@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2026-07-19 - Admin Project Cycle Edge Function Foundation
+
+This is not a product release. The administration screen now has a project/evaluation-cycle management panel backed by a trusted `admin-project-cycles` Edge Function. The browser calls the function instead of reading or writing default-deny project tables directly.
+
+The function is deployed and rejects unauthenticated calls. It still needs authenticated live smoke testing with synthetic admin credentials before it is treated as a fully verified remote management path.
+
 ## 2026-07-19 - Administration And Project Cycle Foundation
 
 This is not a product release. The project now has a protected administration shell for admin-like roles, default-deny project and evaluation-cycle configuration tables, and a demo fixture that creates a synthetic project with a 2026-07-30 evaluation close date.

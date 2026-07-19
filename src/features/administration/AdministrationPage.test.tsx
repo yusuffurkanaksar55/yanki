@@ -1,18 +1,26 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { tr } from "../../locales/tr/messages";
+import type { ProjectCycleService } from "./projectCycleService";
 import type { WorkspaceContext } from "../workspace/workspaceContextService";
 import { AdministrationPage } from "./AdministrationPage";
 
 describe("AdministrationPage", () => {
   it("renders administration workflows for users with an administration role", () => {
-    render(<AdministrationPage workspaceContext={createAdminWorkspaceContext()} />);
+    render(
+      <AdministrationPage
+        projectCycleService={createProjectCycleServiceStub()}
+        workspaceContext={createAdminWorkspaceContext()}
+      />
+    );
 
     expect(
       screen.getByRole("heading", { name: tr.administration.title })
     ).toBeInTheDocument();
     expect(
-      screen.getByText(tr.administration.workflows[2].title)
+      screen.getByRole("heading", {
+        name: tr.administration.projects.form.title
+      })
     ).toBeInTheDocument();
     expect(
       screen.getByText(tr.administration.datePolicy.evaluationCloseLabel)
@@ -56,5 +64,12 @@ function createEmployeeWorkspaceContext(): WorkspaceContext {
     ],
     memberships: [],
     managers: []
+  };
+}
+
+function createProjectCycleServiceStub(): ProjectCycleService {
+  return {
+    createProjectCycle: vi.fn(),
+    listProjectCycles: vi.fn(async () => [])
   };
 }

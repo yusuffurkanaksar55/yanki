@@ -2,7 +2,7 @@
 
 ## Status
 
-Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has initial default-deny security, profile/invitation onboarding, organization hierarchy, workspace context, and project/evaluation-cycle migrations. A typed Supabase Auth client, own-profile gate, own-workspace context panel, and protected administration shell are implemented.
+Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has initial default-deny security, profile/invitation onboarding, organization hierarchy, workspace context, and project/evaluation-cycle migrations. A typed Supabase Auth client, own-profile gate, own-workspace context panel, protected administration shell, and admin project/cycle Edge Function foundation are implemented.
 
 ## Target System
 
@@ -83,6 +83,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Root app: `src/app/App.tsx`
 - Dashboard feature: `src/features/dashboard/DashboardPage.tsx`
 - Administration feature: `src/features/administration/AdministrationPage.tsx`
+- Administration project/cycle service and panel: `src/features/administration/projectCycleService.ts`, `src/features/administration/ProjectCycleManagementPanel.tsx`
 - Turkish messages: `src/locales/tr/messages.ts`
 - Authentication context and UI: `src/features/authentication/`
 - Profile onboarding gate and service: `src/features/profiles/`
@@ -97,6 +98,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 
 - CLI config: `supabase/config.toml`
 - Seed file: `supabase/seed.sql`
+- Admin project/cycle Edge Function: `supabase/functions/admin-project-cycles/index.ts`
 - Initial migration: `supabase/migrations/20260719132911_initial_security_foundation.sql`
 - Profile/invitation migration: `supabase/migrations/20260719171413_user_profile_invitation_foundation.sql`
 - Organization hierarchy migration: `supabase/migrations/20260719174459_organization_hierarchy_foundation.sql`
@@ -125,3 +127,5 @@ The profile service is injectable and reads only the authenticated user's own pr
 The workspace context service is injectable and reads only the authenticated user's own non-sensitive role, unit, and manager context through `get_my_workspace_context()`.
 
 The administration shell is reachable through `#administration` for admin-like workspace roles. It is a UI boundary only; production management writes must use future Edge Functions and RLS policies.
+
+The project/cycle management panel calls `admin-project-cycles` through Supabase Functions. It does not query `projects` or `evaluation_cycles` directly from the browser.

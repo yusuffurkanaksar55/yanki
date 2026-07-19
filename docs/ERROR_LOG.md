@@ -1,5 +1,41 @@
 # Error Log
 
+## ERR-20260719-013 - Supabase function deploy warned Docker is not running
+
+### Context
+
+The `admin-project-cycles` Edge Function was deployed to the linked Supabase project.
+
+### Symptoms
+
+`npx supabase functions deploy admin-project-cycles --no-verify-jwt` completed successfully but emitted `WARNING: Docker is not running`.
+
+### Root cause
+
+The Supabase CLI can deploy the function without local Docker in this path, but Docker-backed local build and function-serving workflows remain unavailable from this shell.
+
+### Incorrect approach
+
+Treating the Docker warning as a failed remote function deployment.
+
+### Correct solution
+
+Verify deployment with `npx supabase functions list` and run a live HTTP smoke test against the deployed function URL.
+
+### Prevention
+
+Continue separating remote deployment success from local Docker availability. Use Docker only after the local Supabase stack is verified.
+
+### Related files
+
+- `supabase/functions/admin-project-cycles/index.ts`
+
+### Related tests
+
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
+- `npx supabase functions list`
+- Unauthenticated live function smoke test with `Invoke-WebRequest`
+
 ## ERR-20260719-012 - Supabase migration catalog cache warning repeated for project cycle migration
 
 ### Context

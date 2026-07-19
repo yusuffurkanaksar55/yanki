@@ -8,7 +8,7 @@ High
 
 ### Description
 
-The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, profile/invitation onboarding foundation, organization hierarchy foundation, authenticated own-workspace context RPC, protected administration shell, and default-deny project/evaluation-cycle configuration foundation. Scoped evaluation authorization policies, anonymous credentials, encrypted submissions, and reporting are not implemented yet.
+The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, profile/invitation onboarding foundation, organization hierarchy foundation, authenticated own-workspace context RPC, protected administration shell, default-deny project/evaluation-cycle configuration foundation, and admin project/cycle Edge Function foundation. Scoped evaluation authorization policies, anonymous credentials, encrypted submissions, and reporting are not implemented yet.
 
 ### Impact
 
@@ -20,7 +20,7 @@ Use the application scaffold only for frontend foundation work. Do not treat the
 
 ### Planned resolution
 
-Implement invitation creation/redemption Edge Functions, production administration write actions, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
+Authenticated-smoke-test admin project/cycle management, then implement invitation creation/redemption Edge Functions, remaining production administration write actions, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
 
 ### Related tests
 
@@ -34,19 +34,19 @@ High
 
 ### Description
 
-The product requires multiple administrators, CEOs/C-Level users, project managers, and team leaders, plus management flows for project completion dates and evaluation close dates. The application now has a protected administration shell and default-deny project/evaluation-cycle configuration tables, but there are no trusted server-side management write actions yet.
+The product requires multiple administrators, CEOs/C-Level users, project managers, and team leaders, plus management flows for project completion dates and evaluation close dates. The application now has a protected administration shell, default-deny project/evaluation-cycle configuration tables, and first admin project/cycle Edge Function foundation, but not all trusted server-side management actions exist yet.
 
 ### Impact
 
-Admins and delegated project managers cannot yet persist invitations, role assignments, hierarchy changes, project updates, project completion dates, or evaluation close dates through production application actions.
+Admins and delegated project managers cannot yet persist invitations, role assignments, hierarchy changes, member assignments, delegated project-manager date updates, or broader evaluation-cycle edits through production application actions.
 
 ### Workaround
 
-Use the current synthetic fixture only for login, workspace-context, administration-shell, and demo project/cycle verification. Do not manage production organization or evaluation data manually from the browser.
+Use the current synthetic fixture only for login, workspace-context, administration-shell, and demo project/cycle verification. Do not manage production organization or evaluation response data manually from the browser.
 
 ### Planned resolution
 
-Build trusted Edge Functions and production administration forms for invitation, profile, role, hierarchy, project, and time-bound evaluation-cycle management.
+Authenticated-smoke-test the first project/cycle function, then build trusted Edge Functions and production administration forms for invitation, profile, role, hierarchy, member assignment, and delegated date management.
 
 ### Related tests
 

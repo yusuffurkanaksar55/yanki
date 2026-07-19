@@ -192,6 +192,39 @@ export const tr = {
         "Edge Function ve RLS kontrolleri eklenmeden üretim işlemi açılmaz."
       ]
     },
+    projects: {
+      sectionLabel: "Proje ve değerlendirme süreci yönetimi",
+      form: {
+        title: "Yeni proje süreci",
+        organizationId: "Organizasyon ID",
+        projectName: "Proje adı",
+        projectCode: "Proje kodu",
+        projectCompletedOn: "Proje bitiş tarihi",
+        evaluationName: "Değerlendirme adı",
+        projectManagerUserId: "Proje müdürü kullanıcı ID",
+        opensAt: "Açılış zamanı",
+        closesAt: "Kapanış zamanı",
+        submit: "Proje süreci oluştur",
+        submitting: "Kaydediliyor"
+      },
+      list: {
+        title: "Projeler",
+        loading: "Projeler yükleniyor.",
+        empty: "Henüz görüntülenebilir proje yok.",
+        projectCompletedOn: "Proje bitişi",
+        evaluationClose: "Değerlendirme kapanışı",
+        noDate: "Tarih yok"
+      },
+      feedback: {
+        created: "Proje ve değerlendirme süreci oluşturuldu.",
+        PROJECT_CYCLE_SESSION_REQUIRED:
+          "Oturum doğrulanamadı. Lütfen tekrar giriş yap.",
+        PROJECT_CYCLE_LIST_FAILED: "Projeler okunamadı.",
+        PROJECT_CYCLE_CREATE_FAILED:
+          "Proje ve değerlendirme süreci oluşturulamadı.",
+        genericError: "Beklenmeyen bir proje yönetimi hatası oluştu."
+      }
+    },
     blocked: {
       title: "Yönetim yetkisi yok",
       description:

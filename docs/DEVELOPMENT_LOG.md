@@ -1,5 +1,62 @@
 # Development Log
 
+## 2026-07-19 - Admin Project Cycle Edge Function Foundation
+
+### Objective
+
+Allow administrators to list project/evaluation-cycle configuration and create a project-completion evaluation cycle through a trusted Edge Function instead of direct browser table access.
+
+### Changes
+
+- Added `supabase/functions/admin-project-cycles/index.ts`.
+- Implemented `list_project_cycles` and `create_project_cycle` function actions.
+- Added server-side JWT validation, active-profile check, role recomputation, and organization-scope authorization.
+- Added frontend project/cycle service that calls Supabase Functions and does not query project tables directly.
+- Added project/cycle management panel to the protected administration shell.
+- Added Turkish form, list, loading, success, and error states for project/cycle administration.
+- Added tests for the Edge Function boundary, frontend service boundary, project/cycle panel, and administration route.
+- Added ADR-0010 for the admin project/cycle Edge Function.
+
+### Files affected
+
+- `supabase/functions/admin-project-cycles/index.ts`
+- `src/features/administration/*`
+- `src/app/App.tsx`
+- `src/locales/tr/messages.ts`
+- `eslint.config.js`
+- `tests/*`
+- `docs/*`
+- `docs/decisions/ADR-0010-use-admin-project-cycle-edge-function.md`
+
+### Database changes
+
+None. This phase uses the previously applied `projects`, `project_memberships`, and `evaluation_cycles` foundation tables.
+
+### Security impact
+
+Positive foundation impact. Project/cycle management now crosses a trusted Edge Function boundary. The browser service invokes `admin-project-cycles` and does not directly query or mutate default-deny project tables. Service-role credentials are referenced only in Edge Function code. No evaluation response content, plaintext scores, comments, lessons learned payloads, anonymous credential values, service-role values, or encryption keys were added.
+
+### Tests performed
+
+- `npm test`
+- `npm run typecheck`
+- `npm run lint`
+- `npm run check`
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
+- Unauthenticated live function smoke test with `Invoke-WebRequest`
+- `npx supabase functions list`
+
+### Result
+
+Admin project/cycle Edge Function foundation and frontend management panel were implemented. Application checks passed with 11 test files and 46 tests. The function was deployed to Supabase project `daxaymcmtbmummrxdyjy`, listed as `ACTIVE`, and an unauthenticated live smoke test returned `401 AUTHENTICATION_REQUIRED`.
+
+### Remaining work
+
+- Run an authenticated live smoke test with synthetic admin credentials.
+- Add member and project-manager selection UI.
+- Implement delegated project-manager update actions.
+- Implement invitation, profile, role, and hierarchy management Edge Functions.
+
 ## 2026-07-19 - Administration And Project Cycle Foundation
 
 ### Objective

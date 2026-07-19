@@ -15,10 +15,10 @@ The repository currently contains the documentation foundation and a React, Type
 - User profile onboarding: authenticated profile gate implemented with Turkish pending, inactive, and error states.
 - Organization hierarchy: configurable organizations, units, memberships, manager assignments, and demo fixture script foundation implemented.
 - Workspace context: authenticated own-context RPC and dashboard context panel implemented.
-- Administration UI: protected hash-route administration shell implemented for admin-like roles.
+- Administration UI: protected hash-route administration shell implemented for admin-like roles, with project/cycle list and create form.
 - Project and evaluation-cycle configuration: default-deny project, project membership, and time-bound evaluation-cycle foundation implemented.
 - Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, workspace context RPC, project, and evaluation-cycle migrations applied.
-- Edge Functions: not implemented.
+- Edge Functions: `admin-project-cycles` foundation implemented for project/cycle list and create actions.
 - Anonymous credential flow: documented, not implemented.
 - Encryption flow: documented, not implemented.
 - Quality checks: lint, typecheck, Vitest, React Testing Library, production build, and documentation foundation tests are implemented.
@@ -53,7 +53,7 @@ The applied Supabase migrations create `app_roles`, `scope_types`, `user_role_as
 
 ## Current Authentication Model
 
-The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, and own-workspace context display. Invitation issuance, invitation redemption, Microsoft Entra ID, tenant restrictions, and sensitive server-side authorization checks are not implemented yet.
+The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, and trusted Edge Function calls for project/cycle administration. Invitation issuance, invitation redemption, Microsoft Entra ID, tenant restrictions, and sensitive evaluation authorization checks are not implemented yet.
 
 ## Current Authorization Model
 
@@ -63,8 +63,8 @@ Authorization is not implemented. The intended model is scoped role-based access
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
 - Runtime authorization, encryption, anonymous credential, and reporting controls are not implemented.
-- No Edge Functions exist yet.
-- No invitation issuance/redemption Edge Function, Microsoft Entra ID, production administrative write workflow, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
+- Invitation issuance/redemption Edge Functions do not exist yet.
+- No Microsoft Entra ID, hierarchy write workflow, delegated project-manager update flow, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
 - Synthetic test users were created by running `npm run fixture:demo`, and at least one login was verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
@@ -78,12 +78,13 @@ Authorization is not implemented. The intended model is scoped role-based access
 - 2026-07-19: Added configurable organization hierarchy and demo fixture foundation.
 - 2026-07-19: Added authenticated workspace context RPC and dashboard panel.
 - 2026-07-19: Added protected administration shell and default-deny project/evaluation-cycle foundation.
+- 2026-07-19: Added admin project/cycle Edge Function and frontend management panel.
 
 ## Current Development Priorities
 
-1. Implement trusted Edge Functions for invitation, profile, role, hierarchy, project, and evaluation-cycle management.
-2. Add production create/update forms for project and evaluation-date management.
-3. Implement scoped authorization policies before sensitive evaluation workflows.
-4. Implement evaluation assignments and anonymous credential issuance.
+1. Run authenticated smoke testing for `admin-project-cycles` with synthetic admin credentials.
+2. Implement trusted Edge Functions for invitation, profile, role, hierarchy, and delegated project-manager update flows.
+3. Add production member/project-manager selection UI.
+4. Implement scoped authorization policies before sensitive evaluation workflows.
 5. Implement anonymous credentials and encrypted submissions before reporting.
 6. Add Playwright end-to-end tests after real navigation and authentication flows exist.

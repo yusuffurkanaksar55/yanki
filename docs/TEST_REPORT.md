@@ -1,5 +1,63 @@
 # Test Report
 
+## 2026-07-19 - Admin Project Cycle Edge Function Foundation
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- npm: 11.9.0
+- Supabase CLI: 2.109.1
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+
+### Commands executed
+
+- `npm test`
+- `npm run typecheck`
+- `npm run lint`
+- `npm run check`
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
+- Unauthenticated live function smoke test with `Invoke-WebRequest`
+- `npx supabase functions list`
+
+### Passed
+
+- Final `npm test` passed with 11 test files and 46 tests.
+- `npm run typecheck` passed.
+- Final `npm run lint` passed after adjusting the form effect and ESLint function-file override.
+- `npm run check` passed lint, typecheck, Vitest with 11 test files and 46 tests, and production build.
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt` deployed the function to project `daxaymcmtbmummrxdyjy`.
+- Unauthenticated live smoke test returned `401` with `AUTHENTICATION_REQUIRED`.
+- `npx supabase functions list` showed `admin-project-cycles` as `ACTIVE` with `verify_jwt` set to `false`.
+
+### Failed
+
+- Initial `npm test` failed because the word `Projeler` appears in both the project list and workflow section; the assertion was narrowed.
+- Initial `npm run lint` failed because the project form updated state synchronously in an effect and because Supabase function files were not in the frontend TypeScript project; both were fixed.
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt` completed successfully but emitted `WARNING: Docker is not running`.
+
+### Skipped
+
+- Authenticated live smoke testing was skipped because current synthetic admin credentials were not available in this shell.
+- Playwright end-to-end tests skipped because Playwright is not installed and authenticated browser workflow coverage has not been added yet.
+
+### Manual tests
+
+- Verified the browser project/cycle service source invokes `admin-project-cycles`.
+- Verified the browser project/cycle service source does not query `projects` or `evaluation_cycles` directly.
+
+### Security checks
+
+- Verified the Edge Function reads `SUPABASE_SERVICE_ROLE_KEY` only in server-side function code.
+- Verified the Edge Function calls `auth.getUser()`, checks active profile state, and recomputes role scope from `user_role_assignments`.
+- Verified project/cycle creation requires `SYSTEM_ADMIN` scope.
+
+### Remaining risks
+
+- The Edge Function still needs authenticated live smoke testing.
+- The initial create flow supports system-admin project/cycle creation; delegated project-manager date update actions are still future work.
+- Evaluation assignments, anonymous credentials, encrypted submissions, and reporting remain unimplemented.
+
 ## 2026-07-19 - Administration And Project Cycle Foundation
 
 ### Environment

@@ -7,11 +7,14 @@ import {
   canAccessAdministration,
   getAdministrationRoles
 } from "../workspace/workspaceAuthorization";
+import { ProjectCycleManagementPanel } from "./ProjectCycleManagementPanel";
+import type { ProjectCycleService } from "./projectCycleService";
 
 type AdministrationPageProps = {
   readonly isSigningOut?: boolean;
   readonly onSignOut?: () => Promise<void>;
   readonly profileDisplayName?: string | null;
+  readonly projectCycleService?: ProjectCycleService;
   readonly userEmail?: string | null;
   readonly workspaceContext: WorkspaceContext;
 };
@@ -20,6 +23,7 @@ export function AdministrationPage({
   isSigningOut = false,
   onSignOut,
   profileDisplayName,
+  projectCycleService,
   userEmail,
   workspaceContext
 }: AdministrationPageProps) {
@@ -130,6 +134,11 @@ export function AdministrationPage({
             </ul>
           </aside>
         </section>
+
+        <ProjectCycleManagementPanel
+          service={projectCycleService}
+          workspaceContext={workspaceContext}
+        />
 
         <section
           aria-label={tr.administration.workflowsSectionLabel}

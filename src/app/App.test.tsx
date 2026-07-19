@@ -2,6 +2,11 @@ import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { tr } from "../locales/tr/messages";
+import type {
+  ManagedProject,
+  ProjectCycleDraft,
+  ProjectCycleService
+} from "../features/administration/projectCycleService";
 import type { AuthService } from "../features/authentication/authService";
 import type { Session } from "@supabase/supabase-js";
 import type {
@@ -66,6 +71,7 @@ describe("App", () => {
       <App
         authService={createAuthServiceStub(createSessionStub())}
         profileService={createProfileServiceStub(createProfileStub())}
+        projectCycleService={createProjectCycleServiceStub()}
         workspaceContextService={createWorkspaceContextServiceStub(
           createWorkspaceContextStub()
         )}
@@ -91,6 +97,7 @@ describe("App", () => {
       <App
         authService={createAuthServiceStub(createSessionStub())}
         profileService={createProfileServiceStub(createProfileStub())}
+        projectCycleService={createProjectCycleServiceStub()}
         workspaceContextService={createWorkspaceContextServiceStub(
           createEmployeeWorkspaceContextStub()
         )}
@@ -144,6 +151,39 @@ function createWorkspaceContextServiceStub(
 ): WorkspaceContextService {
   return {
     getMyWorkspaceContext: vi.fn(async () => workspaceContext)
+  };
+}
+
+function createProjectCycleServiceStub(): ProjectCycleService {
+  return {
+    createProjectCycle: vi.fn(async (draft: ProjectCycleDraft) =>
+      createManagedProjectStub(draft)
+    ),
+    listProjectCycles: vi.fn(async () => [])
+  };
+}
+
+function createManagedProjectStub(draft: ProjectCycleDraft): ManagedProject {
+  return {
+    code: draft.projectCode,
+    completesOn: draft.projectCompletedOn,
+    cycles: [
+      {
+        anonymityThreshold: 4,
+        closesAt: draft.closesAt,
+        id: "cycle-id",
+        name: draft.evaluationName,
+        opensAt: draft.opensAt,
+        projectCompletedOn: draft.projectCompletedOn,
+        status: "OPEN"
+      }
+    ],
+    id: "project-id",
+    name: draft.projectName,
+    organizationId: draft.organizationId,
+    projectManagerUserId: draft.projectManagerUserId,
+    startsOn: null,
+    status: "ACTIVE"
   };
 }
 

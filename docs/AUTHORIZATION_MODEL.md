@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and has an initial default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, own-workspace context RPC, and default-deny project/evaluation-cycle configuration foundation. Runtime evaluation policies and Edge Function authorization checks are not implemented yet.
+Authorization is documented and has an initial default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, own-workspace context RPC, default-deny project/evaluation-cycle configuration foundation, and first admin project/cycle Edge Function. Runtime evaluation policies are not implemented yet.
 
 ## Principles
 
@@ -22,6 +22,8 @@ RLS is enabled on all public tables. `user_profiles` allows authenticated users 
 
 The current frontend auth, profile, workspace, and administration gates only control UI visibility. They are not sensitive authorization boundaries.
 
+`admin-project-cycles` validates the authenticated user server-side, requires an active profile, recomputes roles from `user_role_assignments`, and allows project/evaluation-cycle creation only for `SYSTEM_ADMIN` users scoped to `PLATFORM` or the selected organization. Listing returns only configuration records within the user's admin/reviewer/project-manager scopes.
+
 ## Roles
 
 ### `SYSTEM_ADMIN`
@@ -39,6 +41,8 @@ Can access authorized anonymous aggregate results for users in assigned scope af
 ### `PROJECT_MANAGER`
 
 Can manage assigned projects according to explicit scope. When delegated by an administrator, can configure project completion dates and evaluation close dates for assigned projects. Can be evaluated. Cannot infer evaluator identities or view own results unless a separate approved reviewer role and scope explicitly permits it.
+
+The first Edge Function foundation lists assigned project configuration for `PROJECT_MANAGER` roles. Delegated update actions are planned separately.
 
 ### `C_LEVEL_REVIEWER`
 
