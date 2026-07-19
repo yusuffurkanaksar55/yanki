@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2026-07-19 - Organization Hierarchy And Demo Fixture Foundation
+
+This is not a product release. The project now has configurable organization roots, organization units, memberships, manager assignments, explicit record-backed organization scopes, and a local service-role-only demo fixture script for the synthetic CEO/HR/team scenario.
+
+No production hierarchy administration UI, invitation redemption, sensitive evaluation submission, encryption, or reporting workflow is available yet.
+
 ## 2026-07-19 - User Profile And Invitation Onboarding Foundation
 
 This is not a product release. The project now has `user_profiles` and `user_invitations` tables, a narrow own-profile read policy, generated Supabase types, an authenticated profile gate, and Turkish onboarding states for users without an active profile.

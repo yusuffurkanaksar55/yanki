@@ -21,12 +21,14 @@ const requiredFiles = [
   "docs/RELEASE_NOTES.md",
   "docs/ASSUMPTIONS.md",
   "docs/SUPABASE_SETUP.md",
+  "docs/TEST_FIXTURES.md",
   "docs/decisions/ADR-0001-use-react-vite-supabase.md",
   "docs/decisions/ADR-0002-separate-evaluation-identity.md",
   "docs/decisions/ADR-0003-server-side-encrypted-payloads.md",
   "docs/decisions/ADR-0004-default-deny-supabase-foundation.md",
   "docs/decisions/ADR-0005-use-typed-supabase-auth-client.md",
-  "docs/decisions/ADR-0006-use-profile-invitation-onboarding-foundation.md"
+  "docs/decisions/ADR-0006-use-profile-invitation-onboarding-foundation.md",
+  "docs/decisions/ADR-0007-use-configurable-organization-hierarchy-foundation.md"
 ];
 
 function readProjectFile(relativePath) {

@@ -13,7 +13,8 @@ The repository currently contains the documentation foundation and a React, Type
 - Application UI: initial Turkish dashboard shell implemented.
 - Authentication: typed Supabase Auth client foundation implemented for email/password sign-in, password reset request, local-session sign-out, and session-state gating.
 - User profile onboarding: authenticated profile gate implemented with Turkish pending, inactive, and error states.
-- Supabase schema: initial default-deny security foundation and profile/invitation onboarding migrations applied.
+- Organization hierarchy: configurable organizations, units, memberships, manager assignments, and demo fixture script foundation implemented.
+- Supabase schema: initial default-deny security, profile/invitation onboarding, and organization hierarchy migrations applied.
 - Edge Functions: not implemented.
 - Anonymous credential flow: documented, not implemented.
 - Encryption flow: documented, not implemented.
@@ -42,7 +43,7 @@ The repository currently contains the documentation foundation and a React, Type
 
 ## Current Database Structure
 
-The applied Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, and `user_invitations`. RLS is enabled on all public tables. The only client-facing database policy allows authenticated users to read their own `user_profiles` row. Invitation records remain default-deny to frontend clients. The conceptual complete data model is documented in `docs/DATA_MODEL.md`.
+The applied Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, `user_invitations`, `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`. RLS is enabled on all public tables. The only client-facing database policy allows authenticated users to read their own `user_profiles` row. Invitation and organization administration records remain default-deny to frontend clients. The conceptual complete data model is documented in `docs/DATA_MODEL.md`.
 
 ## Current Authentication Model
 
@@ -57,7 +58,8 @@ Authorization is not implemented. The intended model is scoped role-based access
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
 - Runtime authorization, encryption, anonymous credential, and reporting controls are not implemented.
 - No Edge Functions exist yet.
-- No invitation issuance/redemption Edge Function, Microsoft Entra ID, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
+- No invitation issuance/redemption Edge Function, Microsoft Entra ID, administrative hierarchy UI, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
+- Synthetic test users are not created yet; `npm run fixture:demo` requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
 
@@ -67,11 +69,13 @@ Authorization is not implemented. The intended model is scoped role-based access
 - 2026-07-19: Initialized Git, connected GitHub remote `yusuffurkanaksar55/yanki`, and pushed `main`.
 - 2026-07-19: Added typed Supabase Auth client foundation and generated database types.
 - 2026-07-19: Added user profile and invitation onboarding foundation.
+- 2026-07-19: Added configurable organization hierarchy and demo fixture foundation.
 
 ## Current Development Priorities
 
-1. Implement invitation creation and redemption Edge Functions.
-2. Implement scoped authorization policies before sensitive evaluation workflows.
-3. Add protected administration screens for profile, invitation, role, and scope management.
-4. Implement anonymous credentials and encrypted submissions before reporting.
-5. Add Playwright end-to-end tests after real navigation and authentication flows exist.
+1. Run the demo fixture with a service-role key in a safe local environment, then hand off generated test credentials.
+2. Implement invitation creation and redemption Edge Functions.
+3. Implement scoped authorization policies before sensitive evaluation workflows.
+4. Add protected administration screens for profile, invitation, role, hierarchy, and scope management.
+5. Implement anonymous credentials and encrypted submissions before reporting.
+6. Add Playwright end-to-end tests after real navigation and authentication flows exist.

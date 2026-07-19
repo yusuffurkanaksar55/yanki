@@ -65,5 +65,19 @@ Current baseline rules:
 - RLS is enabled on all public tables created by migrations.
 - `user_profiles` has one self-read policy for authenticated users.
 - `user_invitations` has no client-facing policies and stores only hashed invitation secrets.
+- Organization hierarchy tables have no client-facing policies.
+- `PLATFORM` is the global null-id scope; organization, team, project, and evaluation-cycle roles must use explicit `scope_id` values.
 - No plaintext evaluation scores, comments, lessons learned content, or evaluator-to-response linkage are stored.
 - Sensitive evaluation submission and reporting flows must be implemented through trusted server-side functions later.
+
+## Demo Fixture
+
+Synthetic test users can be created only with a local server-side service-role key:
+
+```bash
+$env:SUPABASE_URL="https://daxaymcmtbmummrxdyjy.supabase.co"
+$env:SUPABASE_SERVICE_ROLE_KEY="never-commit-this-value"
+npm run fixture:demo
+```
+
+The fixture command prints generated test credentials. Do not commit the output or add service-role values to Vite environment variables.

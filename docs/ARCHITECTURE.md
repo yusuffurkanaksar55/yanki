@@ -2,7 +2,7 @@
 
 ## Status
 
-Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has initial default-deny security plus profile/invitation onboarding migrations. A typed Supabase Auth client and own-profile gate are implemented.
+Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has initial default-deny security, profile/invitation onboarding, and organization hierarchy migrations. A typed Supabase Auth client and own-profile gate are implemented.
 
 ## Target System
 
@@ -97,10 +97,13 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Seed file: `supabase/seed.sql`
 - Initial migration: `supabase/migrations/20260719132911_initial_security_foundation.sql`
 - Profile/invitation migration: `supabase/migrations/20260719171413_user_profile_invitation_foundation.sql`
+- Organization hierarchy migration: `supabase/migrations/20260719174459_organization_hierarchy_foundation.sql`
 - Setup notes: `docs/SUPABASE_SETUP.md`
+- Demo fixture notes: `docs/TEST_FIXTURES.md`
+- Demo fixture script: `scripts/create-demo-fixture.mjs`
 - Linked remote project ref: `daxaymcmtbmummrxdyjy`
 
-The initial migration creates `app_roles`, `scope_types`, `user_role_assignments`, and `audit_events`. The profile/invitation migration creates `user_profiles` and `user_invitations`. RLS is enabled on all public tables. `user_profiles` has one narrow authenticated self-read policy. `user_invitations` has no client-facing policies and is reserved for trusted server-side invitation flows.
+The initial migration creates `app_roles`, `scope_types`, `user_role_assignments`, and `audit_events`. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`, and adds `PLATFORM` as the global scope type. RLS is enabled on all public tables. `user_profiles` has one narrow authenticated self-read policy. Invitation and hierarchy administration tables have no client-facing policies and are reserved for trusted server-side flows.
 
 ## Current Authentication Scaffold
 

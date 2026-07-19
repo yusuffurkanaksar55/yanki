@@ -1,5 +1,69 @@
 # Development Log
 
+## 2026-07-19 - Organization Hierarchy And Demo Fixture Foundation
+
+### Objective
+
+Implement a configurable organization hierarchy foundation and a safe synthetic test fixture path for the CEO, HR admin, team leader, and three-employee scenario without hard-coding that structure into the product.
+
+### Changes
+
+- Added `PLATFORM` as the null-id global scope type.
+- Updated role assignment, invitation, and audit scope constraints so non-platform scopes require explicit `scope_id` values.
+- Added `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`.
+- Added hierarchy validation triggers for organization-unit parent ownership, cycle prevention, and manager-assignment scope ownership.
+- Kept new hierarchy tables RLS-enabled with no client-facing policies.
+- Added `docs/TEST_FIXTURES.md` for the synthetic user scenario.
+- Added `scripts/create-demo-fixture.mjs` and `npm run fixture:demo` for service-role-only demo fixture creation.
+- Added tests for organization hierarchy safety, platform scope semantics, and fixture credential handling.
+- Regenerated linked Supabase database types.
+- Added ADR-0007 for the configurable organization hierarchy foundation.
+
+### Files affected
+
+- `supabase/migrations/20260719174459_organization_hierarchy_foundation.sql`
+- `src/types/supabase.ts`
+- `scripts/create-demo-fixture.mjs`
+- `package.json`
+- `docs/TEST_FIXTURES.md`
+- `tests/demo-fixture-foundation.test.mjs`
+- `tests/supabase-foundation.test.mjs`
+- `tests/project-memory.test.mjs`
+- `docs/*`
+- `docs/decisions/ADR-0007-use-configurable-organization-hierarchy-foundation.md`
+
+### Database changes
+
+Applied remote migration `20260719174459_organization_hierarchy_foundation.sql` to Supabase project `daxaymcmtbmummrxdyjy`.
+
+### Security impact
+
+Positive foundation impact. Organization hierarchy records are identity-domain metadata and remain default-deny to frontend clients. The fixture script reads service-role credentials only from local environment variables and is not part of normal checks. No evaluation content, plaintext scores, comments, lessons learned payloads, anonymous credential values, service-role credentials, or encryption keys were added to the repository.
+
+### Tests performed
+
+- `npm test`
+- `npm run lint`
+- `npm run typecheck`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+- `npx supabase db push --yes`
+- `npx supabase gen types typescript --linked`
+- `npx supabase migration list`
+- `node --check scripts/create-demo-fixture.mjs`
+- `npm run check`
+
+### Result
+
+Organization hierarchy and demo fixture foundation were implemented. Application checks passed with 7 test files and 29 tests. The linked Supabase project shows all three local migrations applied and the remote database is up to date.
+
+### Remaining work
+
+- Run `npm run fixture:demo` with a local service-role key to create synthetic test users and hand off generated credentials.
+- Implement invitation creation and redemption Edge Functions.
+- Add protected administration screens for organization hierarchy management.
+- Implement scoped authorization policies before sensitive evaluation workflows.
+
 ## 2026-07-19 - User Profile And Invitation Onboarding Foundation
 
 ### Objective

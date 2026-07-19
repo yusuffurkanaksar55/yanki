@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the intended security model. The repository currently contains Supabase default-deny RLS foundation tables, a typed Supabase Auth client foundation, and a profile/invitation onboarding foundation, but no production evaluation submission, encryption, reporting, or scoped authorization runtime.
+This document describes the intended security model. The repository currently contains Supabase default-deny RLS foundation tables, a typed Supabase Auth client foundation, profile/invitation onboarding foundation, and organization hierarchy foundation, but no production evaluation submission, encryption, reporting, or scoped authorization runtime.
 
 ## Security Objectives
 
@@ -70,6 +70,8 @@ The browser Supabase client uses only public project URL and anon key values. It
 The current auth client supports email/password sign-in, password reset request, local-session sign-out, and session-state observation. The profile gate reads only the authenticated user's own profile row through a narrow RLS policy. This improves access gating in the UI, but sensitive authorization still must be enforced in Edge Functions and RLS.
 
 Invitation records store only hashed invitation secrets and remain inaccessible to frontend clients. Raw invitation secrets must never be stored in the database, browser, logs, Git, documentation, or generated UI.
+
+Organization hierarchy records are identity-domain metadata and remain inaccessible to frontend clients until trusted administrative authorization is implemented. Demo fixture credentials must be generated at runtime and must not be committed.
 
 ## Anonymity Threshold
 

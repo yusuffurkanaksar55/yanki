@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and has an initial default-deny Supabase foundation plus a narrow own-profile read policy. Runtime evaluation policies and Edge Function authorization checks are not implemented yet.
+Authorization is documented and has an initial default-deny Supabase foundation plus a narrow own-profile read policy and record-backed organization hierarchy foundation. Runtime evaluation policies and Edge Function authorization checks are not implemented yet.
 
 ## Principles
 
@@ -14,9 +14,11 @@ Authorization is documented and has an initial default-deny Supabase foundation 
 
 ## Current Database Foundation
 
-The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. The profile/invitation migration creates `user_profiles` and `user_invitations`.
+The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`.
 
-RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `user_invitations`, roles, role assignments, and audit events remain default-deny to frontend clients.
+RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `user_invitations`, roles, role assignments, audit events, and organization hierarchy tables remain default-deny to frontend clients.
+
+`PLATFORM` is the only null-id global scope. `ORGANIZATION`, `DEPARTMENT`, `UNIT`, `TEAM`, `PROJECT`, and `EVALUATION_CYCLE` scopes must carry an explicit `scope_id`.
 
 The current frontend auth and profile gates only control UI visibility. They are not sensitive authorization boundaries.
 
@@ -56,6 +58,8 @@ Planned scope boundaries:
 - Team
 - Project
 - Evaluation cycle
+
+`PLATFORM` is reserved for global platform-level authorization and must not be used for organization-specific access.
 
 ## Self-Access Prevention
 

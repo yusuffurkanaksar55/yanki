@@ -1,5 +1,73 @@
 # Test Report
 
+## 2026-07-19 - Organization Hierarchy And Demo Fixture Foundation
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- npm: 11.9.0
+- Supabase CLI: 2.109.1
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+
+### Commands executed
+
+- `npm test`
+- `npm run lint`
+- `npm run typecheck`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+- `npx supabase db push --yes`
+- `npx supabase gen types typescript --linked`
+- `npx supabase migration list`
+- `node --check scripts/create-demo-fixture.mjs`
+- `npm run check`
+
+### Passed
+
+- `npm test` passed with 7 test files and 29 tests.
+- `npm run lint` passed.
+- `npm run typecheck` passed.
+- Initial `npx supabase db push --dry-run` showed only `20260719174459_organization_hierarchy_foundation.sql` would be applied.
+- `npx supabase db lint --linked` found no schema errors before and after applying the migration.
+- `npx supabase db push --yes` applied `20260719174459_organization_hierarchy_foundation.sql` to the linked remote project.
+- Linked Supabase database types were regenerated and include organization hierarchy tables.
+- `npx supabase migration list` showed local and remote timestamps `20260719132911`, `20260719171413`, and `20260719174459`.
+- Final `npx supabase db push --dry-run` reported the remote database is up to date.
+- `node --check scripts/create-demo-fixture.mjs` passed.
+- `npm run check` passed lint, typecheck, Vitest with 7 test files and 29 tests, and production build.
+
+### Failed
+
+- `npx supabase db push --yes` applied the migration successfully but emitted the known Docker migration-catalog cache warning.
+
+### Skipped
+
+- `npm run fixture:demo` was not run because no `SUPABASE_SERVICE_ROLE_KEY` was provided in the local environment.
+- Local `supabase db reset` and local DB lint were skipped because the local Supabase Docker stack remains unverified in this shell.
+- Playwright end-to-end tests skipped because Playwright is not installed and full invitation redemption/login fixture flow has not been run yet.
+
+### Manual tests
+
+- Verified generated `src/types/supabase.ts` contains `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`.
+- Verified Supabase remote migration list contains all local migration timestamps.
+
+### Security checks
+
+- Verified RLS is enabled on organization hierarchy tables.
+- Verified no client-facing policies were added to organization hierarchy tables.
+- Verified fixture script reads `SUPABASE_SERVICE_ROLE_KEY` only from local environment variables.
+- Verified `.env.example` does not contain service-role configuration.
+- Verified fixture passwords are generated at runtime and not stored in source.
+- Verified no evaluator-linked submission content columns were introduced.
+
+### Remaining risks
+
+- Synthetic test users are not created yet.
+- The fixture script requires a service-role key and must be run only in a safe local/server-side context.
+- Administrative hierarchy UI and Edge Functions are not implemented yet.
+- Sensitive evaluation workflows, anonymous credentials, encrypted submissions, and reporting remain unimplemented.
+
 ## 2026-07-19 - User Profile And Invitation Onboarding Foundation
 
 ### Environment

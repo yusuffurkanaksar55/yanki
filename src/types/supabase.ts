@@ -98,6 +98,185 @@ export type Database = {
           },
         ]
       }
+      manager_assignments: {
+        Row: {
+          created_at: string
+          direct_report_user_id: string
+          ends_at: string | null
+          id: string
+          manager_user_id: string
+          organization_id: string
+          relationship_type: string
+          scope_unit_id: string | null
+          starts_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          direct_report_user_id: string
+          ends_at?: string | null
+          id?: string
+          manager_user_id: string
+          organization_id: string
+          relationship_type?: string
+          scope_unit_id?: string | null
+          starts_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          direct_report_user_id?: string
+          ends_at?: string | null
+          id?: string
+          manager_user_id?: string
+          organization_id?: string
+          relationship_type?: string
+          scope_unit_id?: string | null
+          starts_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manager_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manager_assignments_scope_unit_id_fkey"
+            columns: ["scope_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organization_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_unit_memberships: {
+        Row: {
+          created_at: string
+          ends_at: string | null
+          id: string
+          is_primary: boolean
+          membership_kind: string
+          organization_id: string
+          starts_at: string
+          unit_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          is_primary?: boolean
+          membership_kind?: string
+          organization_id: string
+          starts_at?: string
+          unit_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          is_primary?: boolean
+          membership_kind?: string
+          organization_id?: string
+          starts_at?: string
+          unit_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_unit_memberships_unit_fk"
+            columns: ["organization_id", "unit_id"]
+            isOneToOne: false
+            referencedRelation: "organization_units"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      organization_units: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          parent_unit_id: string | null
+          slug: string
+          status: string
+          unit_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          parent_unit_id?: string | null
+          slug: string
+          status?: string
+          unit_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          parent_unit_id?: string | null
+          slug?: string
+          status?: string
+          unit_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_units_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_units_parent_unit_id_fkey"
+            columns: ["parent_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organization_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       scope_types: {
         Row: {
           created_at: string

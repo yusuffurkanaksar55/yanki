@@ -1,5 +1,42 @@
 # Error Log
 
+## ERR-20260719-010 - Supabase migration catalog cache warning repeated for organization migration
+
+### Context
+
+The organization hierarchy foundation migration was applied to the linked Supabase project.
+
+### Symptoms
+
+`npx supabase db push --yes` applied the migration successfully but again emitted `failed to cache migrations catalog` with a Docker Desktop API 500 response while inspecting the Supabase Edge Runtime image.
+
+### Root cause
+
+The remote migration succeeded, but the Supabase CLI attempted a Docker-backed local catalog cache operation and Docker Desktop did not satisfy that image-inspection request from this shell.
+
+### Incorrect approach
+
+Treating the Docker cache warning as a remote migration failure.
+
+### Correct solution
+
+Verify the remote migration state with `npx supabase migration list`, rerun `npx supabase db push --dry-run`, and run linked lint.
+
+### Prevention
+
+Continue to verify remote migration status separately from local Docker cache warnings. Resolve Docker Desktop CLI/API access before relying on local Supabase reset or local database lint.
+
+### Related files
+
+- `supabase/migrations/20260719174459_organization_hierarchy_foundation.sql`
+
+### Related tests
+
+- `npx supabase db push --yes`
+- `npx supabase migration list`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+
 ## ERR-20260719-009 - Supabase migration catalog cache warning with Docker API
 
 ### Context

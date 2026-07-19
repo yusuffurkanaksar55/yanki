@@ -12,6 +12,10 @@ const profileInvitationMigrationPath = join(
   migrationsDir,
   "20260719171413_user_profile_invitation_foundation.sql"
 );
+const organizationHierarchyMigrationPath = join(
+  migrationsDir,
+  "20260719174459_organization_hierarchy_foundation.sql"
+);
 
 function readMigration(path) {
   return readFileSync(path, "utf8");
@@ -82,5 +86,46 @@ describe("Supabase security foundation", () => {
     expect(migration).not.toMatch(
       /create policy[^;]+on public\.user_profiles[^;]+for update/i
     );
+  });
+
+  it("adds a platform scope while requiring explicit organization scope ids", () => {
+    const migration = readMigration(organizationHierarchyMigrationPath);
+
+    expect(migration).toMatch(/'PLATFORM'/);
+    expect(migration).toMatch(
+      /\(scope_type = 'PLATFORM' and scope_id is null\)[\s\S]+\(scope_type <> 'PLATFORM' and scope_id is not null\)/
+    );
+    expect(migration).toMatch(
+      /\(invited_scope_type = 'PLATFORM' and invited_scope_id is null\)[\s\S]+\(invited_scope_type <> 'PLATFORM' and invited_scope_id is not null\)/
+    );
+  });
+
+  it("creates configurable organization hierarchy tables without client policies", () => {
+    const migration = readMigration(organizationHierarchyMigrationPath);
+    const organizationTables = [
+      "organizations",
+      "organization_units",
+      "organization_unit_memberships",
+      "manager_assignments"
+    ];
+
+    for (const tableName of organizationTables) {
+      expect(migration).toMatch(new RegExp(`create table public\\.${tableName}`));
+      expect(migration).toMatch(
+        new RegExp(`alter table public\\.${tableName} enable row level security;`)
+      );
+      expect(migration).not.toMatch(
+        new RegExp(`create policy[^;]+on public\\.${tableName}`, "i")
+      );
+    }
+  });
+
+  it("guards organization hierarchy shape and manager assignments", () => {
+    const migration = readMigration(organizationHierarchyMigrationPath);
+
+    expect(migration).toMatch(/unit_type in \('DEPARTMENT', 'UNIT', 'TEAM', 'CUSTOM'\)/);
+    expect(migration).toMatch(/Organization unit hierarchy cannot contain cycles/);
+    expect(migration).toMatch(/manager_user_id <> direct_report_user_id/);
+    expect(migration).toMatch(/relationship_type in \(/);
   });
 });

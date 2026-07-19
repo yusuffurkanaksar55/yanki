@@ -29,3 +29,6 @@
 - Supabase Auth Site URL is configured as `http://127.0.0.1:5173`.
 - Supabase Auth redirect URLs include `http://127.0.0.1:5173` and `http://localhost:5173`.
 - Invitation creation and redemption will require trusted Edge Functions and must not be implemented directly in the browser.
+- Development and acceptance testing can use synthetic users instead of live employees.
+- The default synthetic hierarchy is CEO, HR admin, team leader, and three employees, but real organization structures must remain configurable.
+- Demo fixture users require a service-role key provided through a local environment variable and are not created by normal `npm run check`.
