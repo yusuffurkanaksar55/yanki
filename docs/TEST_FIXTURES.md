@@ -51,3 +51,20 @@ The script uses `SUPABASE_SERVICE_ROLE_KEY` only from the local environment. Do 
 ## Generated Output
 
 When the fixture script succeeds, it prints a local credentials table for the tester. The output should be treated as temporary test credentials and rotated or deleted when no longer needed.
+
+## Linked Smoke Scenario
+
+The linked test project was authenticated-smoke-tested with a synthetic project created through `admin-project-cycles`:
+
+| Fixture key | Value |
+| --- | --- |
+| Project name | Yanki Canli Test Projesi |
+| Project code | YANKI-LIVE-SMOKE |
+| Project manager | Demo Team Leader |
+| Project members | Demo Team Leader and three demo employees |
+| Sponsor | Demo CEO |
+| Evaluation cycle | Yanki Canli Test Degerlendirmesi |
+| Evaluation close date | 2026-07-30 |
+| Generated assignment candidates | 12 non-self assignments across four evaluating participants |
+
+These credentials were originally generated before the fixture script included its baseline project records, so the smoke project was created through the production administration boundary. Rerunning `npm run fixture:demo` creates or updates the baseline `YANKI-DEMO` project but also rotates all synthetic account passwords.

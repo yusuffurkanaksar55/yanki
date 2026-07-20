@@ -18,6 +18,7 @@ The repository currently contains the documentation foundation and a React, Type
 - Administration UI: protected hash-route administration shell implemented for admin-like roles, with project/cycle list, create form, organization member selector, and project membership form.
 - Project and evaluation-cycle configuration: default-deny project, project membership, and time-bound evaluation-cycle foundation implemented.
 - Evaluation assignment planning: default-deny assignment table and admin-only project assignment generation foundation implemented from active project memberships.
+- Authenticated integration verification: synthetic admin, project-manager, and employee accounts have been exercised against the deployed Auth and `admin-project-cycles` boundaries.
 - Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, workspace context RPC, project, evaluation-cycle, and evaluation-assignment migrations applied.
 - Edge Functions: `admin-project-cycles` foundation implemented for project/cycle list, project/cycle create, organization member directory, project member add, and project assignment generation actions.
 - Anonymous credential flow: documented, not implemented.
@@ -66,7 +67,7 @@ Runtime evaluation authorization is not implemented. Current trusted administrat
 - Runtime authorization, encryption, anonymous credential, and reporting controls are not implemented.
 - Invitation issuance/redemption Edge Functions do not exist yet.
 - No Microsoft Entra ID, hierarchy write workflow, delegated project-manager date update flow, employee assignment inbox, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
-- Synthetic test users were created by running `npm run fixture:demo`, and at least one login was verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
+- Synthetic test users were created by running `npm run fixture:demo`. Authenticated administration, project-manager visibility, employee denial, project membership, and assignment-generation smoke checks have been verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
 
@@ -82,12 +83,13 @@ Runtime evaluation authorization is not implemented. Current trusted administrat
 - 2026-07-19: Added admin project/cycle Edge Function and frontend management panel.
 - 2026-07-20: Extended admin project management with organization member lookup and project membership assignment through the Edge Function.
 - 2026-07-20: Added default-deny evaluation assignment planning from project memberships through the Edge Function.
+- 2026-07-20: Completed authenticated live smoke verification for admin project creation, membership management, assignment generation, project-manager visibility, and employee administration denial.
 
 ## Current Development Priorities
 
-1. Run authenticated smoke testing for `admin-project-cycles` with synthetic admin credentials, including project member assignment.
-2. Implement trusted Edge Functions for invitation, profile, role, hierarchy, and delegated project-manager update flows.
+1. Implement trusted Edge Functions and administration UI for invitation issuance, profile activation, scoped role assignment, and hierarchy management.
+2. Implement delegated project-manager project-completion and evaluation-close-date update flows.
 3. Implement employee-facing assignment access only after scoped authorization policies are designed.
 4. Implement anonymous credentials and encrypted submissions before reporting.
 5. Implement scoped reporting with threshold and self-access prevention.
-6. Add Playwright end-to-end tests after real navigation and authentication flows exist.
+6. Add Playwright end-to-end tests after stable authenticated browser automation is available.

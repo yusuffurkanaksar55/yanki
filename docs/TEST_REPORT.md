@@ -1,5 +1,63 @@
 # Test Report
 
+## 2026-07-20 - Authenticated Administration Smoke Verification
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- Supabase CLI: 2.109.1
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+- Deployed Edge Function: `admin-project-cycles`, version `4`
+
+### Commands executed
+
+- Authenticated Supabase Auth password-grant requests with synthetic accounts.
+- Authenticated `get_my_workspace_context()` RPC requests.
+- Authenticated `admin-project-cycles` requests for project listing, project/cycle creation, project membership writes, assignment generation, and authorization denial.
+- `npx supabase functions list --project-ref daxaymcmtbmummrxdyjy`.
+- `npm run check`.
+
+### Passed
+
+- Synthetic HR administrator authentication succeeded with an active profile and matching-organization `SYSTEM_ADMIN` role.
+- Synthetic team leader authentication succeeded with an active profile and team membership.
+- Project and evaluation-cycle creation succeeded through the deployed Edge Function.
+- Five project memberships were present: one project manager, one sponsor, and three members.
+- Assignment generation found four evaluating participants, produced 12 non-self candidates, created 12 assignments, and reported 12 pending assignments.
+- The synthetic team leader could list the project after receiving the project-scoped manager role.
+- A synthetic employee request for `list_organization_members` returned HTTP 403 with `ADMINISTRATION_SCOPE_DENIED`.
+- `npx supabase functions list` confirmed `admin-project-cycles` is `ACTIVE`, version `4`, with `verify_jwt` set to `false`; the function performs bearer-token validation internally.
+- `npm run check` passed lint, typecheck, Vitest with 11 test files and 49 tests, and the production build.
+
+### Failed
+
+- In-app browser automation could not initialize because the browser runtime received an `EPERM` error while resolving the local user-profile path. API-level authenticated smoke testing was used instead.
+- The first admin project-list check returned no projects because the supplied synthetic credentials predated the fixture script's project extension. A synthetic project was then created through the deployed administration action.
+
+### Skipped
+
+- Visual browser verification was skipped because the in-app browser runtime could not initialize in this environment.
+- Playwright end-to-end coverage remains skipped because Playwright is not installed and stable authenticated browser automation is not available.
+
+### Manual tests
+
+- Verified the administrator's own workspace context contains the expected scoped role and organization membership.
+- Verified the project manager's scoped project visibility after project creation.
+- Verified the generated candidate count matches all directed, non-self pairs for four evaluating participants: `4 * 3 = 12`.
+
+### Security checks
+
+- Verified the employee cannot use an administration member-directory action.
+- Verified assignment generation excludes self assignments.
+- Verified the sponsor is not treated as an evaluating participant.
+- Verified test output and documentation contain no passwords, access tokens, service-role values, or evaluation response content.
+
+### Remaining risks
+
+- Browser rendering and interaction remain unverified by automation.
+- Invitation, role, hierarchy, delegated project-manager updates, employee assignment access, anonymous credentials, encrypted submissions, and reporting remain incomplete.
+
 ## 2026-07-20 - Evaluation Assignment Planning Foundation
 
 ### Environment

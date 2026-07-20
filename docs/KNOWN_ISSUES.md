@@ -20,7 +20,7 @@ Use the application scaffold only for frontend and trusted-administration founda
 
 ### Planned resolution
 
-Authenticated-smoke-test admin project/cycle/member/assignment management, then implement invitation creation/redemption Edge Functions, remaining production administration write actions, employee assignment access, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
+Authenticated admin project/cycle/member/assignment management is smoke-tested. Next implement invitation creation/redemption Edge Functions, remaining production administration write actions, employee assignment access, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
 
 ### Related tests
 
@@ -34,7 +34,7 @@ High
 
 ### Description
 
-The product requires multiple administrators, CEOs/C-Level users, project managers, and team leaders, plus management flows for project completion dates and evaluation close dates. The application now has a protected administration shell, default-deny project/evaluation-cycle/assignment tables, and admin project/cycle/member/assignment Edge Function foundation, but not all trusted server-side management actions exist yet.
+The product requires multiple administrators, CEOs/C-Level users, project managers, and team leaders, plus management flows for project completion dates and evaluation close dates. The application now has a protected administration shell, default-deny project/evaluation-cycle/assignment tables, an admin project/cycle/member/assignment Edge Function foundation, and authenticated smoke verification, but not all trusted server-side management actions exist yet.
 
 ### Impact
 
@@ -46,7 +46,7 @@ Use the current synthetic fixture only for login, workspace-context, administrat
 
 ### Planned resolution
 
-Authenticated-smoke-test the project/cycle/member/assignment function, then build trusted Edge Functions and production administration forms for invitation, profile, role, hierarchy, delegated date management, and employee assignment access.
+Build trusted Edge Functions and production administration forms for invitation, profile, role, hierarchy, delegated date management, and employee assignment access.
 
 ### Related tests
 

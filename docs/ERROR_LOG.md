@@ -1,5 +1,76 @@
 # Error Log
 
+## ERR-20260720-007 - In-app browser runtime could not resolve the user profile path
+
+### Context
+
+The local application was started for an authenticated browser smoke test.
+
+### Symptoms
+
+The browser runtime exited with `EPERM` while resolving the local short-form user-profile path under `AppData`.
+
+### Root cause
+
+The browser-control runtime could not read the required user-profile path within the current filesystem permission boundary.
+
+### Incorrect approach
+
+Treating the browser runtime failure as an application startup or authentication failure.
+
+### Correct solution
+
+Keep the Vite application check separate and run the authenticated Supabase Auth and Edge Function smoke test directly against their HTTP APIs.
+
+### Prevention
+
+Use browser automation only after its user-profile path is readable in this environment. Continue to keep API-level authorization smoke checks available independently of visual testing.
+
+### Related files
+
+- `docs/TEST_REPORT.md`
+
+### Related tests
+
+- Authenticated Supabase Auth and `admin-project-cycles` HTTP smoke test
+
+## ERR-20260720-008 - Synthetic credentials predated project fixture records
+
+### Context
+
+The deployed administration function was tested with the synthetic HR administrator credentials supplied by the tester.
+
+### Symptoms
+
+Authentication, active profile, organization membership, and `SYSTEM_ADMIN` role checks succeeded, but `list_project_cycles` returned an empty project list.
+
+### Root cause
+
+The credentials were generated before `scripts/create-demo-fixture.mjs` was extended to create project and evaluation-cycle records.
+
+### Incorrect approach
+
+Assuming that valid current fixture accounts necessarily included records added by later fixture-script versions.
+
+### Correct solution
+
+Inspect the authenticated workspace context, confirm the administrator scope, and create the synthetic smoke project through `admin-project-cycles`. Do not rerun the fixture unexpectedly because it rotates all synthetic passwords.
+
+### Prevention
+
+Record fixture-version expectations with handed-off credentials. Before rerunning a credential-rotating fixture, confirm that the tester is ready to receive new passwords.
+
+### Related files
+
+- `scripts/create-demo-fixture.mjs`
+- `docs/TEST_FIXTURES.md`
+
+### Related tests
+
+- Authenticated `get_my_workspace_context()` request
+- Authenticated `list_project_cycles` request
+- Authenticated `create_project_cycle` request
+
 ## ERR-20260720-004 - Assignment metric test matched duplicate count text
 
 ### Context

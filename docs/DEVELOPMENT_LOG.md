@@ -1,5 +1,59 @@
 # Development Log
 
+## 2026-07-20 - Authenticated Administration Smoke Verification
+
+### Objective
+
+Verify the deployed Supabase Auth and `admin-project-cycles` authorization boundary end to end with synthetic users before starting the next administration feature.
+
+### Changes
+
+- Authenticated the synthetic HR administrator, team leader, CEO, and three employee accounts without persisting credentials in the repository.
+- Verified the HR administrator has an active organization-scoped `SYSTEM_ADMIN` role.
+- Created `Yanki Canli Test Projesi` and its time-bound evaluation cycle through the deployed Edge Function.
+- Assigned the team leader as project manager, the CEO as sponsor, and three employees as project members.
+- Generated 12 non-self assignment candidates across four evaluating project participants.
+- Verified the project manager can list the assigned project.
+- Verified an employee receives `ADMINISTRATION_SCOPE_DENIED` when requesting the organization member directory.
+- Updated project memory and test-fixture notes without recording credentials or access tokens.
+
+### Files affected
+
+- `docs/PROJECT_CONTEXT.md`
+- `docs/KNOWN_ISSUES.md`
+- `docs/TEST_FIXTURES.md`
+- `docs/DEVELOPMENT_LOG.md`
+- `docs/TEST_REPORT.md`
+- `docs/ERROR_LOG.md`
+
+### Database changes
+
+No schema changes. Synthetic project, evaluation-cycle, project-membership, scoped project-manager role, assignment, and safe audit records were created in linked Supabase project `daxaymcmtbmummrxdyjy` through the deployed administration Edge Function.
+
+### Security impact
+
+Positive verification impact. The smoke test confirmed server-side role recomputation, matching-organization administrator scope, project-manager project visibility, non-self assignment generation, and employee denial for an administration action. No evaluation response content, credentials, tokens, plaintext scores, comments, or encryption keys were stored in the repository or test documentation.
+
+### Tests performed
+
+- Authenticated Supabase password-grant requests for synthetic accounts.
+- Authenticated `get_my_workspace_context()` checks for active profile, role, and membership context.
+- Authenticated `admin-project-cycles` calls for project creation, member assignment, assignment generation, and scoped project listing.
+- Negative employee authorization check for `list_organization_members`.
+- `npx supabase functions list --project-ref daxaymcmtbmummrxdyjy`.
+- `npm run check`.
+
+### Result
+
+The authenticated administration smoke path passed. One project with five project memberships was created; four evaluating participants produced 12 non-self pending assignments; the team leader could see the assigned project; and the employee administration request was denied with `ADMINISTRATION_SCOPE_DENIED`. The final application check passed with 11 test files and 49 tests.
+
+### Remaining work
+
+- Implement invitation issuance, redemption, profile activation, scoped role assignment, and hierarchy administration actions.
+- Implement delegated project-manager date update actions.
+- Add employee assignment access only after scoped authorization policies are designed.
+- Add browser end-to-end coverage after stable authenticated browser automation is available.
+
 ## 2026-07-20 - Evaluation Assignment Planning Foundation
 
 ### Objective
