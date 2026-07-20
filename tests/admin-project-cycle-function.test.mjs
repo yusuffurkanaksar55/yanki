@@ -46,6 +46,14 @@ describe("admin project cycle Edge Function foundation", () => {
     expect(functionSource).toMatch(/role\.scope_type === "ORGANIZATION"/);
   });
 
+  it("allows the Supabase browser SDK headers through CORS preflight", () => {
+    const functionSource = readProjectFile(functionPath);
+
+    expect(functionSource).toMatch(
+      /"Access-Control-Allow-Headers": "apikey, authorization, content-type, x-client-info"/
+    );
+  });
+
   it("keeps the browser project cycle service away from direct table access", () => {
     const serviceSource = readProjectFile(servicePath);
 

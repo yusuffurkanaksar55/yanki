@@ -36,6 +36,7 @@ export function ProfileGate({
   userId
 }: ProfileGateProps) {
   const [state, setState] = useState<ProfileGateState>({ status: "loading" });
+  const [isAcceptingInvitation, setIsAcceptingInvitation] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -125,6 +126,34 @@ export function ProfileGate({
         <p className="text-sm leading-6 text-slate-700">
           {tr.profile.inactive.description}
         </p>
+        {state.profile.onboarding_status === "INVITED" ? (
+          <button
+            className="mt-5 rounded-md bg-pine px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-400"
+            disabled={isAcceptingInvitation}
+            onClick={() => {
+              setIsAcceptingInvitation(true);
+
+              void service.acceptOwnInvitation()
+                .then((profile) => {
+                  setState({ profile, status: "ready" });
+                })
+                .catch((error: unknown) => {
+                  setState({
+                    message: toProfileFeedbackMessage(error),
+                    status: "blocked"
+                  });
+                })
+                .finally(() => {
+                  setIsAcceptingInvitation(false);
+                });
+            }}
+            type="button"
+          >
+            {isAcceptingInvitation
+              ? tr.profile.inactive.accepting
+              : tr.profile.inactive.acceptInvitation}
+          </button>
+        ) : null}
       </ProfileStatusLayout>
     );
   }

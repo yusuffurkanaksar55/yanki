@@ -132,10 +132,10 @@ export const tr = {
     workflowsSectionLabel: "Yönetim iş akışları",
     workflows: [
       {
-        status: "Edge Function bekliyor",
+        status: "Canlı temel",
         title: "Kullanıcı ve davetler",
         description:
-          "Davet oluşturma, davet iptali ve profil durumları trusted backend üzerinden ilerleyecek.",
+          "Davet oluşturma ve profil aktivasyonu güvenilir backend üzerinden ilerler.",
         items: [
           "Davet oluşturma",
           "Davet iptali",
@@ -191,6 +191,48 @@ export const tr = {
         "Hassas işlemler frontend rol kontrolüne bırakılmaz.",
         "Edge Function ve RLS kontrolleri eklenmeden üretim işlemi açılmaz."
       ]
+    },
+    users: {
+      sectionLabel: "Kullanıcı ve davet yönetimi",
+      eyebrow: "Kimlik yönetimi",
+      title: "Kullanıcı davetleri",
+      loading: "Davet seçenekleri yükleniyor.",
+      form: {
+        displayName: "Ad soyad",
+        email: "E-posta adresi",
+        organization: "Organizasyon",
+        unit: "Birim",
+        role: "Rol",
+        manager: "Yönetici",
+        noManager: "Yönetici atanmayacak",
+        expiresInDays: "Geçerlilik süresi (gün)",
+        submit: "Davet gönder",
+        submitting: "Gönderiliyor"
+      },
+      list: {
+        sectionLabel: "Davet kayıtları",
+        title: "Son davetler",
+        empty: "Henüz davet oluşturulmadı.",
+        revoke: "Daveti iptal et",
+        revoking: "İptal ediliyor"
+      },
+      statusLabels: {
+        PENDING: "Bekliyor",
+        ACCEPTED: "Kabul edildi",
+        REVOKED: "İptal edildi",
+        EXPIRED: "Süresi doldu"
+      },
+      feedback: {
+        created: "Davet e-postası gönderildi.",
+        revoked: "Davet iptal edildi.",
+        USER_ADMINISTRATION_SESSION_REQUIRED:
+          "Oturum doğrulanamadı. Lütfen tekrar giriş yap.",
+        USER_ADMINISTRATION_LIST_FAILED:
+          "Kullanıcı ve davet bilgileri okunamadı.",
+        USER_INVITATION_CREATE_FAILED: "Davet oluşturulamadı.",
+        USER_INVITATION_REVOKE_FAILED: "Davet iptal edilemedi.",
+        genericError: "Beklenmeyen bir kullanıcı yönetimi hatası oluştu."
+      }
     },
     projects: {
       sectionLabel: "Proje ve değerlendirme süreci yönetimi",
@@ -337,7 +379,9 @@ export const tr = {
     inactive: {
       title: "Profil aktif değil",
       description:
-        "Bu hesap için davetli katılım süreci henüz tamamlanmamış veya erişim geçici olarak durdurulmuş."
+        "Bu hesap için davetli katılım süreci henüz tamamlanmamış veya erişim geçici olarak durdurulmuş.",
+      acceptInvitation: "Daveti tamamla",
+      accepting: "Davet tamamlanıyor"
     },
     blocked: {
       title: "Profil bilgisi okunamadı"
@@ -350,6 +394,8 @@ export const tr = {
     feedback: {
       PROFILE_READ_FAILED:
         "Profil bilgisi okunurken bir hata oluştu. Lütfen daha sonra tekrar dene.",
+      PROFILE_INVITATION_ACCEPT_FAILED:
+        "Davet tamamlanamadı. Davet bağlantısının geçerli olduğundan emin ol.",
       genericError: "Beklenmeyen bir profil hatası oluştu."
     }
   },

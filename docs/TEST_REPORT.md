@@ -1,5 +1,88 @@
 # Test Report
 
+## 2026-07-20 - Supabase Auth-Backed Invitation Onboarding
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- npm: 11.9.0
+- Supabase CLI: 2.109.1
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+- Deployed Edge Functions: `user-onboarding`, version `3`; `admin-project-cycles`, version `5`
+
+### Commands executed
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run build`
+- `npm run check`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+- `npx supabase db push --linked --include-all --yes`
+- `npx supabase migration list`
+- `npx supabase gen types typescript --linked`
+- `npx supabase functions deploy user-onboarding --no-verify-jwt`
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
+- `npx supabase functions list --project-ref daxaymcmtbmummrxdyjy`
+- Authenticated and negative live HTTP smoke tests for `user-onboarding`.
+- `git diff --check`
+
+### Passed
+
+- Final `npm run check` passed lint, typecheck, Vitest with 13 test files and 59 tests, and production build.
+- Migration dry-runs showed only `20260720232000_user_invitation_acceptance_flow.sql` and then only follow-up `20260720234500_invitation_acceptance_context_revalidation.sql` before their respective deployments.
+- Linked database lint found no schema errors before and after migration deployment.
+- Both invitation migrations applied to the linked project and appear in local and remote migration history.
+- Post-deployment dry-run reported the remote database is up to date.
+- Generated TypeScript database types include invitation context columns and `accept_user_invitation()`.
+- `user-onboarding` deployed as `ACTIVE`, version `3`, and `admin-project-cycles` deployed as `ACTIVE`, version `5`, with browser-compatible CORS preflight headers.
+- Authenticated system-admin listing returned one manageable organization, three active units, six active organization members, and no existing invitations.
+- A synthetic employee administration request returned HTTP 403 with `ADMINISTRATION_SCOPE_DENIED`.
+- An unauthenticated request returned HTTP 401 with `AUTHENTICATION_REQUIRED`.
+- An authenticated system-admin revocation request for a nonexistent invitation returned HTTP 400 with `INVITATION_NOT_FOUND` without changing persisted data.
+- Authenticated browser verification loaded the invitation form, one organization, three units, six manager candidates, the existing project, five project members, and 12 assignment summaries.
+- Desktop and 390-pixel mobile viewport checks found no horizontal document overflow or out-of-bounds elements.
+- Component tests cover invitation creation, revocation, system-admin visibility, and invited-profile acceptance.
+- Boundary tests verify no browser service directly queries `user_invitations` and no raw custom invitation token is returned.
+
+### Failed
+
+- The first new component test read the form before asynchronous option loading completed; it was changed to await the labeled control.
+- The first migration content test treated SQL `comment on` metadata as a sensitive comment column; it was narrowed to actual `add column` declarations.
+- The first remote dry-run attempt received a transient Supabase login-role HTTP 503 connection timeout; the retry succeeded.
+- Both migration deployments succeeded but emitted the known Docker migration-catalog cache warning.
+- Function deployment succeeded but emitted `WARNING: Docker is not running`.
+- The first authenticated browser check exposed missing CORS permission for the Supabase SDK `apikey` header; both administration functions were corrected, redeployed, and reverified.
+
+### Skipped
+
+- Real invitation email delivery was not tested because no approved test mailbox was provided and arbitrary/invalid-address delivery should not be triggered.
+- Invited-user link handling and final acceptance were not live-tested for the same reason.
+- A reusable Playwright end-to-end suite remains unimplemented; this change received a targeted authenticated browser smoke test instead.
+
+### Manual tests
+
+- Verified the administration service uses only the `user-onboarding` Edge Function boundary.
+- Verified the profile service uses the same boundary for invitation acceptance.
+- Verified generated database types contain the new migration shape.
+
+### Security checks
+
+- Verified invitation management requires system-admin scope and active profile state.
+- Verified acceptance binds the exact Auth user id and normalized email.
+- Verified acceptance rechecks expiration, terminal state, active organization/unit, and optional active manager.
+- Verified `accept_user_invitation()` execute permission is granted only to `service_role`.
+- Verified activation writes profile, role, unit membership, manager relationship, invitation state, and safe audit metadata atomically.
+- Verified no evaluation content, service-role credential, access token, raw invitation secret, score, comment, or submission payload was added.
+
+### Remaining risks
+
+- SMTP delivery and invited-user acceptance require an approved mailbox smoke test.
+- Existing-user role edits and general hierarchy administration remain incomplete.
+- Sensitive evaluation submission, anonymous credentials, encryption, and reporting remain unimplemented.
+
 ## 2026-07-20 - Authenticated Administration Smoke Verification
 
 ### Environment

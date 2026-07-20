@@ -2,7 +2,7 @@
 
 ## Status
 
-Supabase migrations exist for the default-deny security foundation, profile/invitation onboarding foundation, configurable organization hierarchy foundation, authenticated own-workspace context RPC, project/evaluation-cycle configuration foundation, and evaluation assignment planning foundation. The complete anonymous submission data model is still conceptual and must be implemented in future reviewed phases.
+Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed profile/invitation onboarding, configurable organization hierarchy, authenticated own-workspace context RPC, project/evaluation-cycle configuration, and evaluation assignment planning. The complete anonymous submission data model is still conceptual and must be implemented in future reviewed phases.
 
 Generated TypeScript database types are stored in `src/types/supabase.ts` and should be regenerated after schema changes.
 
@@ -53,6 +53,7 @@ Implemented foundation tables:
 Implemented foundation functions:
 
 - `get_my_workspace_context()`
+- `accept_user_invitation()`
 
 ## Identity Domain
 
@@ -60,7 +61,7 @@ Identity-domain tables store users, roles, organization hierarchy, memberships, 
 
 `user_profiles` stores identity and onboarding metadata for authenticated users. Authenticated users can read only their own row.
 
-`user_invitations` stores invitation metadata and `token_hash` only. It has no frontend client policy; future trusted Edge Functions must create invitations, validate raw invitation secrets, activate profiles, and assign scoped roles.
+`user_invitations` stores invitation metadata, a server-only correlation hash, the Supabase Auth user id, organization/unit placement, invited role scope, membership kind, and optional manager. It has no frontend client policy. `user-onboarding` creates and revokes invitations, while service-role-only `accept_user_invitation()` atomically activates the profile and creates scoped identity records after Auth user and email validation.
 
 `organizations` stores configurable company roots.
 

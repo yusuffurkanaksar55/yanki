@@ -1,5 +1,13 @@
 # Release Notes
 
+## 2026-07-20 - Supabase Auth-Backed Invitation Onboarding
+
+This is not a product release. System administrators now have a Turkish invitation management panel backed by the trusted `user-onboarding` Edge Function. They can select an organization, unit, role, optional manager, and invitation lifetime, then create or revoke a Supabase Auth invitation.
+
+Invited-profile acceptance uses a service-role-only atomic database function and does not expose raw custom invitation tokens or privileged table writes to the browser. Real email delivery and invited-user acceptance still require an approved mailbox smoke test before production readiness claims.
+
+Both browser-facing administration Edge Functions now allow the Supabase SDK `apikey` CORS header. Authenticated browser smoke testing confirms that user invitations and the existing project administration data load together on desktop and mobile widths.
+
 ## 2026-07-20 - Evaluation Assignment Planning Foundation
 
 This is not a product release. The administration screen can now request project-backed evaluation assignment generation through the trusted `admin-project-cycles` Edge Function and see aggregate assignment counts.

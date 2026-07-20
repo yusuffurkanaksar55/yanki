@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { tr } from "../../locales/tr/messages";
 import { ProfileGate } from "./ProfileGate";
@@ -25,6 +26,29 @@ describe("ProfileGate", () => {
     expect(
       await screen.findByRole("heading", { name: tr.profile.inactive.title })
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: tr.profile.inactive.acceptInvitation
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("accepts an invitation through the profile service", async () => {
+    const user = userEvent.setup();
+    const service = createProfileServiceStub(
+      createProfileStub({ onboarding_status: "INVITED" })
+    );
+
+    renderProfileGate(service);
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: tr.profile.inactive.acceptInvitation
+      })
+    );
+
+    expect(service.acceptOwnInvitation).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText("Ready")).toBeInTheDocument();
   });
 
   it("shows a safe error when the profile cannot be read", async () => {
@@ -57,6 +81,7 @@ function createProfileServiceStub(
   result: UserProfile | ProfileServiceError | null
 ): ProfileService {
   return {
+    acceptOwnInvitation: vi.fn(async () => createProfileStub()),
     getOwnProfile: vi.fn(async () => {
       if (result instanceof ProfileServiceError) {
         throw result;

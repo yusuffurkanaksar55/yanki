@@ -1,5 +1,149 @@
 # Error Log
 
+## ERR-20260720-012 - Administration Edge Functions rejected browser CORS preflight
+
+### Context
+
+The invitation and project administration panels were checked in the local application with an authenticated system-administrator session.
+
+### Symptoms
+
+Direct authenticated HTTP smoke tests passed, while both browser panels displayed data-loading errors.
+
+### Root cause
+
+Supabase browser function invocation includes the `apikey` request header, but both Edge Functions omitted `apikey` from `Access-Control-Allow-Headers`.
+
+### Incorrect approach
+
+Treating direct HTTP success as sufficient evidence that the browser integration was usable.
+
+### Correct solution
+
+Add `apikey` to both CORS preflight allowlists, add boundary regression tests, redeploy both Edge Functions, and repeat the authenticated browser smoke test.
+
+### Prevention
+
+Keep CORS allowlists aligned with Supabase browser SDK headers and include authenticated browser verification for every browser-facing Edge Function.
+
+### Related files
+
+- `supabase/functions/user-onboarding/index.ts`
+- `supabase/functions/admin-project-cycles/index.ts`
+- `tests/user-onboarding-function.test.mjs`
+- `tests/admin-project-cycle-function.test.mjs`
+
+### Related tests
+
+- `npm run check`
+- Authenticated local browser smoke test
+
+## ERR-20260720-009 - User onboarding tests used broad synchronous assumptions
+
+### Context
+
+Component and migration safety tests were added for invitation onboarding.
+
+### Symptoms
+
+The component test queried an organization selector while options were still loading, and the migration test matched SQL `comment on` metadata as though it were a sensitive comment column.
+
+### Root cause
+
+The component assertion waited only for the static heading, while the migration regex searched the complete SQL text instead of column declarations.
+
+### Incorrect approach
+
+Using a static heading as proof that asynchronous data loading completed and scanning all SQL prose for a generic word.
+
+### Correct solution
+
+Await the labeled form control and constrain the sensitive-field regex to `add column` declarations.
+
+### Prevention
+
+Wait on the actual asynchronous UI boundary and scope schema assertions to syntactic structures that represent database fields.
+
+### Related files
+
+- `src/features/administration/UserInvitationManagementPanel.test.tsx`
+- `tests/user-onboarding-function.test.mjs`
+
+### Related tests
+
+- `npm test`
+
+## ERR-20260720-010 - Supabase migration dry-run received a transient login-role timeout
+
+### Context
+
+The invitation acceptance migration was checked against the linked Supabase project before deployment.
+
+### Symptoms
+
+The first `npx supabase db push --dry-run` returned HTTP 503 with an upstream connection timeout while initializing the login role.
+
+### Root cause
+
+The linked Supabase connection layer temporarily failed before migration planning began.
+
+### Incorrect approach
+
+Treating the connection-layer response as a migration syntax or compatibility failure.
+
+### Correct solution
+
+Retry the same non-mutating dry-run. The retry connected successfully and showed only the expected migration.
+
+### Prevention
+
+Separate transient connection errors from SQL validation results and retry safe read-only planning commands once before escalating.
+
+### Related files
+
+- `supabase/migrations/20260720232000_user_invitation_acceptance_flow.sql`
+
+### Related tests
+
+- `npx supabase db push --dry-run`
+
+## ERR-20260720-011 - Invitation migration catalog cache warning repeated
+
+### Context
+
+The invitation acceptance and acceptance-context revalidation migrations were applied to the linked Supabase project.
+
+### Symptoms
+
+Both migrations applied successfully but the CLI could not cache the migration catalog because the Docker Desktop Linux engine pipe was unavailable.
+
+### Root cause
+
+Remote migration deployment succeeded; the follow-up local Docker image inspection could not run in this shell.
+
+### Incorrect approach
+
+Treating the Docker cache warning as a remote migration failure.
+
+### Correct solution
+
+Verify remote migration history, post-deployment dry-run, and linked database lint independently.
+
+### Prevention
+
+Continue separating remote Supabase state from optional local Docker catalog caching until Docker CLI/API access is verified.
+
+### Related files
+
+- `supabase/migrations/20260720232000_user_invitation_acceptance_flow.sql`
+- `supabase/migrations/20260720234500_invitation_acceptance_context_revalidation.sql`
+
+### Related tests
+
+- `npx supabase migration list`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+
 ## ERR-20260720-007 - In-app browser runtime could not resolve the user profile path
 
 ### Context

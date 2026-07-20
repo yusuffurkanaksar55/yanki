@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AdministrationPage } from "../features/administration/AdministrationPage";
 import type { ProjectCycleService } from "../features/administration/projectCycleService";
+import type { UserAdministrationService } from "../features/administration/userAdministrationService";
 import { AuthGate } from "../features/authentication/AuthGate";
 import { AuthProvider } from "../features/authentication/AuthProvider";
 import type { AuthService } from "../features/authentication/authService";
@@ -14,6 +15,7 @@ type AppProps = {
   readonly authService?: AuthService;
   readonly profileService?: ProfileService;
   readonly projectCycleService?: ProjectCycleService;
+  readonly userAdministrationService?: UserAdministrationService;
   readonly workspaceContextService?: WorkspaceContextService;
 };
 
@@ -23,6 +25,7 @@ export function App({
   authService,
   profileService,
   projectCycleService,
+  userAdministrationService,
   workspaceContextService
 }: AppProps) {
   const route = useHashRoute();
@@ -48,6 +51,7 @@ export function App({
                         onSignOut={onSignOut}
                         profileDisplayName={profile.display_name}
                         projectCycleService={projectCycleService}
+                        userAdministrationService={userAdministrationService}
                         userEmail={userEmail}
                         workspaceContext={workspaceContext}
                       />

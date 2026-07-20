@@ -20,7 +20,7 @@ Use the application scaffold only for frontend and trusted-administration founda
 
 ### Planned resolution
 
-Authenticated admin project/cycle/member/assignment management is smoke-tested. Next implement invitation creation/redemption Edge Functions, remaining production administration write actions, employee assignment access, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
+Authenticated admin project/cycle/member/assignment management and user-administration listing are smoke-tested. Next complete invitation email delivery/acceptance verification, remaining production administration write actions, employee assignment access, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
 
 ### Related tests
 
@@ -38,7 +38,7 @@ The product requires multiple administrators, CEOs/C-Level users, project manage
 
 ### Impact
 
-Admins and delegated project managers cannot yet persist invitations, general role assignments, hierarchy changes, delegated project-manager date updates, broader evaluation-cycle edits, or employee-facing assignment workflows through production application actions. System administrators can add project members and generate project-backed assignment records through the current Edge Function foundation.
+Admins and delegated project managers cannot yet persist general existing-user role changes, hierarchy edits, delegated project-manager date updates, broader evaluation-cycle edits, or employee-facing assignment workflows through production application actions. System administrators can create/revoke invitations, add project members, and generate project-backed assignment records through trusted Edge Functions.
 
 ### Workaround
 
@@ -46,11 +46,40 @@ Use the current synthetic fixture only for login, workspace-context, administrat
 
 ### Planned resolution
 
-Build trusted Edge Functions and production administration forms for invitation, profile, role, hierarchy, delegated date management, and employee assignment access.
+Complete invitation delivery/acceptance verification, then build trusted actions and production administration forms for existing-user roles, hierarchy edits, delegated date management, and employee assignment access.
 
 ### Related tests
 
 `tests/supabase-foundation.test.mjs`, `src/app/App.test.tsx`
+
+## ISSUE-006 - Invitation email delivery and acceptance need an approved mailbox smoke test
+
+### Severity
+
+Medium
+
+### Description
+
+The `user-onboarding` Edge Function, invitation administration UI, invitation revocation, and atomic acceptance database function are deployed. Live administration listing and authorization denial checks pass, but a real invitation was not sent to an arbitrary or invalid address during automated verification.
+
+### Impact
+
+Supabase Auth SMTP delivery, invite-link session creation, and the final invited-user acceptance interaction are not yet verified end to end.
+
+### Workaround
+
+Use the current synthetic accounts for existing authenticated workflow testing. Do not claim production invitation delivery until an approved test mailbox receives and accepts an invitation.
+
+### Planned resolution
+
+Confirm Supabase Auth email provider and redirect settings, send one invitation to an approved test mailbox, set the invited account password through the Supabase flow, accept the invitation in the application, and verify profile, role, unit membership, and manager context.
+
+### Related tests
+
+- Authenticated `list_user_administration` live smoke test
+- `tests/user-onboarding-function.test.mjs`
+- `src/features/administration/UserInvitationManagementPanel.test.tsx`
+- `src/features/profiles/ProfileGate.test.tsx`
 
 ## ISSUE-002 - Git repository is not initialized in the workspace
 

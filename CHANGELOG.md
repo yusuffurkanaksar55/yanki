@@ -14,6 +14,11 @@ All notable changes to this project are documented in this file.
 - Extended `admin-project-cycles` with admin-only project assignment generation from active project memberships.
 - Added assignment count display and Turkish generation control to the administration panel.
 - Added ADR-0012 for default-deny evaluation assignment planning.
+- Added Supabase Auth-backed user invitation creation and revocation through `user-onboarding`.
+- Added service-role-only atomic invitation acceptance for profile, role, unit membership, manager relationship, and audit records.
+- Added Turkish system-administrator invitation management and invited-profile acceptance controls.
+- Added ADR-0013 for Supabase Auth-backed invitation onboarding.
+- Fixed browser CORS preflight support for Supabase administration Edge Function calls by allowing the SDK `apikey` header.
 
 ## 2026-07-16
 

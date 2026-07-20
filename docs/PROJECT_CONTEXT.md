@@ -12,15 +12,15 @@ The repository currently contains the documentation foundation and a React, Type
 
 - Application UI: initial Turkish dashboard shell implemented.
 - Authentication: typed Supabase Auth client foundation implemented for email/password sign-in, password reset request, local-session sign-out, and session-state gating.
-- User profile onboarding: authenticated profile gate implemented with Turkish pending, inactive, and error states.
+- User profile onboarding: Supabase Auth-backed invitation creation/revocation, atomic invitation acceptance, and authenticated profile gate implemented with Turkish pending, inactive, and error states.
 - Organization hierarchy: configurable organizations, units, memberships, manager assignments, and demo fixture script foundation implemented.
 - Workspace context: authenticated own-context RPC and dashboard context panel implemented.
-- Administration UI: protected hash-route administration shell implemented for admin-like roles, with project/cycle list, create form, organization member selector, and project membership form.
+- Administration UI: protected hash-route administration shell implemented for admin-like roles, with system-admin user invitation management plus project/cycle list, create form, organization member selector, and project membership form.
 - Project and evaluation-cycle configuration: default-deny project, project membership, and time-bound evaluation-cycle foundation implemented.
 - Evaluation assignment planning: default-deny assignment table and admin-only project assignment generation foundation implemented from active project memberships.
 - Authenticated integration verification: synthetic admin, project-manager, and employee accounts have been exercised against the deployed Auth and `admin-project-cycles` boundaries.
 - Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, workspace context RPC, project, evaluation-cycle, and evaluation-assignment migrations applied.
-- Edge Functions: `admin-project-cycles` foundation implemented for project/cycle list, project/cycle create, organization member directory, project member add, and project assignment generation actions.
+- Edge Functions: `admin-project-cycles` handles project/cycle/member/assignment administration; `user-onboarding` handles scoped invitation options, creation, revocation, and authenticated acceptance.
 - Anonymous credential flow: documented, not implemented.
 - Encryption flow: documented, not implemented.
 - Quality checks: lint, typecheck, Vitest, React Testing Library, production build, and documentation foundation tests are implemented.
@@ -51,11 +51,11 @@ The repository currently contains the documentation foundation and a React, Type
 
 ## Current Database Structure
 
-The applied Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, `user_invitations`, `organizations`, `organization_units`, `organization_unit_memberships`, `manager_assignments`, `projects`, `project_memberships`, `evaluation_cycles`, `evaluation_assignments`, and `get_my_workspace_context()`. RLS is enabled on all public tables. The only client-facing table policy allows authenticated users to read their own `user_profiles` row. The workspace context RPC returns only the caller's own non-sensitive role, unit, and manager context. Invitation, organization, project, evaluation-cycle, and evaluation-assignment administration records remain default-deny to frontend clients. The conceptual complete data model is documented in `docs/DATA_MODEL.md`.
+The applied Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, `user_invitations`, `organizations`, `organization_units`, `organization_unit_memberships`, `manager_assignments`, `projects`, `project_memberships`, `evaluation_cycles`, `evaluation_assignments`, `get_my_workspace_context()`, and service-role-only `accept_user_invitation()`. RLS is enabled on all public tables. The only client-facing table policy allows authenticated users to read their own `user_profiles` row. The workspace context RPC returns only the caller's own non-sensitive role, unit, and manager context. Invitation, organization, project, evaluation-cycle, and evaluation-assignment administration records remain default-deny to frontend clients. The conceptual complete data model is documented in `docs/DATA_MODEL.md`.
 
 ## Current Authentication Model
 
-The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, and trusted Edge Function calls for project/cycle administration. Invitation issuance, invitation redemption, Microsoft Entra ID, tenant restrictions, and sensitive evaluation authorization checks are not implemented yet.
+The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, trusted project/cycle administration, system-admin invitation creation/revocation, and authenticated invitation acceptance. Real invitation email delivery and acceptance still require an approved mailbox smoke test. Microsoft Entra ID, tenant restrictions, and sensitive evaluation authorization checks are not implemented yet.
 
 ## Current Authorization Model
 
@@ -65,8 +65,8 @@ Runtime evaluation authorization is not implemented. Current trusted administrat
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
 - Runtime authorization, encryption, anonymous credential, and reporting controls are not implemented.
-- Invitation issuance/redemption Edge Functions do not exist yet.
-- No Microsoft Entra ID, hierarchy write workflow, delegated project-manager date update flow, employee assignment inbox, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
+- Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
+- No Microsoft Entra ID, general hierarchy write workflow, existing-user role management, delegated project-manager date update flow, employee assignment inbox, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
 - Synthetic test users were created by running `npm run fixture:demo`. Authenticated administration, project-manager visibility, employee denial, project membership, and assignment-generation smoke checks have been verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
@@ -84,12 +84,13 @@ Runtime evaluation authorization is not implemented. Current trusted administrat
 - 2026-07-20: Extended admin project management with organization member lookup and project membership assignment through the Edge Function.
 - 2026-07-20: Added default-deny evaluation assignment planning from project memberships through the Edge Function.
 - 2026-07-20: Completed authenticated live smoke verification for admin project creation, membership management, assignment generation, project-manager visibility, and employee administration denial.
+- 2026-07-20: Added Supabase Auth-backed invitation creation/revocation, service-role-only atomic acceptance, Turkish admin invitation management, and invited-profile acceptance UI.
 
 ## Current Development Priorities
 
-1. Implement trusted Edge Functions and administration UI for invitation issuance, profile activation, scoped role assignment, and hierarchy management.
-2. Implement delegated project-manager project-completion and evaluation-close-date update flows.
-3. Implement employee-facing assignment access only after scoped authorization policies are designed.
-4. Implement anonymous credentials and encrypted submissions before reporting.
-5. Implement scoped reporting with threshold and self-access prevention.
-6. Add Playwright end-to-end tests after stable authenticated browser automation is available.
+1. Configure or verify Supabase Auth email delivery and run invitation delivery/acceptance smoke testing with an approved test mailbox.
+2. Implement trusted existing-user role changes, organization-unit create/update, membership changes, and manager-assignment administration.
+3. Implement delegated project-manager project-completion and evaluation-close-date update flows.
+4. Implement employee-facing assignment access only after scoped authorization policies are designed.
+5. Implement anonymous credentials and encrypted submissions before reporting.
+6. Implement scoped reporting with threshold and self-access prevention, then add Playwright end-to-end coverage.

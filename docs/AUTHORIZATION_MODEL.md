@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and has an initial default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, own-workspace context RPC, default-deny project/evaluation-cycle configuration foundation, default-deny evaluation assignment foundation, and first admin project/cycle/member/assignment Edge Function. Runtime employee assignment access, evaluation submission, and reporting policies are not implemented yet.
+Authorization is documented and has a default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, own-workspace context RPC, Supabase Auth-backed invitation onboarding, default-deny project/evaluation-cycle and evaluation-assignment foundations, and trusted user/project administration Edge Functions. Runtime employee assignment access, evaluation submission, and reporting policies are not implemented yet.
 
 ## Principles
 
@@ -24,11 +24,13 @@ The current frontend auth, profile, workspace, and administration gates only con
 
 `admin-project-cycles` validates the authenticated user server-side, requires an active profile, recomputes roles from `user_role_assignments`, and allows project/evaluation-cycle creation only for `SYSTEM_ADMIN` users scoped to `PLATFORM` or the selected organization. Listing returns only configuration records within the user's admin/reviewer/project-manager scopes. Organization member lookup, project membership writes, and project-backed assignment generation are available only to system administrators with platform or matching organization scope. The function verifies that selected users have active profiles and active organization memberships before adding them to projects, and generates only non-self assignments from active project memberships.
 
+`user-onboarding` requires a platform or matching-organization `SYSTEM_ADMIN` role for invitation listing, creation, and revocation. Invitation acceptance is available only to the exact Supabase Auth user created for the invitation, after verified-email, expiration, terminal-state, organization, unit, and optional manager checks. The acceptance database function is executable only by `service_role`.
+
 ## Roles
 
 ### `SYSTEM_ADMIN`
 
-Can manage users, hierarchy, projects, project memberships, templates, assignments, cycles, and configuration. Cannot read evaluation content, lessons learned content, decrypted payloads, or raw individual responses.
+Can manage scoped user invitations, hierarchy, projects, project memberships, templates, assignments, cycles, and configuration. Cannot read evaluation content, lessons learned content, decrypted payloads, or raw individual responses.
 
 ### `EMPLOYEE`
 

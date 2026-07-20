@@ -524,45 +524,63 @@ export type Database = {
           accepted_at: string | null
           accepted_by_user_id: string | null
           created_at: string
+          display_name: string | null
           email: string
           expires_at: string
           id: string
+          invited_auth_user_id: string | null
           invited_by_user_id: string | null
           invited_role_code: string
           invited_scope_id: string | null
           invited_scope_type: string
+          manager_user_id: string | null
+          membership_kind: string
+          organization_id: string | null
           revoked_at: string | null
           token_hash: string
+          unit_id: string | null
           updated_at: string
         }
         Insert: {
           accepted_at?: string | null
           accepted_by_user_id?: string | null
           created_at?: string
+          display_name?: string | null
           email: string
           expires_at: string
           id?: string
+          invited_auth_user_id?: string | null
           invited_by_user_id?: string | null
           invited_role_code: string
           invited_scope_id?: string | null
           invited_scope_type: string
+          manager_user_id?: string | null
+          membership_kind?: string
+          organization_id?: string | null
           revoked_at?: string | null
           token_hash: string
+          unit_id?: string | null
           updated_at?: string
         }
         Update: {
           accepted_at?: string | null
           accepted_by_user_id?: string | null
           created_at?: string
+          display_name?: string | null
           email?: string
           expires_at?: string
           id?: string
+          invited_auth_user_id?: string | null
           invited_by_user_id?: string | null
           invited_role_code?: string
           invited_scope_id?: string | null
           invited_scope_type?: string
+          manager_user_id?: string | null
+          membership_kind?: string
+          organization_id?: string | null
           revoked_at?: string | null
           token_hash?: string
+          unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -579,6 +597,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "scope_types"
             referencedColumns: ["scope_type"]
+          },
+          {
+            foreignKeyName: "user_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_invitations_unit_fk"
+            columns: ["organization_id", "unit_id"]
+            isOneToOne: false
+            referencedRelation: "organization_units"
+            referencedColumns: ["organization_id", "id"]
           },
         ]
       }
@@ -668,6 +700,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_user_invitation: {
+        Args: { accepting_user_id: string; invitation_id: string }
+        Returns: Json
+      }
       get_my_workspace_context: { Args: never; Returns: Json }
     }
     Enums: {

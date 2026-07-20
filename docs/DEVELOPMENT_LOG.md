@@ -1,5 +1,74 @@
 # Development Log
 
+## 2026-07-20 - Supabase Auth-Backed Invitation Onboarding
+
+### Objective
+
+Provide a trusted system-administrator invitation workflow and atomic invited-user activation without exposing raw invitation secrets, service-role credentials, or identity-table writes to the browser.
+
+### Changes
+
+- Extended `user_invitations` with Auth-user, organization, unit, membership, display-name, and optional manager context.
+- Added hierarchy validation for invitation organization, unit, role scope, and active manager membership.
+- Added service-role-only `accept_user_invitation()` for atomic profile activation, scoped role assignment, unit membership, optional manager assignment, invitation acceptance, and safe audit metadata.
+- Added `user-onboarding` with scoped administration listing, Supabase Auth invitation creation, invitation revocation, and authenticated acceptance actions.
+- Added rollback cleanup for failed invitation creation and inactive invited-Auth-user cleanup during revocation.
+- Added a Turkish system-administrator invitation form and invitation status list.
+- Added invited-profile acceptance to the profile gate.
+- Added focused component, boundary, migration, and security tests.
+- Added the Supabase browser SDK `apikey` header to both administration Edge Function CORS preflight allowlists.
+- Added ADR-0013 for Supabase Auth-backed invitation onboarding.
+
+### Files affected
+
+- `supabase/migrations/20260720232000_user_invitation_acceptance_flow.sql`
+- `supabase/functions/user-onboarding/index.ts`
+- `src/types/supabase.ts`
+- `src/features/administration/*`
+- `src/features/profiles/*`
+- `src/app/*`
+- `src/locales/tr/messages.ts`
+- `tests/*`
+- `docs/*`
+- `README.md`
+- `CHANGELOG.md`
+
+### Database changes
+
+Applied remote migrations `20260720232000_user_invitation_acceptance_flow.sql` and `20260720234500_invitation_acceptance_context_revalidation.sql` to Supabase project `daxaymcmtbmummrxdyjy`. They add identity-domain onboarding context, service-role-only atomic invitation acceptance, and acceptance-time active hierarchy revalidation. They do not add evaluation content.
+
+### Security impact
+
+Positive foundation impact. Invitation management requires a platform or matching-organization `SYSTEM_ADMIN` role. Acceptance requires the exact Supabase Auth user id, verified invitation email, active invitation window, valid terminal state, active organization/unit context, and active optional manager. The browser receives no custom raw invitation token and writes no invitation, role, membership, manager, or audit table directly.
+
+### Tests performed
+
+- `npm run check`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+- `npx supabase db push --linked --include-all --yes`
+- `npx supabase migration list`
+- `npx supabase gen types typescript --linked`
+- `npx supabase functions deploy user-onboarding --no-verify-jwt`
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
+- `npx supabase functions list --project-ref daxaymcmtbmummrxdyjy`
+- Authenticated `list_user_administration` live smoke test.
+- Authenticated nonexistent-invitation revocation live smoke test.
+- Authenticated desktop and mobile browser smoke tests for invitation and project administration panels.
+- Employee and unauthenticated denial live smoke tests.
+- `git diff --check`
+
+### Result
+
+Invitation onboarding foundation was implemented and deployed. The linked database includes migrations `20260720232000` and `20260720234500`, linked lint reports no schema errors, and the remote database is up to date. `user-onboarding` is `ACTIVE` as version `3`, and the CORS-corrected `admin-project-cycles` is `ACTIVE` as version `5`. Authenticated system-admin listing returned one organization, three units, and six active members; a nonexistent invitation revocation returned `INVITATION_NOT_FOUND`. Employee and unauthenticated requests were denied with the expected codes. The authenticated browser loaded both administration panels without horizontal overflow. Application checks passed with 13 test files and 59 tests.
+
+### Remaining work
+
+- Configure or verify Supabase Auth email delivery and run delivery/acceptance smoke testing with an approved mailbox.
+- Implement existing-user role changes and general hierarchy/membership/manager administration.
+- Implement delegated project-manager date updates.
+- Implement employee assignment access, anonymous credentials, encrypted submissions, and reporting in later security-reviewed phases.
+
 ## 2026-07-20 - Authenticated Administration Smoke Verification
 
 ### Objective

@@ -51,7 +51,9 @@ The applied migrations create foundational authorization tables, safe audit meta
 
 The `admin-project-cycles` Edge Function is the first trusted administrative function. It uses `SUPABASE_SERVICE_ROLE_KEY` only in the Edge Function runtime and must not expose that value to frontend code. It supports project/cycle listing and creation, organization member lookup, project member assignment, and project-backed evaluation assignment generation.
 
-`admin-project-cycles` is deployed with Supabase gateway JWT verification disabled so browser CORS preflight can reach the function. The function validates the bearer token internally with `auth.getUser()`.
+The `user-onboarding` Edge Function uses the same trusted boundary for system-admin invitation options, invitation creation, revocation, and authenticated acceptance. Supabase Auth delivers the user-facing invite link. The application does not return a custom raw invitation secret to the administration browser. Acceptance calls service-role-only `accept_user_invitation()` for one atomic identity-domain update.
+
+`admin-project-cycles` and `user-onboarding` are deployed with Supabase gateway JWT verification disabled so browser CORS preflight can reach the functions. Both functions validate the bearer token internally with `auth.getUser()`.
 
 ## Auth Dashboard Settings
 
@@ -62,7 +64,9 @@ For local Vite development, configure Supabase Auth with:
   - `http://127.0.0.1:5173`
   - `http://localhost:5173`
 
-The current frontend auth client uses email/password sign-in and password reset request. Authenticated users are gated by their own active `user_profiles` row. Microsoft Entra ID and trusted invitation creation/redemption Edge Functions are planned future phases.
+The current frontend auth client uses email/password sign-in and password reset request. Authenticated users are gated by their own active `user_profiles` row. Supabase Auth-backed invitation creation/revocation and atomic acceptance are implemented. Microsoft Entra ID remains a future phase.
+
+Before production invitation testing, configure or verify the Supabase Auth email provider and send only to an approved test mailbox. The Site URL and redirect allowlist must point back to the application. Do not paste invitation tokens, access tokens, SMTP credentials, or service-role values into Git or chat.
 
 Current baseline rules:
 
@@ -74,6 +78,7 @@ Current baseline rules:
 - Evaluation assignment planning tables have no client-facing policies and store identity-domain eligibility only.
 - `get_my_workspace_context()` is executable only by authenticated users and returns only the caller's own non-sensitive profile, role, membership, and manager context.
 - `admin-project-cycles` validates the caller's JWT and active profile before using scoped role records for project/cycle/member/assignment administration.
+- `user-onboarding` validates the caller's JWT, recomputes system-admin scope for management actions, and binds acceptance to the invited Auth user id and verified email.
 - `PLATFORM` is the global null-id scope; organization, team, project, and evaluation-cycle roles must use explicit `scope_id` values.
 - No plaintext evaluation scores, comments, lessons learned content, or evaluator-to-response linkage are stored.
 - Sensitive evaluation submission and reporting flows must be implemented through trusted server-side functions later.

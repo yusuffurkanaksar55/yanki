@@ -292,6 +292,7 @@ function createSessionStub(): Session {
 
 function createProfileServiceStub(profile: UserProfile | null): ProfileService {
   return {
+    acceptOwnInvitation: vi.fn(async () => createProfileStub()),
     getOwnProfile: vi.fn(async () => profile)
   };
 }

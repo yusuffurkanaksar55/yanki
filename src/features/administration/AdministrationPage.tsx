@@ -9,12 +9,15 @@ import {
 } from "../workspace/workspaceAuthorization";
 import { ProjectCycleManagementPanel } from "./ProjectCycleManagementPanel";
 import type { ProjectCycleService } from "./projectCycleService";
+import { UserInvitationManagementPanel } from "./UserInvitationManagementPanel";
+import type { UserAdministrationService } from "./userAdministrationService";
 
 type AdministrationPageProps = {
   readonly isSigningOut?: boolean;
   readonly onSignOut?: () => Promise<void>;
   readonly profileDisplayName?: string | null;
   readonly projectCycleService?: ProjectCycleService;
+  readonly userAdministrationService?: UserAdministrationService;
   readonly userEmail?: string | null;
   readonly workspaceContext: WorkspaceContext;
 };
@@ -24,6 +27,7 @@ export function AdministrationPage({
   onSignOut,
   profileDisplayName,
   projectCycleService,
+  userAdministrationService,
   userEmail,
   workspaceContext
 }: AdministrationPageProps) {
@@ -134,6 +138,11 @@ export function AdministrationPage({
             </ul>
           </aside>
         </section>
+
+        <UserInvitationManagementPanel
+          service={userAdministrationService}
+          workspaceContext={workspaceContext}
+        />
 
         <ProjectCycleManagementPanel
           service={projectCycleService}
