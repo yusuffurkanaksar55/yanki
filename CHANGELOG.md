@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-07-20
+
+### Added
+
+- Extended `admin-project-cycles` with organization member lookup and project member assignment actions.
+- Added project member selection and membership-kind controls to the Turkish administration panel.
+- Added project-member metadata to the managed project service model without exposing direct browser table access.
+- Added ADR-0011 for project membership management through trusted Edge Function actions.
+
 ## 2026-07-16
 
 ### Added

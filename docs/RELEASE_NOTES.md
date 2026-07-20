@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2026-07-20 - Admin Project Membership Foundation
+
+This is not a product release. The administration screen can now load active organization members through the trusted `admin-project-cycles` Edge Function and add them to projects as members, project managers, sponsors, or observers.
+
+The browser still does not read or write `user_profiles`, organization memberships, or project memberships directly. Sensitive evaluation assignments, anonymous credentials, encrypted submissions, and reporting remain unimplemented.
+
 ## 2026-07-19 - Admin Project Cycle Edge Function Foundation
 
 This is not a product release. The administration screen now has a project/evaluation-cycle management panel backed by a trusted `admin-project-cycles` Edge Function. The browser calls the function instead of reading or writing default-deny project tables directly.

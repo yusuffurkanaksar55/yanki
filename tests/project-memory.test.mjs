@@ -31,7 +31,8 @@ const requiredFiles = [
   "docs/decisions/ADR-0007-use-configurable-organization-hierarchy-foundation.md",
   "docs/decisions/ADR-0008-use-authenticated-workspace-context-rpc.md",
   "docs/decisions/ADR-0009-use-default-deny-project-evaluation-cycle-foundation.md",
-  "docs/decisions/ADR-0010-use-admin-project-cycle-edge-function.md"
+  "docs/decisions/ADR-0010-use-admin-project-cycle-edge-function.md",
+  "docs/decisions/ADR-0011-use-admin-project-membership-edge-function-actions.md"
 ];
 
 function readProjectFile(relativePath) {

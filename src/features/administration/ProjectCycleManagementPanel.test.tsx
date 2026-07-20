@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { tr } from "../../locales/tr/messages";
@@ -43,6 +43,10 @@ describe("ProjectCycleManagementPanel", () => {
       screen.getByLabelText(tr.administration.projects.form.evaluationName),
       "New Project Evaluation"
     );
+    await user.selectOptions(
+      screen.getByLabelText(tr.administration.projects.form.projectManagerUserId),
+      "manager-user-id"
+    );
     await user.type(
       screen.getByLabelText(tr.administration.projects.form.opensAt),
       "2026-07-19T09:00"
@@ -63,6 +67,7 @@ describe("ProjectCycleManagementPanel", () => {
         organizationId: "organization-id",
         projectCode: "NEW",
         projectCompletedOn: "2026-07-19",
+        projectManagerUserId: "manager-user-id",
         projectName: "New Project"
       })
     );
@@ -71,13 +76,89 @@ describe("ProjectCycleManagementPanel", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("New Project")).toBeInTheDocument();
   });
+
+  it("adds project members through the service", async () => {
+    const user = userEvent.setup();
+    const service = createProjectCycleServiceStub();
+
+    render(
+      <ProjectCycleManagementPanel
+        service={service}
+        workspaceContext={createWorkspaceContext()}
+      />
+    );
+
+    await screen.findByText("Existing Project");
+    const projectArticle = screen
+      .getByText("Existing Project")
+      .closest("article");
+
+    expect(projectArticle).not.toBeNull();
+
+    const projectRegion = within(projectArticle as HTMLElement);
+    await user.selectOptions(
+      projectRegion.getByLabelText(tr.administration.projects.members.user),
+      "member-user-id"
+    );
+    await user.selectOptions(
+      projectRegion.getByLabelText(tr.administration.projects.members.kind),
+      "OBSERVER"
+    );
+    await user.click(
+      projectRegion.getByRole("button", {
+        name: tr.administration.projects.members.add
+      })
+    );
+
+    expect(service.addProjectMember).toHaveBeenCalledWith({
+      membershipKind: "OBSERVER",
+      projectId: "existing-project-id",
+      userId: "member-user-id"
+    });
+    expect(
+      await screen.findByText(tr.administration.projects.feedback.memberAdded)
+    ).toBeInTheDocument();
+    const memberList = projectRegion.getByRole("list");
+
+    expect(
+      within(memberList).getByText("Demo Member (member@example.com)")
+    ).toBeInTheDocument();
+  });
 });
 
 function createProjectCycleServiceStub(): ProjectCycleService {
   return {
+    addProjectMember: vi.fn(async (draft) => ({
+      ...createManagedProject("existing-project-id", "Existing Project"),
+      members: [
+        {
+          displayName: "Demo Member",
+          email: "member@example.com",
+          endsAt: null,
+          id: "membership-id",
+          membershipKind: draft.membershipKind,
+          startsAt: "2026-07-20T09:00:00.000Z",
+          userId: draft.userId
+        }
+      ]
+    })),
     createProjectCycle: vi.fn(async (draft: ProjectCycleDraft) =>
       createManagedProject("created-project-id", draft.projectName, draft)
     ),
+    listOrganizationMembers: vi.fn(async () => [
+      {
+        displayName: "Demo Manager",
+        email: "manager@example.com",
+        onboardingStatus: "ACTIVE",
+        userId: "manager-user-id"
+      },
+      {
+        displayName: "Demo Member",
+        email: "member@example.com",
+        onboardingStatus: "ACTIVE",
+        userId: "member-user-id"
+      }
+    ]),
     listProjectCycles: vi.fn(async () => [
       createManagedProject("existing-project-id", "Existing Project")
     ])
@@ -104,6 +185,7 @@ function createManagedProject(
       }
     ],
     id,
+    members: [],
     name,
     organizationId: draft.organizationId ?? "organization-id",
     projectManagerUserId: draft.projectManagerUserId ?? null,

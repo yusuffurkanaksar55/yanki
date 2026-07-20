@@ -32,6 +32,8 @@ describe("admin project cycle Edge Function foundation", () => {
     expect(functionSource).toMatch(/SUPABASE_SERVICE_ROLE_KEY/);
     expect(functionSource).toMatch(/list_project_cycles/);
     expect(functionSource).toMatch(/create_project_cycle/);
+    expect(functionSource).toMatch(/list_organization_members/);
+    expect(functionSource).toMatch(/add_project_member/);
   });
 
   it("requires administration scope for project creation", () => {
@@ -49,6 +51,8 @@ describe("admin project cycle Edge Function foundation", () => {
     expect(serviceSource).toMatch(/functions\.invoke\("admin-project-cycles"/);
     expect(serviceSource).not.toMatch(/\.from\("projects"\)/);
     expect(serviceSource).not.toMatch(/\.from\("evaluation_cycles"\)/);
+    expect(serviceSource).not.toMatch(/\.from\("project_memberships"\)/);
+    expect(serviceSource).not.toMatch(/\.from\("user_profiles"\)/);
     expect(serviceSource).not.toMatch(/SUPABASE_SERVICE_ROLE_KEY/);
   });
 });

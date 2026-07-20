@@ -17,6 +17,39 @@ type CreateProjectCycleRequest = {
   readonly projectManagerUserId?: string | null;
 };
 
+type ListOrganizationMembersRequest = {
+  readonly organizationId: string;
+};
+
+type AddProjectMemberRequest = {
+  readonly projectId: string;
+  readonly userId: string;
+  readonly membershipKind: ProjectMembershipKind;
+};
+
+type ProjectMembershipKind =
+  | "MEMBER"
+  | "PROJECT_MANAGER"
+  | "SPONSOR"
+  | "OBSERVER";
+
+type OrganizationMember = {
+  readonly userId: string;
+  readonly email: string;
+  readonly displayName: string | null;
+  readonly onboardingStatus: string;
+};
+
+type ManagedProjectMember = {
+  readonly id: string;
+  readonly userId: string;
+  readonly email: string | null;
+  readonly displayName: string | null;
+  readonly membershipKind: ProjectMembershipKind;
+  readonly startsAt: string;
+  readonly endsAt: string | null;
+};
+
 type ManagedProject = {
   readonly id: string;
   readonly organizationId: string;
@@ -27,6 +60,7 @@ type ManagedProject = {
   readonly completesOn: string | null;
   readonly projectManagerUserId: string | null;
   readonly cycles: readonly ManagedEvaluationCycle[];
+  readonly members: readonly ManagedProjectMember[];
 };
 
 type ManagedEvaluationCycle = {
@@ -107,6 +141,21 @@ Deno.serve(async (request) => {
       });
     }
 
+    if (body.action === "list_organization_members") {
+      const input = parseListOrganizationMembersRequest(body.payload);
+
+      if (!canManageOrganization(roles, input.organizationId)) {
+        return jsonResponse({ error: "ADMINISTRATION_SCOPE_DENIED" }, 403);
+      }
+
+      return jsonResponse({
+        members: await listOrganizationMembers(
+          serviceClient,
+          input.organizationId
+        )
+      });
+    }
+
     if (body.action === "create_project_cycle") {
       const input = parseCreateProjectCycleRequest(body.payload);
 
@@ -123,15 +172,32 @@ Deno.serve(async (request) => {
       return jsonResponse({ project }, 201);
     }
 
+    if (body.action === "add_project_member") {
+      const input = parseAddProjectMemberRequest(body.payload);
+      const project = await addProjectMember(
+        serviceClient,
+        roles,
+        userData.user.id,
+        input
+      );
+
+      return jsonResponse({ project }, 201);
+    }
+
     return jsonResponse({ error: "UNKNOWN_ACTION" }, 400);
   } catch (error) {
     const message = error instanceof RequestValidationError
+      || error instanceof AuthorizationError
       ? error.message
       : "ADMIN_PROJECT_CYCLE_FAILED";
 
     return jsonResponse(
       { error: message },
-      error instanceof RequestValidationError ? 400 : 500
+      error instanceof AuthorizationError
+        ? 403
+        : error instanceof RequestValidationError
+          ? 400
+          : 500
     );
   }
 });
@@ -227,7 +293,53 @@ async function listProjectCycles(
     throw error;
   }
 
-  return (data ?? []).map(toManagedProject);
+  return await attachProjectMembers(
+    serviceClient,
+    (data ?? []).map(toManagedProject)
+  );
+}
+
+async function listOrganizationMembers(
+  serviceClient: ReturnType<typeof createClient>,
+  organizationId: string
+): Promise<OrganizationMember[]> {
+  const now = new Date().toISOString();
+  const { data: memberships, error: membershipsError } = await serviceClient
+    .from("organization_unit_memberships")
+    .select("user_id")
+    .eq("organization_id", organizationId)
+    .lte("starts_at", now)
+    .or(`ends_at.is.null,ends_at.gt.${now}`);
+
+  if (membershipsError) {
+    throw membershipsError;
+  }
+
+  const userIds = uniqueStrings(
+    (memberships ?? []).map((membership) => membership.user_id)
+  );
+
+  if (userIds.length === 0) {
+    return [];
+  }
+
+  const { data: profiles, error: profilesError } = await serviceClient
+    .from("user_profiles")
+    .select("user_id,email,display_name,onboarding_status")
+    .in("user_id", userIds)
+    .eq("onboarding_status", "ACTIVE")
+    .order("email", { ascending: true });
+
+  if (profilesError) {
+    throw profilesError;
+  }
+
+  return (profiles ?? []).map((profile) => ({
+    displayName: profile.display_name,
+    email: profile.email,
+    onboardingStatus: profile.onboarding_status,
+    userId: profile.user_id
+  }));
 }
 
 async function createProjectCycle(
@@ -286,10 +398,158 @@ async function createProjectCycle(
     throw cycleError;
   }
 
-  return toManagedProject({
+  const projectWithCycle = toManagedProject({
     ...project,
     evaluation_cycles: [cycle]
   });
+  const [managedProject] = await attachProjectMembers(serviceClient, [
+    projectWithCycle
+  ]);
+
+  if (!managedProject) {
+    throw new Error("Created project could not be read.");
+  }
+
+  return managedProject;
+}
+
+async function addProjectMember(
+  serviceClient: ReturnType<typeof createClient>,
+  roles: readonly AppRole[],
+  actorUserId: string,
+  input: AddProjectMemberRequest
+): Promise<ManagedProject> {
+  const project = await readProjectRecord(serviceClient, input.projectId);
+
+  if (!canManageOrganization(roles, project.organization_id)) {
+    throw new AuthorizationError("ADMINISTRATION_SCOPE_DENIED");
+  }
+
+  await requireActiveOrganizationMember(
+    serviceClient,
+    project.organization_id,
+    input.userId
+  );
+
+  if (input.membershipKind === "PROJECT_MANAGER") {
+    await assignProjectManager(serviceClient, input.projectId, input.userId);
+  } else {
+    await insertProjectMembership(
+      serviceClient,
+      input.projectId,
+      input.userId,
+      input.membershipKind
+    );
+  }
+
+  await writeAuditEvent(serviceClient, {
+    actorUserId,
+    eventType: "PROJECT_MEMBER_ADDED",
+    scopeId: input.projectId
+  });
+
+  return await readManagedProject(serviceClient, input.projectId);
+}
+
+async function readProjectRecord(
+  serviceClient: ReturnType<typeof createClient>,
+  projectId: string
+): Promise<{ id: string; organization_id: string }> {
+  const { data, error } = await serviceClient
+    .from("projects")
+    .select("id,organization_id")
+    .eq("id", projectId)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+async function requireActiveOrganizationMember(
+  serviceClient: ReturnType<typeof createClient>,
+  organizationId: string,
+  userId: string
+) {
+  const now = new Date().toISOString();
+  const { data: profile, error: profileError } = await serviceClient
+    .from("user_profiles")
+    .select("user_id")
+    .eq("user_id", userId)
+    .eq("onboarding_status", "ACTIVE")
+    .maybeSingle();
+
+  if (profileError) {
+    throw profileError;
+  }
+
+  if (!profile) {
+    throw new RequestValidationError("PROJECT_MEMBER_ACTIVE_PROFILE_REQUIRED");
+  }
+
+  const { data: membership, error: membershipError } = await serviceClient
+    .from("organization_unit_memberships")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .eq("user_id", userId)
+    .lte("starts_at", now)
+    .or(`ends_at.is.null,ends_at.gt.${now}`)
+    .limit(1)
+    .maybeSingle();
+
+  if (membershipError) {
+    throw membershipError;
+  }
+
+  if (!membership) {
+    throw new RequestValidationError("PROJECT_MEMBER_ORGANIZATION_REQUIRED");
+  }
+}
+
+async function insertProjectMembership(
+  serviceClient: ReturnType<typeof createClient>,
+  projectId: string,
+  userId: string,
+  membershipKind: ProjectMembershipKind
+) {
+  const { error } = await serviceClient
+    .from("project_memberships")
+    .insert({
+      membership_kind: membershipKind,
+      project_id: projectId,
+      user_id: userId
+    });
+
+  if (error && error.code !== "23505") {
+    throw error;
+  }
+}
+
+async function writeAuditEvent(
+  serviceClient: ReturnType<typeof createClient>,
+  {
+    actorUserId,
+    eventType,
+    scopeId
+  }: {
+    readonly actorUserId: string;
+    readonly eventType: string;
+    readonly scopeId: string;
+  }
+) {
+  const { error } = await serviceClient.from("audit_events").insert({
+    actor_user_id: actorUserId,
+    event_scope_id: scopeId,
+    event_scope_type: "PROJECT",
+    event_type: eventType,
+    safe_metadata: {}
+  });
+
+  if (error) {
+    throw error;
+  }
 }
 
 async function assignProjectManager(
@@ -297,6 +557,17 @@ async function assignProjectManager(
   projectId: string,
   projectManagerUserId: string
 ) {
+  const { error: projectError } = await serviceClient
+    .from("projects")
+    .update({
+      project_manager_user_id: projectManagerUserId
+    })
+    .eq("id", projectId);
+
+  if (projectError) {
+    throw projectError;
+  }
+
   const { data: existingRole, error: readRoleError } = await serviceClient
     .from("user_role_assignments")
     .select("id")
@@ -332,17 +603,117 @@ async function assignProjectManager(
     throw roleError;
   }
 
-  const { error: membershipError } = await serviceClient
-    .from("project_memberships")
-    .insert({
-      membership_kind: "PROJECT_MANAGER",
-      project_id: projectId,
-      user_id: projectManagerUserId
-    });
+  await insertProjectMembership(
+    serviceClient,
+    projectId,
+    projectManagerUserId,
+    "PROJECT_MANAGER"
+  );
+}
 
-  if (membershipError && membershipError.code !== "23505") {
-    throw membershipError;
+async function readManagedProject(
+  serviceClient: ReturnType<typeof createClient>,
+  projectId: string
+): Promise<ManagedProject> {
+  const { data, error } = await serviceClient
+    .from("projects")
+    .select(
+      "id,organization_id,name,code,status,starts_on,completes_on,project_manager_user_id,evaluation_cycles(id,name,status,opens_at,closes_at,project_completed_on,anonymity_threshold)"
+    )
+    .eq("id", projectId)
+    .single();
+
+  if (error) {
+    throw error;
   }
+
+  const [project] = await attachProjectMembers(serviceClient, [
+    toManagedProject(data)
+  ]);
+
+  if (!project) {
+    throw new Error("Project could not be read.");
+  }
+
+  return project;
+}
+
+async function attachProjectMembers(
+  serviceClient: ReturnType<typeof createClient>,
+  projects: readonly ManagedProject[]
+): Promise<ManagedProject[]> {
+  const projectIds = projects.map((project) => project.id);
+
+  if (projectIds.length === 0) {
+    return [];
+  }
+
+  const { data: memberships, error: membershipsError } = await serviceClient
+    .from("project_memberships")
+    .select("id,project_id,user_id,membership_kind,starts_at,ends_at")
+    .in("project_id", projectIds)
+    .is("ends_at", null)
+    .order("created_at", { ascending: true });
+
+  if (membershipsError) {
+    throw membershipsError;
+  }
+
+  const userIds = uniqueStrings(
+    (memberships ?? []).map((membership) => membership.user_id)
+  );
+  const profilesByUserId = await readProfilesByUserId(serviceClient, userIds);
+  const membershipsByProjectId = new Map<string, ManagedProjectMember[]>();
+
+  for (const membership of memberships ?? []) {
+    const profile = profilesByUserId.get(membership.user_id);
+    const projectMembers =
+      membershipsByProjectId.get(membership.project_id) ?? [];
+
+    projectMembers.push({
+      displayName: profile?.display_name ?? null,
+      email: profile?.email ?? null,
+      endsAt: membership.ends_at,
+      id: membership.id,
+      membershipKind: toProjectMembershipKind(membership.membership_kind),
+      startsAt: membership.starts_at,
+      userId: membership.user_id
+    });
+    membershipsByProjectId.set(membership.project_id, projectMembers);
+  }
+
+  return projects.map((project) => ({
+    ...project,
+    members: membershipsByProjectId.get(project.id) ?? []
+  }));
+}
+
+async function readProfilesByUserId(
+  serviceClient: ReturnType<typeof createClient>,
+  userIds: readonly string[]
+): Promise<Map<string, { email: string; display_name: string | null }>> {
+  if (userIds.length === 0) {
+    return new Map();
+  }
+
+  const { data, error } = await serviceClient
+    .from("user_profiles")
+    .select("user_id,email,display_name")
+    .in("user_id", userIds);
+
+  if (error) {
+    throw error;
+  }
+
+  return new Map(
+    (data ?? []).map((profile) => [
+      profile.user_id,
+      {
+        display_name: profile.display_name,
+        email: profile.email
+      }
+    ])
+  );
 }
 
 function canManageOrganization(
@@ -397,12 +768,40 @@ function parseCreateProjectCycleRequest(
   };
 }
 
+function parseListOrganizationMembersRequest(
+  value: unknown
+): ListOrganizationMembersRequest {
+  if (!isRecord(value)) {
+    throw new RequestValidationError("REQUEST_PAYLOAD_INVALID");
+  }
+
+  return {
+    organizationId: readRequiredUuid(
+      value.organizationId,
+      "ORGANIZATION_ID_REQUIRED"
+    )
+  };
+}
+
+function parseAddProjectMemberRequest(value: unknown): AddProjectMemberRequest {
+  if (!isRecord(value)) {
+    throw new RequestValidationError("REQUEST_PAYLOAD_INVALID");
+  }
+
+  return {
+    membershipKind: readProjectMembershipKind(value.membershipKind),
+    projectId: readRequiredUuid(value.projectId, "PROJECT_ID_REQUIRED"),
+    userId: readRequiredUuid(value.userId, "USER_ID_REQUIRED")
+  };
+}
+
 function toManagedProject(record: Record<string, unknown>): ManagedProject {
   return {
     code: readOptionalString(record.code),
     completesOn: readOptionalString(record.completes_on),
     cycles: readArray(record.evaluation_cycles).map(toManagedCycle),
     id: readRequiredString(record.id, "PROJECT_ID_MISSING"),
+    members: [],
     name: readRequiredString(record.name, "PROJECT_NAME_MISSING"),
     organizationId: readRequiredString(
       record.organization_id,
@@ -501,6 +900,16 @@ function readOptionalDate(value: unknown): string | null {
   return text;
 }
 
+function readRequiredUuid(value: unknown, errorCode: string): string {
+  const uuid = readOptionalUuid(value);
+
+  if (!uuid) {
+    throw new RequestValidationError(errorCode);
+  }
+
+  return uuid;
+}
+
 function readOptionalUuid(value: unknown): string | null {
   const text = readOptionalString(value);
 
@@ -519,6 +928,29 @@ function readOptionalUuid(value: unknown): string | null {
   return text;
 }
 
+function readProjectMembershipKind(value: unknown): ProjectMembershipKind {
+  const text = readOptionalString(value) ?? "MEMBER";
+
+  if (
+    text === "MEMBER"
+    || text === "PROJECT_MANAGER"
+    || text === "SPONSOR"
+    || text === "OBSERVER"
+  ) {
+    return text;
+  }
+
+  throw new RequestValidationError("PROJECT_MEMBERSHIP_KIND_INVALID");
+}
+
+function toProjectMembershipKind(value: unknown): ProjectMembershipKind {
+  return value === "PROJECT_MANAGER"
+      || value === "SPONSOR"
+      || value === "OBSERVER"
+    ? value
+    : "MEMBER";
+}
+
 function readOptionalString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0
     ? value.trim()
@@ -533,8 +965,16 @@ function readNumber(value: unknown): number {
   return typeof value === "number" ? value : 0;
 }
 
+function uniqueStrings(values: readonly unknown[]): string[] {
+  return Array.from(
+    new Set(values.filter((value): value is string => typeof value === "string"))
+  );
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 class RequestValidationError extends Error {}
+
+class AuthorizationError extends Error {}

@@ -10,8 +10,11 @@ import {
   browserProjectCycleService,
   ProjectCycleServiceError,
   type ManagedProject,
+  type OrganizationMember,
   type ProjectCycleDraft,
-  type ProjectCycleService
+  type ProjectCycleService,
+  type ProjectMemberDraft,
+  type ProjectMembershipKind
 } from "./projectCycleService";
 
 type ProjectCycleManagementPanelProps = {
@@ -30,9 +33,20 @@ type FormState = {
   readonly projectManagerUserId: string;
 };
 
+type MemberFormState = {
+  readonly userId: string;
+  readonly membershipKind: ProjectMembershipKind;
+};
+
 type LoadState =
   | { readonly status: "loading" }
-  | { readonly status: "ready"; readonly projects: readonly ManagedProject[] }
+  | {
+      readonly status: "ready";
+      readonly organizationMembersById: Readonly<
+        Record<string, readonly OrganizationMember[]>
+      >;
+      readonly projects: readonly ManagedProject[];
+    }
   | { readonly status: "failed"; readonly message: string };
 
 const initialFormState: FormState = {
@@ -46,6 +60,18 @@ const initialFormState: FormState = {
   projectName: ""
 };
 
+const initialMemberFormState: MemberFormState = {
+  membershipKind: "MEMBER",
+  userId: ""
+};
+
+const membershipKindOptions: readonly ProjectMembershipKind[] = [
+  "MEMBER",
+  "PROJECT_MANAGER",
+  "SPONSOR",
+  "OBSERVER"
+];
+
 export function ProjectCycleManagementPanel({
   service = browserProjectCycleService,
   workspaceContext
@@ -53,6 +79,10 @@ export function ProjectCycleManagementPanel({
   const defaultOrganizationId = useMemo(
     () => workspaceContext.memberships[0]?.organizationId ?? "",
     [workspaceContext.memberships]
+  );
+  const canLoadOrganizationMembers = useMemo(
+    () => workspaceContext.roles.some((role) => role.roleCode === "SYSTEM_ADMIN"),
+    [workspaceContext.roles]
   );
   const [formState, setFormState] = useState<FormState>({
     ...initialFormState,
@@ -62,7 +92,17 @@ export function ProjectCycleManagementPanel({
     status: "loading"
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [memberFormStates, setMemberFormStates] = useState<
+    Record<string, MemberFormState>
+  >({});
+  const [submittingMemberProjectId, setSubmittingMemberProjectId] = useState<
+    string | null
+  >(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
+  const organizationMembers =
+    loadState.status === "ready"
+      ? loadState.organizationMembersById[formState.organizationId] ?? []
+      : [];
 
   useEffect(() => {
     let isActive = true;
@@ -72,12 +112,23 @@ export function ProjectCycleManagementPanel({
 
       try {
         const projects = await service.listProjectCycles();
+        const organizationIds = uniqueStrings([
+          defaultOrganizationId,
+          ...projects.map((project) => project.organizationId)
+        ]);
+        const organizationMembersById = canLoadOrganizationMembers
+          ? await loadOrganizationMembersById(service, organizationIds)
+          : {};
 
         if (!isActive) {
           return;
         }
 
-        setLoadState({ status: "ready", projects });
+        setLoadState({
+          organizationMembersById,
+          projects,
+          status: "ready"
+        });
       } catch (error) {
         if (!isActive) {
           return;
@@ -95,7 +146,7 @@ export function ProjectCycleManagementPanel({
     return () => {
       isActive = false;
     };
-  }, [service]);
+  }, [canLoadOrganizationMembers, defaultOrganizationId, service]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -106,8 +157,15 @@ export function ProjectCycleManagementPanel({
       const project = await service.createProjectCycle(toDraft(formState));
       setLoadState((current) =>
         current.status === "ready"
-          ? { status: "ready", projects: [project, ...current.projects] }
-          : { status: "ready", projects: [project] }
+          ? {
+              ...current,
+              projects: [project, ...current.projects]
+            }
+          : {
+              organizationMembersById: {},
+              projects: [project],
+              status: "ready"
+            }
       );
       setFeedbackMessage(tr.administration.projects.feedback.created);
       setFormState({
@@ -118,6 +176,39 @@ export function ProjectCycleManagementPanel({
       setFeedbackMessage(toProjectCycleFeedbackMessage(error));
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleAddProjectMember(
+    projectId: string,
+    draft: ProjectMemberDraft
+  ) {
+    setSubmittingMemberProjectId(projectId);
+    setFeedbackMessage(null);
+
+    try {
+      const project = await service.addProjectMember(draft);
+      setLoadState((current) =>
+        current.status === "ready"
+          ? {
+              ...current,
+              projects: current.projects.map((existingProject) =>
+                existingProject.id === project.id ? project : existingProject
+              )
+            }
+          : current
+      );
+      setMemberFormStates((current) => {
+        const remaining = { ...current };
+        delete remaining[projectId];
+
+        return remaining;
+      });
+      setFeedbackMessage(tr.administration.projects.feedback.memberAdded);
+    } catch (error) {
+      setFeedbackMessage(toProjectCycleFeedbackMessage(error));
+    } finally {
+      setSubmittingMemberProjectId(null);
     }
   }
 
@@ -174,13 +265,26 @@ export function ProjectCycleManagementPanel({
             type="text"
             value={formState.evaluationName}
           />
-          <TextField
-            label={tr.administration.projects.form.projectManagerUserId}
-            name="projectManagerUserId"
-            onChange={setFormState}
-            type="text"
-            value={formState.projectManagerUserId}
-          />
+          {organizationMembers.length > 0 ? (
+            <UserSelectField
+              label={tr.administration.projects.form.projectManagerUserId}
+              members={organizationMembers}
+              name="projectManagerUserId"
+              onChange={setFormState}
+              placeholder={
+                tr.administration.projects.members.projectManagerPlaceholder
+              }
+              value={formState.projectManagerUserId}
+            />
+          ) : (
+            <TextField
+              label={tr.administration.projects.form.projectManagerUserId}
+              name="projectManagerUserId"
+              onChange={setFormState}
+              type="text"
+              value={formState.projectManagerUserId}
+            />
+          )}
           <TextField
             label={tr.administration.projects.form.opensAt}
             name="opensAt"
@@ -218,7 +322,15 @@ export function ProjectCycleManagementPanel({
         <h2 className="text-lg font-semibold">
           {tr.administration.projects.list.title}
         </h2>
-        <ProjectList loadState={loadState} />
+        <ProjectList
+          loadState={loadState}
+          memberFormStates={memberFormStates}
+          onAddProjectMember={(projectId, draft) => {
+            void handleAddProjectMember(projectId, draft);
+          }}
+          onMemberFormChange={setMemberFormStates}
+          submittingMemberProjectId={submittingMemberProjectId}
+        />
       </section>
     </section>
   );
@@ -262,7 +374,69 @@ function TextField({
   );
 }
 
-function ProjectList({ loadState }: { readonly loadState: LoadState }) {
+function UserSelectField({
+  label,
+  members,
+  name,
+  onChange,
+  placeholder,
+  value
+}: {
+  readonly label: string;
+  readonly members: readonly OrganizationMember[];
+  readonly name: keyof FormState;
+  readonly onChange: (
+    updater: (current: FormState) => FormState
+  ) => void;
+  readonly placeholder: string;
+  readonly value: string;
+}) {
+  return (
+    <label className="block text-sm font-semibold text-slate-800">
+      {label}
+      <select
+        className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900 shadow-sm focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20"
+        name={name}
+        onChange={(event) => {
+          const nextValue = event.currentTarget.value;
+          onChange((current) => ({
+            ...current,
+            [name]: nextValue
+          }));
+        }}
+        value={value}
+      >
+        <option value="">{placeholder}</option>
+        {members.map((member) => (
+          <option key={member.userId} value={member.userId}>
+            {formatOrganizationMember(member)}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function ProjectList({
+  loadState,
+  memberFormStates,
+  onAddProjectMember,
+  onMemberFormChange,
+  submittingMemberProjectId
+}: {
+  readonly loadState: LoadState;
+  readonly memberFormStates: Readonly<Record<string, MemberFormState>>;
+  readonly onAddProjectMember: (
+    projectId: string,
+    draft: ProjectMemberDraft
+  ) => void;
+  readonly onMemberFormChange: (
+    updater: (
+      current: Record<string, MemberFormState>
+    ) => Record<string, MemberFormState>
+  ) => void;
+  readonly submittingMemberProjectId: string | null;
+}) {
   if (loadState.status === "loading") {
     return (
       <p className="mt-4 text-sm leading-6 text-slate-600">
@@ -315,9 +489,190 @@ function ProjectList({ loadState }: { readonly loadState: LoadState }) {
               value={project.cycles[0]?.closesAt ?? null}
             />
           </dl>
+          <ProjectMembers
+            members={project.members}
+            organizationMembers={
+              loadState.organizationMembersById[project.organizationId] ?? []
+            }
+            project={project}
+            state={memberFormStates[project.id] ?? initialMemberFormState}
+            isSubmitting={submittingMemberProjectId === project.id}
+            onChange={(nextState) => {
+              onMemberFormChange((current) => ({
+                ...current,
+                [project.id]: nextState
+              }));
+            }}
+            onSubmit={(draft) => {
+              onAddProjectMember(project.id, draft);
+            }}
+          />
         </article>
       ))}
     </div>
+  );
+}
+
+function ProjectMembers({
+  isSubmitting,
+  members,
+  onChange,
+  onSubmit,
+  organizationMembers,
+  project,
+  state
+}: {
+  readonly isSubmitting: boolean;
+  readonly members: ManagedProject["members"];
+  readonly onChange: (state: MemberFormState) => void;
+  readonly onSubmit: (draft: ProjectMemberDraft) => void;
+  readonly organizationMembers: readonly OrganizationMember[];
+  readonly project: ManagedProject;
+  readonly state: MemberFormState;
+}) {
+  return (
+    <section
+      aria-label={`${project.name} ${tr.administration.projects.members.sectionLabel}`}
+      className="mt-5 border-t border-slate-200 pt-4"
+    >
+      <h4 className="text-sm font-semibold text-slate-800">
+        {tr.administration.projects.members.title}
+      </h4>
+      {members.length > 0 ? (
+        <ul className="mt-3 grid gap-2">
+          {members.map((member) => (
+            <li
+              className="flex flex-col gap-1 text-sm leading-6 text-slate-700 sm:flex-row sm:items-center sm:justify-between"
+              key={member.id}
+            >
+              <span>{formatProjectMember(member)}</span>
+              <span className="text-xs font-semibold uppercase tracking-normal text-slate-500">
+                {formatMembershipKind(member.membershipKind)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          {tr.administration.projects.members.empty}
+        </p>
+      )}
+      <form
+        className="mt-4 grid gap-3 sm:grid-cols-[1fr_11rem_auto] sm:items-end"
+        onSubmit={(event) => {
+          event.preventDefault();
+
+          if (!state.userId) {
+            return;
+          }
+
+          onSubmit({
+            membershipKind: state.membershipKind,
+            projectId: project.id,
+            userId: state.userId
+          });
+        }}
+      >
+        <label className="block text-sm font-semibold text-slate-800">
+          {tr.administration.projects.members.user}
+          <select
+            className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900 shadow-sm focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20"
+            disabled={organizationMembers.length === 0}
+            onChange={(event) => {
+              onChange({
+                ...state,
+                userId: event.currentTarget.value
+              });
+            }}
+            required
+            value={state.userId}
+          >
+            <option value="">
+              {organizationMembers.length > 0
+                ? tr.administration.projects.members.userPlaceholder
+                : tr.administration.projects.members.noOrganizationMembers}
+            </option>
+            {organizationMembers.map((member) => (
+              <option key={member.userId} value={member.userId}>
+                {formatOrganizationMember(member)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block text-sm font-semibold text-slate-800">
+          {tr.administration.projects.members.kind}
+          <select
+            className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900 shadow-sm focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20"
+            onChange={(event) => {
+              onChange({
+                ...state,
+                membershipKind: event.currentTarget.value as ProjectMembershipKind
+              });
+            }}
+            value={state.membershipKind}
+          >
+            {membershipKindOptions.map((kind) => (
+              <option key={kind} value={kind}>
+                {formatMembershipKind(kind)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          className="rounded-md border border-pine bg-white px-3 py-2 text-sm font-semibold text-pine transition hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-400"
+          disabled={isSubmitting || organizationMembers.length === 0}
+          type="submit"
+        >
+          {isSubmitting
+            ? tr.administration.projects.members.adding
+            : tr.administration.projects.members.add}
+        </button>
+      </form>
+    </section>
+  );
+}
+
+async function loadOrganizationMembersById(
+  service: ProjectCycleService,
+  organizationIds: readonly string[]
+): Promise<Record<string, readonly OrganizationMember[]>> {
+  const entries = await Promise.all(
+    organizationIds.map(async (organizationId) => {
+      try {
+        return [
+          organizationId,
+          await service.listOrganizationMembers(organizationId)
+        ] as const;
+      } catch {
+        return [organizationId, []] as const;
+      }
+    })
+  );
+
+  return Object.fromEntries(entries);
+}
+
+function formatOrganizationMember(member: OrganizationMember): string {
+  return member.displayName
+    ? `${member.displayName} (${member.email})`
+    : member.email;
+}
+
+function formatProjectMember(member: ManagedProject["members"][number]): string {
+  if (member.displayName && member.email) {
+    return `${member.displayName} (${member.email})`;
+  }
+
+  return member.displayName ?? member.email ?? member.userId;
+}
+
+function formatMembershipKind(kind: ProjectMembershipKind): string {
+  return tr.administration.projects.members.kindLabels[kind];
+}
+
+function uniqueStrings(values: readonly string[]): string[] {
+  return Array.from(
+    new Set(values.map((value) => value.trim()).filter((value) => value.length > 0))
   );
 }
 

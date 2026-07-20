@@ -1,5 +1,109 @@
 # Error Log
 
+## ERR-20260720-001 - Project member test matched select option and list item
+
+### Context
+
+Project member management UI tests were added to verify that administrators can add a project member through the service boundary.
+
+### Symptoms
+
+`npm test` failed because `Demo Member (member@example.com)` appeared both in a user selector `<option>` and in the rendered project member list.
+
+### Root cause
+
+The assertion used a broad `getByText` query against the whole rendered document instead of narrowing the query to the project member list.
+
+### Incorrect approach
+
+Assuming a person label would appear only once after adding a member, even though the same label is intentionally reused in selectors.
+
+### Correct solution
+
+Scope the assertion to the project member list with React Testing Library `within()`.
+
+### Prevention
+
+When UI text appears in both controls and display regions, scope tests to the relevant accessible region or element.
+
+### Related files
+
+- `src/features/administration/ProjectCycleManagementPanel.test.tsx`
+
+### Related tests
+
+- `npm test`
+
+## ERR-20260720-002 - Supabase function redeploy warned Docker is not running
+
+### Context
+
+The updated `admin-project-cycles` Edge Function was redeployed after adding organization member lookup and project member assignment actions.
+
+### Symptoms
+
+`npx supabase functions deploy admin-project-cycles --no-verify-jwt` completed successfully but emitted `WARNING: Docker is not running`.
+
+### Root cause
+
+The Supabase CLI can deploy this remote function path without local Docker, but local Docker-backed function workflows remain unavailable from this shell.
+
+### Incorrect approach
+
+Treating the Docker warning as a failed remote function deployment.
+
+### Correct solution
+
+Verify deployment with `npx supabase functions list` and run a live HTTP smoke test against the deployed function URL.
+
+### Prevention
+
+Continue separating remote deployment status from local Docker availability. Verify Docker Desktop CLI/API access before relying on local function serving or local Supabase stack workflows.
+
+### Related files
+
+- `supabase/functions/admin-project-cycles/index.ts`
+
+### Related tests
+
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
+- `npx supabase functions list`
+- Unauthenticated live function smoke test with `Invoke-WebRequest`
+
+## ERR-20260720-003 - PowerShell smoke test used unsupported SkipHttpErrorCheck parameter
+
+### Context
+
+The deployed Edge Function was smoke-tested from the local PowerShell shell.
+
+### Symptoms
+
+The first `Invoke-WebRequest` smoke command failed because the current PowerShell version does not support `-SkipHttpErrorCheck`.
+
+### Root cause
+
+`-SkipHttpErrorCheck` is available in newer PowerShell versions, but this shell uses a version where the parameter is not defined.
+
+### Incorrect approach
+
+Assuming the local shell supported the newer `Invoke-WebRequest` parameter.
+
+### Correct solution
+
+Use `try/catch` and read the response stream from the caught web exception.
+
+### Prevention
+
+Use PowerShell 5-compatible HTTP smoke-test snippets in this repository environment.
+
+### Related files
+
+- `docs/TEST_REPORT.md`
+
+### Related tests
+
+- Unauthenticated live function smoke test with `Invoke-WebRequest`
+
 ## ERR-20260719-013 - Supabase function deploy warned Docker is not running
 
 ### Context

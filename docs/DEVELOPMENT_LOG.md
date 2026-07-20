@@ -1,5 +1,61 @@
 # Development Log
 
+## 2026-07-20 - Admin Project Membership Foundation
+
+### Objective
+
+Allow system administrators to select active organization members and add them to projects through the existing trusted administration Edge Function boundary.
+
+### Changes
+
+- Extended `supabase/functions/admin-project-cycles/index.ts` with `list_organization_members` and `add_project_member` actions.
+- Added server-side selected-user validation against active `user_profiles` and active `organization_unit_memberships`.
+- Added project membership writes through the service-role Edge Function client.
+- Kept project-manager membership assignment tied to scoped `PROJECT_MANAGER` role assignment and the project manager reference.
+- Added organization member and project member types to the frontend project cycle service.
+- Added member selection, membership-kind selection, member list display, and Turkish feedback in the administration project panel.
+- Added ADR-0011 for trusted project membership administration actions.
+
+### Files affected
+
+- `supabase/functions/admin-project-cycles/index.ts`
+- `src/features/administration/*`
+- `src/app/App.test.tsx`
+- `src/locales/tr/messages.ts`
+- `tests/*`
+- `docs/*`
+- `docs/decisions/ADR-0011-use-admin-project-membership-edge-function-actions.md`
+
+### Database changes
+
+None. This phase uses existing `project_memberships`, `user_profiles`, `organization_unit_memberships`, `projects`, `user_role_assignments`, and `audit_events` tables.
+
+### Security impact
+
+Positive foundation impact. Project membership management now remains behind the trusted Edge Function boundary. The browser service invokes `admin-project-cycles` and does not directly query or mutate `project_memberships`, `organization_unit_memberships`, or administrative `user_profiles` lists. The new flow stores only identity-domain membership metadata and safe audit metadata. No evaluation response content, plaintext scores, comments, lessons learned payloads, anonymous credential values, service-role values, or encryption keys were added.
+
+### Tests performed
+
+- `npm run typecheck`
+- `npm run lint`
+- `npm test`
+- `npm run check`
+- `npm run supabase:lint:linked`
+- `npm run supabase:push:dry-run`
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
+- `npx supabase functions list`
+- Unauthenticated live function smoke test with `Invoke-WebRequest`
+
+### Result
+
+Admin project membership foundation was implemented and deployed. Application checks passed with 11 test files and 47 tests. The linked Supabase database is up to date, linked database lint found no schema errors, the updated `admin-project-cycles` function is `ACTIVE` as version `3`, and an unauthenticated live smoke test returned `AUTHENTICATION_REQUIRED`.
+
+### Remaining work
+
+- Run authenticated live smoke testing with synthetic admin credentials.
+- Implement delegated project-manager date update actions.
+- Implement invitation, profile, role, hierarchy, and evaluation assignment management flows.
+
 ## 2026-07-19 - Admin Project Cycle Edge Function Foundation
 
 ### Objective

@@ -156,9 +156,22 @@ function createWorkspaceContextServiceStub(
 
 function createProjectCycleServiceStub(): ProjectCycleService {
   return {
+    addProjectMember: vi.fn(async () =>
+      createManagedProjectStub({
+        closesAt: "2026-07-30T15:00:00.000Z",
+        evaluationName: "Evaluation",
+        opensAt: "2026-07-20T09:00:00.000Z",
+        organizationId: "organization-id",
+        projectCode: null,
+        projectCompletedOn: null,
+        projectManagerUserId: null,
+        projectName: "Project"
+      })
+    ),
     createProjectCycle: vi.fn(async (draft: ProjectCycleDraft) =>
       createManagedProjectStub(draft)
     ),
+    listOrganizationMembers: vi.fn(async () => []),
     listProjectCycles: vi.fn(async () => [])
   };
 }
@@ -179,6 +192,7 @@ function createManagedProjectStub(draft: ProjectCycleDraft): ManagedProject {
       }
     ],
     id: "project-id",
+    members: [],
     name: draft.projectName,
     organizationId: draft.organizationId,
     projectManagerUserId: draft.projectManagerUserId,

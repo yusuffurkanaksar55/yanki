@@ -1,5 +1,69 @@
 # Test Report
 
+## 2026-07-20 - Admin Project Membership Foundation
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- npm: 11.9.0
+- Supabase CLI: 2.109.1
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+
+### Commands executed
+
+- `npm run typecheck`
+- `npm run lint`
+- `npm test`
+- `npm run check`
+- `npm run supabase:lint:linked`
+- `npm run supabase:push:dry-run`
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
+- `npx supabase functions list`
+- Unauthenticated live function smoke test with `Invoke-WebRequest`
+
+### Passed
+
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- Final `npm test` passed with 11 test files and 47 tests.
+- `npm run check` passed lint, typecheck, Vitest with 11 test files and 47 tests, and production build.
+- `npm run supabase:lint:linked` found no schema errors.
+- `npm run supabase:push:dry-run` reported the remote database is up to date.
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt` deployed the updated function to project `daxaymcmtbmummrxdyjy`.
+- `npx supabase functions list` showed `admin-project-cycles` as `ACTIVE`, version `3`, with `verify_jwt` set to `false`.
+- Unauthenticated live smoke test returned `AUTHENTICATION_REQUIRED`.
+
+### Failed
+
+- Initial `npm test` failed because the project member label appeared both in a selector option and in the rendered member list; the assertion was scoped to the member list.
+- Initial unauthenticated smoke command failed because the local PowerShell version does not support `-SkipHttpErrorCheck`; the command was rerun with a compatible `try/catch` response reader.
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt` completed successfully but emitted `WARNING: Docker is not running`.
+
+### Skipped
+
+- Authenticated live smoke testing was skipped because `SUPABASE_SERVICE_ROLE_KEY` and reusable synthetic admin credentials are not available in the current shell.
+- Playwright end-to-end tests skipped because Playwright is not installed and authenticated browser workflow coverage has not been added yet.
+
+### Manual tests
+
+- Verified the browser project/cycle service source invokes `admin-project-cycles`.
+- Verified the browser project/cycle service source does not query `projects`, `evaluation_cycles`, `project_memberships`, or `user_profiles` directly.
+- Verified `.env.local` contains only public Vite Supabase variables in this shell.
+
+### Security checks
+
+- Verified project membership writes are implemented only inside the Edge Function.
+- Verified selected project members must have active profiles and active organization memberships.
+- Verified project-manager membership assignment also writes a scoped `PROJECT_MANAGER` role.
+- Verified the browser still has no service-role key usage.
+
+### Remaining risks
+
+- The updated Edge Function still needs authenticated live smoke testing with synthetic admin credentials.
+- Delegated project-manager date update actions are still future work.
+- Evaluation assignment generation, anonymous credentials, encrypted submissions, and reporting remain unimplemented.
+
 ## 2026-07-19 - Admin Project Cycle Edge Function Foundation
 
 ### Environment

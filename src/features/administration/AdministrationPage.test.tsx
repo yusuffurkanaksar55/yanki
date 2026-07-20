@@ -69,7 +69,9 @@ function createEmployeeWorkspaceContext(): WorkspaceContext {
 
 function createProjectCycleServiceStub(): ProjectCycleService {
   return {
+    addProjectMember: vi.fn(),
     createProjectCycle: vi.fn(),
+    listOrganizationMembers: vi.fn(async () => []),
     listProjectCycles: vi.fn(async () => [])
   };
 }

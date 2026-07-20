@@ -12,6 +12,22 @@ export type ManagedEvaluationCycle = {
   readonly anonymityThreshold: number;
 };
 
+export type ProjectMembershipKind =
+  | "MEMBER"
+  | "PROJECT_MANAGER"
+  | "SPONSOR"
+  | "OBSERVER";
+
+export type ManagedProjectMember = {
+  readonly id: string;
+  readonly userId: string;
+  readonly email: string | null;
+  readonly displayName: string | null;
+  readonly membershipKind: ProjectMembershipKind;
+  readonly startsAt: string;
+  readonly endsAt: string | null;
+};
+
 export type ManagedProject = {
   readonly id: string;
   readonly organizationId: string;
@@ -22,6 +38,14 @@ export type ManagedProject = {
   readonly completesOn: string | null;
   readonly projectManagerUserId: string | null;
   readonly cycles: readonly ManagedEvaluationCycle[];
+  readonly members: readonly ManagedProjectMember[];
+};
+
+export type OrganizationMember = {
+  readonly userId: string;
+  readonly email: string;
+  readonly displayName: string | null;
+  readonly onboardingStatus: string;
 };
 
 export type ProjectCycleDraft = {
@@ -35,8 +59,20 @@ export type ProjectCycleDraft = {
   readonly projectManagerUserId: string | null;
 };
 
+export type ProjectMemberDraft = {
+  readonly projectId: string;
+  readonly userId: string;
+  readonly membershipKind: ProjectMembershipKind;
+};
+
 export type ProjectCycleService = {
+  readonly addProjectMember: (
+    draft: ProjectMemberDraft
+  ) => Promise<ManagedProject>;
   readonly listProjectCycles: () => Promise<readonly ManagedProject[]>;
+  readonly listOrganizationMembers: (
+    organizationId: string
+  ) => Promise<readonly OrganizationMember[]>;
   readonly createProjectCycle: (
     draft: ProjectCycleDraft
   ) => Promise<ManagedProject>;
@@ -45,7 +81,9 @@ export type ProjectCycleService = {
 export type ProjectCycleServiceErrorCode =
   | "PROJECT_CYCLE_SESSION_REQUIRED"
   | "PROJECT_CYCLE_LIST_FAILED"
-  | "PROJECT_CYCLE_CREATE_FAILED";
+  | "PROJECT_CYCLE_CREATE_FAILED"
+  | "PROJECT_MEMBER_LIST_FAILED"
+  | "PROJECT_MEMBER_ADD_FAILED";
 
 export class ProjectCycleServiceError extends Error {
   constructor(
@@ -60,8 +98,12 @@ export class ProjectCycleServiceError extends Error {
 let cachedProjectCycleService: ProjectCycleService | null = null;
 
 export const browserProjectCycleService: ProjectCycleService = {
+  addProjectMember: (draft) =>
+    getDefaultProjectCycleService().addProjectMember(draft),
   createProjectCycle: (draft) =>
     getDefaultProjectCycleService().createProjectCycle(draft),
+  listOrganizationMembers: (organizationId) =>
+    getDefaultProjectCycleService().listOrganizationMembers(organizationId),
   listProjectCycles: () => getDefaultProjectCycleService().listProjectCycles()
 };
 
@@ -69,12 +111,30 @@ export function createSupabaseProjectCycleService(
   client: SupabaseClient<Database> = getBrowserSupabaseClient()
 ): ProjectCycleService {
   return {
+    async addProjectMember(draft) {
+      const data = await invokeAdminProjectCycles(client, {
+        action: "add_project_member",
+        payload: draft
+      });
+
+      return toManagedProject(data.project);
+    },
+
     async listProjectCycles() {
       const data = await invokeAdminProjectCycles(client, {
         action: "list_project_cycles"
       });
 
       return readArray(data.projects).map(toManagedProject);
+    },
+
+    async listOrganizationMembers(organizationId) {
+      const data = await invokeAdminProjectCycles(client, {
+        action: "list_organization_members",
+        payload: { organizationId }
+      });
+
+      return readArray(data.members).map(toOrganizationMember);
     },
 
     async createProjectCycle(draft) {
@@ -110,10 +170,7 @@ async function invokeAdminProjectCycles(
   }
 
   const action = typeof body.action === "string" ? body.action : "";
-  const errorCode =
-    action === "create_project_cycle"
-      ? "PROJECT_CYCLE_CREATE_FAILED"
-      : "PROJECT_CYCLE_LIST_FAILED";
+  const errorCode = toServiceErrorCode(action);
   const { data, error } = await client.functions.invoke("admin-project-cycles", {
     body,
     headers: {
@@ -138,12 +195,62 @@ function toManagedProject(value: unknown): ManagedProject {
     completesOn: readNullableString(record.completesOn),
     cycles: readArray(record.cycles).map(toManagedEvaluationCycle),
     id: readString(record.id),
+    members: readArray(record.members).map(toManagedProjectMember),
     name: readString(record.name),
     organizationId: readString(record.organizationId),
     projectManagerUserId: readNullableString(record.projectManagerUserId),
     startsOn: readNullableString(record.startsOn),
     status: readString(record.status)
   };
+}
+
+function toManagedProjectMember(value: unknown): ManagedProjectMember {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    displayName: readNullableString(record.displayName),
+    email: readNullableString(record.email),
+    endsAt: readNullableString(record.endsAt),
+    id: readString(record.id),
+    membershipKind: toProjectMembershipKind(record.membershipKind),
+    startsAt: readString(record.startsAt),
+    userId: readString(record.userId)
+  };
+}
+
+function toOrganizationMember(value: unknown): OrganizationMember {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    displayName: readNullableString(record.displayName),
+    email: readString(record.email),
+    onboardingStatus: readString(record.onboardingStatus),
+    userId: readString(record.userId)
+  };
+}
+
+function toServiceErrorCode(action: string): ProjectCycleServiceErrorCode {
+  if (action === "create_project_cycle") {
+    return "PROJECT_CYCLE_CREATE_FAILED";
+  }
+
+  if (action === "add_project_member") {
+    return "PROJECT_MEMBER_ADD_FAILED";
+  }
+
+  if (action === "list_organization_members") {
+    return "PROJECT_MEMBER_LIST_FAILED";
+  }
+
+  return "PROJECT_CYCLE_LIST_FAILED";
+}
+
+function toProjectMembershipKind(value: unknown): ProjectMembershipKind {
+  return value === "PROJECT_MANAGER"
+      || value === "SPONSOR"
+      || value === "OBSERVER"
+    ? value
+    : "MEMBER";
 }
 
 function toManagedEvaluationCycle(value: unknown): ManagedEvaluationCycle {

@@ -215,13 +215,34 @@ export const tr = {
         evaluationClose: "Değerlendirme kapanışı",
         noDate: "Tarih yok"
       },
+      members: {
+        sectionLabel: "proje üyeleri",
+        title: "Proje üyeleri",
+        empty: "Bu projeye henüz üye eklenmemiş.",
+        user: "Proje üyesi",
+        userPlaceholder: "Üye seç",
+        projectManagerPlaceholder: "Proje müdürü seç",
+        noOrganizationMembers: "Organizasyon üyesi bulunamadı",
+        kind: "Üyelik türü",
+        add: "Üye ekle",
+        adding: "Ekleniyor",
+        kindLabels: {
+          MEMBER: "Üye",
+          PROJECT_MANAGER: "Proje müdürü",
+          SPONSOR: "Sponsor",
+          OBSERVER: "Gözlemci"
+        }
+      },
       feedback: {
         created: "Proje ve değerlendirme süreci oluşturuldu.",
+        memberAdded: "Proje üyesi eklendi.",
         PROJECT_CYCLE_SESSION_REQUIRED:
           "Oturum doğrulanamadı. Lütfen tekrar giriş yap.",
         PROJECT_CYCLE_LIST_FAILED: "Projeler okunamadı.",
         PROJECT_CYCLE_CREATE_FAILED:
           "Proje ve değerlendirme süreci oluşturulamadı.",
+        PROJECT_MEMBER_LIST_FAILED: "Organizasyon üyeleri okunamadı.",
+        PROJECT_MEMBER_ADD_FAILED: "Proje üyesi eklenemedi.",
         genericError: "Beklenmeyen bir proje yönetimi hatası oluştu."
       }
     },

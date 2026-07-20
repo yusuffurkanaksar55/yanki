@@ -71,7 +71,7 @@ Identity-domain tables store users, roles, organization hierarchy, memberships, 
 
 `projects` stores identity-domain project metadata, including project manager, status, and optional start/completion dates.
 
-`project_memberships` stores project participation and project-management membership metadata.
+`project_memberships` stores project participation and project-management membership metadata. Administrators can now add active organization members to projects through `admin-project-cycles`; browser clients still do not read or write this table directly.
 
 `evaluation_cycles` stores time-bound evaluation configuration with open and close timestamps, optional project completion date, cycle type, status, and anonymity threshold. It does not require a fixed participant count to open a cycle.
 
@@ -93,7 +93,7 @@ No anonymous content-domain table has been implemented yet.
 
 ## Project And Evaluation Cycle Data
 
-Project and evaluation-cycle tables support multiple administrators and delegated project managers at the data-model level. Evaluation cycles may be opened without a fixed participant-count requirement, but they are time-bound with configurable open and close dates. Project completion dates and evaluation close dates must be set through trusted administrative flows rather than direct frontend table access.
+Project and evaluation-cycle tables support multiple administrators and delegated project managers at the data-model level. Evaluation cycles may be opened without a fixed participant-count requirement, but they are time-bound with configurable open and close dates. Project completion dates, evaluation close dates, and project memberships must be set through trusted administrative flows rather than direct frontend table access.
 
 ## Migration Rules
 
