@@ -1,5 +1,78 @@
 # Test Report
 
+## 2026-07-20 - Evaluation Assignment Planning Foundation
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- npm: 11.9.0
+- Supabase CLI: 2.109.1
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+
+### Commands executed
+
+- `npm test`
+- `npm run check`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+- `npx supabase db push --yes`
+- `npx supabase migration list`
+- `npx supabase gen types typescript --linked`
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
+- `npx supabase functions list`
+- Unauthenticated live function smoke test with `Invoke-WebRequest`
+- Secret scan with `rg`
+- `git diff --check`
+
+### Passed
+
+- Final `npm test` passed with 11 test files and 49 tests.
+- Final `npm run check` passed lint, typecheck, Vitest with 11 test files and 49 tests, and production build.
+- Initial `npx supabase db push --dry-run` showed only `20260720223000_evaluation_assignment_foundation.sql` would be applied.
+- `npx supabase db lint --linked` found no schema errors before and after applying the migration.
+- `npx supabase db push --yes` applied `20260720223000_evaluation_assignment_foundation.sql` to the linked remote project.
+- `npx supabase migration list` showed local and remote migration timestamp `20260720223000`.
+- Final `npx supabase db push --dry-run` reported the remote database is up to date.
+- Linked Supabase database types were regenerated and include `evaluation_assignments`.
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt` deployed the updated function to project `daxaymcmtbmummrxdyjy`.
+- `npx supabase functions list` showed `admin-project-cycles` as `ACTIVE`, version `4`, with `verify_jwt` set to `false`.
+- Unauthenticated live smoke test returned `AUTHENTICATION_REQUIRED`.
+- Secret scan found only package-lock integrity hash false positives and documented placeholder environment variable examples.
+- Final `git diff --check` passed after normalizing generated Supabase types to LF and UTF-8 without BOM.
+
+### Failed
+
+- Initial `npm test` failed because assignment total and pending metrics both rendered `6`; the assertion was updated to expect both matching metric values.
+- `npx supabase db push --yes` applied the migration successfully but emitted the known Docker migration-catalog cache warning.
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt` completed successfully but emitted `WARNING: Docker is not running`.
+- Initial `git diff --check` failed because PowerShell `Set-Content` wrote generated Supabase types with CRLF/BOM-style line ending noise; the file was normalized mechanically.
+
+### Skipped
+
+- Authenticated live smoke testing was skipped because `SUPABASE_SERVICE_ROLE_KEY` and reusable synthetic admin credentials are not available in the current shell.
+- Playwright end-to-end tests skipped because Playwright is not installed and employee assignment inbox/browser workflow coverage has not been added yet.
+
+### Manual tests
+
+- Verified the browser project/cycle service source invokes `admin-project-cycles` for assignment generation.
+- Verified the browser project/cycle service source does not query `evaluation_assignments` directly.
+- Verified the deployed function rejects unauthenticated calls.
+
+### Security checks
+
+- Verified `evaluation_assignments` is RLS-enabled and has no frontend policies.
+- Verified assignment rows prevent self assignments.
+- Verified assignment scope validation keeps organization, project, and evaluation cycle aligned.
+- Verified the migration does not introduce score, comment, plaintext, encrypted payload, anonymous credential, or response-content columns.
+- Verified assignment generation runs inside the Edge Function service-role boundary.
+
+### Remaining risks
+
+- The updated Edge Function still needs authenticated live smoke testing with synthetic admin credentials.
+- Employee assignment access, anonymous credentials, encrypted submissions, and reporting remain unimplemented.
+- Delegated project-manager assignment and date update workflows remain future work.
+
 ## 2026-07-20 - Admin Project Membership Foundation
 
 ### Environment

@@ -124,6 +124,35 @@ describe("ProjectCycleManagementPanel", () => {
       within(memberList).getByText("Demo Member (member@example.com)")
     ).toBeInTheDocument();
   });
+
+  it("generates evaluation assignments through the service", async () => {
+    const user = userEvent.setup();
+    const service = createProjectCycleServiceStub();
+
+    render(
+      <ProjectCycleManagementPanel
+        service={service}
+        workspaceContext={createWorkspaceContext()}
+      />
+    );
+
+    await screen.findByText("Existing Project");
+    await user.click(
+      screen.getByRole("button", {
+        name: tr.administration.projects.assignments.generate
+      })
+    );
+
+    expect(service.generateProjectAssignments).toHaveBeenCalledWith(
+      "existing-project-id-cycle"
+    );
+    expect(
+      await screen.findByText(
+        tr.administration.projects.feedback.assignmentsGenerated
+      )
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("6")).toHaveLength(2);
+  });
 });
 
 function createProjectCycleServiceStub(): ProjectCycleService {
@@ -145,6 +174,20 @@ function createProjectCycleServiceStub(): ProjectCycleService {
     createProjectCycle: vi.fn(async (draft: ProjectCycleDraft) =>
       createManagedProject("created-project-id", draft.projectName, draft)
     ),
+    generateProjectAssignments: vi.fn(async (evaluationCycleId) => ({
+      assignmentSummary: {
+        cancelled: 0,
+        completed: 0,
+        pending: 6,
+        total: 6
+      },
+      candidateCount: 6,
+      createdCount: 6,
+      evaluationCycleId,
+      participantCount: 3,
+      projectId: "existing-project-id",
+      skippedDuplicateCount: 0
+    })),
     listOrganizationMembers: vi.fn(async () => [
       {
         displayName: "Demo Manager",
@@ -176,6 +219,12 @@ function createManagedProject(
     cycles: [
       {
         anonymityThreshold: 4,
+        assignmentSummary: {
+          cancelled: 0,
+          completed: 0,
+          pending: 0,
+          total: 0
+        },
         closesAt: draft.closesAt ?? "2026-07-30T15:00:00.000Z",
         id: `${id}-cycle`,
         name: draft.evaluationName ?? "Existing Evaluation",

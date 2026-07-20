@@ -1,5 +1,68 @@
 # Development Log
 
+## 2026-07-20 - Evaluation Assignment Planning Foundation
+
+### Objective
+
+Generate project-backed evaluation assignment planning records from active project memberships through the trusted administration Edge Function boundary.
+
+### Changes
+
+- Added `evaluation_assignments` as a default-deny identity-domain assignment table.
+- Added assignment kind and status constraints, self-assignment prevention, duplicate active-assignment prevention, and project/cycle/organization scope validation.
+- Extended `admin-project-cycles` with the `generate_project_assignments` action.
+- Generated non-self evaluator-subject assignment candidates from active project memberships for draft or open project-backed cycles.
+- Returned aggregate assignment counts to the browser without exposing direct assignment table access.
+- Added assignment count display and a Turkish assignment generation control to the administration project panel.
+- Added frontend service types and tests for assignment generation.
+- Added ADR-0012 for default-deny evaluation assignment planning.
+
+### Files affected
+
+- `supabase/migrations/20260720223000_evaluation_assignment_foundation.sql`
+- `supabase/functions/admin-project-cycles/index.ts`
+- `src/types/supabase.ts`
+- `src/features/administration/*`
+- `src/app/App.test.tsx`
+- `src/locales/tr/messages.ts`
+- `tests/*`
+- `docs/*`
+- `docs/decisions/ADR-0012-use-default-deny-evaluation-assignment-planning.md`
+
+### Database changes
+
+Applied remote migration `20260720223000_evaluation_assignment_foundation.sql` to Supabase project `daxaymcmtbmummrxdyjy`.
+
+### Security impact
+
+Positive foundation impact. Assignment planning remains identity-domain only and stores no scores, comments, lessons learned content, encrypted payloads, anonymous credential secrets, or response content. The table is RLS-enabled with no client-facing policies. Generation runs through the Edge Function service-role boundary with server-side authentication, active-profile validation, role recomputation, organization-scope authorization, project-backed cycle validation, self-assignment prevention, and safe audit metadata.
+
+### Tests performed
+
+- `npm test`
+- `npm run check`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+- `npx supabase db push --yes`
+- `npx supabase migration list`
+- `npx supabase gen types typescript --linked`
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
+- `npx supabase functions list`
+- Unauthenticated live function smoke test with `Invoke-WebRequest`
+- Secret scan with `rg`
+- `git diff --check`
+
+### Result
+
+Evaluation assignment planning foundation was implemented and deployed. Application checks passed with 11 test files and 49 tests. The linked Supabase database includes migration `20260720223000`, linked database lint found no schema errors, the updated `admin-project-cycles` function is `ACTIVE` as version `4`, and an unauthenticated live smoke test returned `AUTHENTICATION_REQUIRED`.
+
+### Remaining work
+
+- Run authenticated live smoke testing with synthetic admin credentials.
+- Implement employee-facing assignment access after scoped authorization design.
+- Implement anonymous credential issuance and encrypted submission flows.
+- Implement delegated project-manager date and assignment workflows.
+
 ## 2026-07-20 - Admin Project Membership Foundation
 
 ### Objective

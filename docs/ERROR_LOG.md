@@ -1,5 +1,110 @@
 # Error Log
 
+## ERR-20260720-004 - Assignment metric test matched duplicate count text
+
+### Context
+
+Evaluation assignment planning UI tests were added to verify that administrators can generate project-backed assignment records through the service boundary.
+
+### Symptoms
+
+`npm test` failed because the generated assignment total and pending assignment count both rendered the text `6`.
+
+### Root cause
+
+The assertion used `getByText("6")`, which assumes the generated count appears once even though the UI intentionally shows the same number in more than one assignment metric.
+
+### Incorrect approach
+
+Asserting a globally unique numeric text value for a metric display.
+
+### Correct solution
+
+Assert the expected number of matching metric values with `getAllByText("6")`.
+
+### Prevention
+
+When metric values can repeat, scope the assertion to a labeled metric or assert the expected number of repeated values explicitly.
+
+### Related files
+
+- `src/features/administration/ProjectCycleManagementPanel.test.tsx`
+
+### Related tests
+
+- `npm test`
+
+## ERR-20260720-005 - Assignment migration catalog cache warning repeated
+
+### Context
+
+The evaluation assignment foundation migration was applied to the linked Supabase project.
+
+### Symptoms
+
+`npx supabase db push --yes` applied the migration successfully but emitted `failed to cache migrations catalog` with a Docker Desktop pipe connection error while inspecting the Supabase Edge Runtime image.
+
+### Root cause
+
+The remote migration succeeded, but the Supabase CLI attempted a Docker-backed local catalog cache operation and Docker Desktop was not available through the current shell pipe.
+
+### Incorrect approach
+
+Treating the Docker cache warning as a failed remote migration.
+
+### Correct solution
+
+Verify the remote migration state with `npx supabase migration list`, rerun `npx supabase db push --dry-run`, and run linked lint.
+
+### Prevention
+
+Continue to verify remote migration status separately from local Docker cache warnings. Resolve Docker Desktop CLI/API access before relying on local Supabase reset or local database lint.
+
+### Related files
+
+- `supabase/migrations/20260720223000_evaluation_assignment_foundation.sql`
+
+### Related tests
+
+- `npx supabase db push --yes`
+- `npx supabase migration list`
+- `npx supabase db push --dry-run`
+- `npx supabase db lint --linked`
+
+## ERR-20260720-006 - Generated Supabase types had PowerShell line ending noise
+
+### Context
+
+Linked Supabase database types were regenerated after applying the evaluation assignment migration.
+
+### Symptoms
+
+`git diff --check` reported trailing whitespace on every changed line in `src/types/supabase.ts`.
+
+### Root cause
+
+The type generation output was piped through PowerShell `Set-Content`, which rewrote the generated file with Windows line ending and encoding noise relative to the repository's existing file style.
+
+### Incorrect approach
+
+Assuming `Set-Content -Encoding utf8` would preserve the repository's existing LF and UTF-8 without BOM format.
+
+### Correct solution
+
+Normalize `src/types/supabase.ts` mechanically to LF and UTF-8 without BOM after generation.
+
+### Prevention
+
+When using PowerShell to capture generated CLI output, run `git diff --check` and normalize generated files before committing.
+
+### Related files
+
+- `src/types/supabase.ts`
+
+### Related tests
+
+- `git diff --check`
+
 ## ERR-20260720-001 - Project member test matched select option and list item
 
 ### Context

@@ -6,9 +6,9 @@ Secure company-internal web platform for anonymous employee, team, project, mana
 
 ## Current Status
 
-The repository is in application scaffold phase. It contains persistent project memory, security architecture notes, authorization boundaries, initial data model documentation, ADRs, a React + TypeScript + Vite application shell, Supabase Auth/profile onboarding foundation, configurable organization hierarchy foundation, authenticated own-workspace context foundation, protected administration shell, project/evaluation-cycle configuration foundation, admin project/cycle/member Edge Function foundation, Tailwind CSS styling, ESLint, TypeScript checking, Vitest, and React Testing Library tests.
+The repository is in application scaffold phase. It contains persistent project memory, security architecture notes, authorization boundaries, initial data model documentation, ADRs, a React + TypeScript + Vite application shell, Supabase Auth/profile onboarding foundation, configurable organization hierarchy foundation, authenticated own-workspace context foundation, protected administration shell, project/evaluation-cycle configuration foundation, default-deny evaluation assignment foundation, admin project/cycle/member/assignment Edge Function foundation, Tailwind CSS styling, ESLint, TypeScript checking, Vitest, and React Testing Library tests.
 
-No production invitation redemption flow, full administration write coverage, evaluation authorization enforcement, anonymous credential flow, or encryption runtime has been implemented yet.
+No production invitation redemption flow, full administration write coverage, employee assignment inbox, evaluation authorization enforcement, anonymous credential flow, or encryption runtime has been implemented yet.
 
 ## Target Stack
 
@@ -57,7 +57,7 @@ These commands currently validate the React application scaffold, documentation 
 
 The remote Supabase project is linked to project ref `daxaymcmtbmummrxdyjy`. Public frontend environment examples are documented in `.env.example`; real local values belong in `.env.local`, which is ignored by Git.
 
-The applied migrations create a default-deny security foundation, user profile and invitation onboarding tables, configurable organization hierarchy tables, project and time-bound evaluation-cycle configuration tables, and a narrow authenticated own-workspace context RPC. They do not create evaluation submission tables or store sensitive evaluation content.
+The applied migrations create a default-deny security foundation, user profile and invitation onboarding tables, configurable organization hierarchy tables, project and time-bound evaluation-cycle configuration tables, an evaluation assignment planning table, and a narrow authenticated own-workspace context RPC. They do not create evaluation submission tables or store sensitive evaluation content.
 
 ## Demo Fixtures
 
@@ -65,7 +65,7 @@ Synthetic CEO, HR admin, team leader, employee accounts, demo project, and demo 
 
 ## Authentication
 
-The frontend includes a typed Supabase Auth client foundation with email/password sign-in, password reset request, local-session sign-out, runtime public environment validation, React context-based session state, own-profile gating, own-workspace context display, a protected administration shell, and project/cycle/member management calls through the `admin-project-cycles` Edge Function.
+The frontend includes a typed Supabase Auth client foundation with email/password sign-in, password reset request, local-session sign-out, runtime public environment validation, React context-based session state, own-profile gating, own-workspace context display, a protected administration shell, and project/cycle/member/assignment management calls through the `admin-project-cycles` Edge Function.
 
 Only public Supabase values are used in the browser. Service-role keys, database URLs, and encryption keys must stay out of frontend code and Git.
 

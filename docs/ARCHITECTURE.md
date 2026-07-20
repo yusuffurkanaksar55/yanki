@@ -2,7 +2,7 @@
 
 ## Status
 
-Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has initial default-deny security, profile/invitation onboarding, organization hierarchy, workspace context, and project/evaluation-cycle migrations. A typed Supabase Auth client, own-profile gate, own-workspace context panel, protected administration shell, and admin project/cycle/member Edge Function foundation are implemented.
+Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has initial default-deny security, profile/invitation onboarding, organization hierarchy, workspace context, project/evaluation-cycle, and evaluation-assignment migrations. A typed Supabase Auth client, own-profile gate, own-workspace context panel, protected administration shell, and admin project/cycle/member/assignment Edge Function foundation are implemented.
 
 ## Target System
 
@@ -83,7 +83,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Root app: `src/app/App.tsx`
 - Dashboard feature: `src/features/dashboard/DashboardPage.tsx`
 - Administration feature: `src/features/administration/AdministrationPage.tsx`
-- Administration project/cycle/member service and panel: `src/features/administration/projectCycleService.ts`, `src/features/administration/ProjectCycleManagementPanel.tsx`
+- Administration project/cycle/member/assignment service and panel: `src/features/administration/projectCycleService.ts`, `src/features/administration/ProjectCycleManagementPanel.tsx`
 - Turkish messages: `src/locales/tr/messages.ts`
 - Authentication context and UI: `src/features/authentication/`
 - Profile onboarding gate and service: `src/features/profiles/`
@@ -104,12 +104,13 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Organization hierarchy migration: `supabase/migrations/20260719174459_organization_hierarchy_foundation.sql`
 - Workspace context RPC migration: `supabase/migrations/20260719181013_workspace_context_rpc.sql`
 - Project/evaluation-cycle migration: `supabase/migrations/20260719184052_project_evaluation_cycle_foundation.sql`
+- Evaluation assignment migration: `supabase/migrations/20260720223000_evaluation_assignment_foundation.sql`
 - Setup notes: `docs/SUPABASE_SETUP.md`
 - Demo fixture notes: `docs/TEST_FIXTURES.md`
 - Demo fixture script: `scripts/create-demo-fixture.mjs`
 - Linked remote project ref: `daxaymcmtbmummrxdyjy`
 
-The initial migration creates `app_roles`, `scope_types`, `user_role_assignments`, and `audit_events`. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`, and adds `PLATFORM` as the global scope type. The workspace context migration creates `get_my_workspace_context()`. The project/evaluation-cycle migration creates `projects`, `project_memberships`, and `evaluation_cycles`. RLS is enabled on all public tables. `user_profiles` has one narrow authenticated self-read policy. Invitation, hierarchy, project, and evaluation-cycle administration tables have no client-facing policies and are reserved for trusted server-side flows.
+The initial migration creates `app_roles`, `scope_types`, `user_role_assignments`, and `audit_events`. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`, and adds `PLATFORM` as the global scope type. The workspace context migration creates `get_my_workspace_context()`. The project/evaluation-cycle migration creates `projects`, `project_memberships`, and `evaluation_cycles`. The evaluation assignment migration creates `evaluation_assignments` for identity-domain eligibility planning only. RLS is enabled on all public tables. `user_profiles` has one narrow authenticated self-read policy. Invitation, hierarchy, project, evaluation-cycle, and evaluation-assignment administration tables have no client-facing policies and are reserved for trusted server-side flows.
 
 ## Current Authentication Scaffold
 
@@ -128,6 +129,8 @@ The workspace context service is injectable and reads only the authenticated use
 
 The administration shell is reachable through `#administration` for admin-like workspace roles. It is a UI boundary only; production management writes must use future Edge Functions and RLS policies.
 
-The project/cycle management panel calls `admin-project-cycles` through Supabase Functions. It does not query `projects`, `evaluation_cycles`, `project_memberships`, `organization_unit_memberships`, or `user_profiles` directly from the browser.
+The project/cycle management panel calls `admin-project-cycles` through Supabase Functions. It does not query `projects`, `evaluation_cycles`, `evaluation_assignments`, `project_memberships`, `organization_unit_memberships`, or `user_profiles` directly from the browser.
 
 The organization member selector and project membership form use the same Edge Function boundary. Organization member lookup returns active identity-domain profile metadata for administrators only. Project membership writes validate project organization scope and selected-user organization membership server-side before writing `project_memberships`.
+
+The assignment planning control uses the same Edge Function boundary. It generates non-self evaluator-subject identity assignments from active project memberships for draft or open project-backed cycles, stores no scores or comments, and returns only aggregate assignment counts to the browser.

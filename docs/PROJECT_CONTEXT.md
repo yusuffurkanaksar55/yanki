@@ -17,8 +17,9 @@ The repository currently contains the documentation foundation and a React, Type
 - Workspace context: authenticated own-context RPC and dashboard context panel implemented.
 - Administration UI: protected hash-route administration shell implemented for admin-like roles, with project/cycle list, create form, organization member selector, and project membership form.
 - Project and evaluation-cycle configuration: default-deny project, project membership, and time-bound evaluation-cycle foundation implemented.
-- Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, workspace context RPC, project, and evaluation-cycle migrations applied.
-- Edge Functions: `admin-project-cycles` foundation implemented for project/cycle list, project/cycle create, organization member directory, and project member add actions.
+- Evaluation assignment planning: default-deny assignment table and admin-only project assignment generation foundation implemented from active project memberships.
+- Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, workspace context RPC, project, evaluation-cycle, and evaluation-assignment migrations applied.
+- Edge Functions: `admin-project-cycles` foundation implemented for project/cycle list, project/cycle create, organization member directory, project member add, and project assignment generation actions.
 - Anonymous credential flow: documented, not implemented.
 - Encryption flow: documented, not implemented.
 - Quality checks: lint, typecheck, Vitest, React Testing Library, production build, and documentation foundation tests are implemented.
@@ -49,7 +50,7 @@ The repository currently contains the documentation foundation and a React, Type
 
 ## Current Database Structure
 
-The applied Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, `user_invitations`, `organizations`, `organization_units`, `organization_unit_memberships`, `manager_assignments`, `projects`, `project_memberships`, `evaluation_cycles`, and `get_my_workspace_context()`. RLS is enabled on all public tables. The only client-facing table policy allows authenticated users to read their own `user_profiles` row. The workspace context RPC returns only the caller's own non-sensitive role, unit, and manager context. Invitation, organization, project, and evaluation-cycle administration records remain default-deny to frontend clients. The conceptual complete data model is documented in `docs/DATA_MODEL.md`.
+The applied Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, `user_invitations`, `organizations`, `organization_units`, `organization_unit_memberships`, `manager_assignments`, `projects`, `project_memberships`, `evaluation_cycles`, `evaluation_assignments`, and `get_my_workspace_context()`. RLS is enabled on all public tables. The only client-facing table policy allows authenticated users to read their own `user_profiles` row. The workspace context RPC returns only the caller's own non-sensitive role, unit, and manager context. Invitation, organization, project, evaluation-cycle, and evaluation-assignment administration records remain default-deny to frontend clients. The conceptual complete data model is documented in `docs/DATA_MODEL.md`.
 
 ## Current Authentication Model
 
@@ -57,14 +58,14 @@ The frontend uses Supabase Auth through injectable typed service boundaries. Imp
 
 ## Current Authorization Model
 
-Authorization is not implemented. The intended model is scoped role-based access with database-enforced and server-side authorization. See `docs/AUTHORIZATION_MODEL.md`.
+Runtime evaluation authorization is not implemented. Current trusted administration actions use server-side scoped role checks through Edge Functions, while sensitive evaluation submission, reporting, and employee assignment-access policies remain future work. See `docs/AUTHORIZATION_MODEL.md`.
 
 ## Known Limitations
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
 - Runtime authorization, encryption, anonymous credential, and reporting controls are not implemented.
 - Invitation issuance/redemption Edge Functions do not exist yet.
-- No Microsoft Entra ID, hierarchy write workflow, delegated project-manager date update flow, evaluation assignment generation, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
+- No Microsoft Entra ID, hierarchy write workflow, delegated project-manager date update flow, employee assignment inbox, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
 - Synthetic test users were created by running `npm run fixture:demo`, and at least one login was verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
@@ -80,12 +81,13 @@ Authorization is not implemented. The intended model is scoped role-based access
 - 2026-07-19: Added protected administration shell and default-deny project/evaluation-cycle foundation.
 - 2026-07-19: Added admin project/cycle Edge Function and frontend management panel.
 - 2026-07-20: Extended admin project management with organization member lookup and project membership assignment through the Edge Function.
+- 2026-07-20: Added default-deny evaluation assignment planning from project memberships through the Edge Function.
 
 ## Current Development Priorities
 
 1. Run authenticated smoke testing for `admin-project-cycles` with synthetic admin credentials, including project member assignment.
 2. Implement trusted Edge Functions for invitation, profile, role, hierarchy, and delegated project-manager update flows.
-3. Implement evaluation assignment planning from project memberships.
-4. Implement scoped authorization policies before sensitive evaluation workflows.
-5. Implement anonymous credentials and encrypted submissions before reporting.
+3. Implement employee-facing assignment access only after scoped authorization policies are designed.
+4. Implement anonymous credentials and encrypted submissions before reporting.
+5. Implement scoped reporting with threshold and self-access prevention.
 6. Add Playwright end-to-end tests after real navigation and authentication flows exist.

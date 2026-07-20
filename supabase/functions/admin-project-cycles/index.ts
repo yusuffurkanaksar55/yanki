@@ -27,6 +27,33 @@ type AddProjectMemberRequest = {
   readonly membershipKind: ProjectMembershipKind;
 };
 
+type GenerateProjectAssignmentsRequest = {
+  readonly evaluationCycleId: string;
+};
+
+type EvaluationAssignmentKind =
+  | "PROJECT_PEER"
+  | "PROJECT_MANAGER_REVIEW"
+  | "PROJECT_MEMBER_REVIEW"
+  | "CUSTOM";
+
+type EvaluationAssignmentSummary = {
+  readonly total: number;
+  readonly pending: number;
+  readonly completed: number;
+  readonly cancelled: number;
+};
+
+type GenerateProjectAssignmentsResult = {
+  readonly evaluationCycleId: string;
+  readonly projectId: string;
+  readonly participantCount: number;
+  readonly candidateCount: number;
+  readonly createdCount: number;
+  readonly skippedDuplicateCount: number;
+  readonly assignmentSummary: EvaluationAssignmentSummary;
+};
+
 type ProjectMembershipKind =
   | "MEMBER"
   | "PROJECT_MANAGER"
@@ -38,6 +65,11 @@ type OrganizationMember = {
   readonly email: string;
   readonly displayName: string | null;
   readonly onboardingStatus: string;
+};
+
+type ProjectParticipant = {
+  readonly userId: string;
+  readonly membershipKind: "MEMBER" | "PROJECT_MANAGER";
 };
 
 type ManagedProjectMember = {
@@ -71,6 +103,7 @@ type ManagedEvaluationCycle = {
   readonly closesAt: string;
   readonly projectCompletedOn: string | null;
   readonly anonymityThreshold: number;
+  readonly assignmentSummary: EvaluationAssignmentSummary;
 };
 
 const corsHeaders = {
@@ -184,6 +217,18 @@ Deno.serve(async (request) => {
       return jsonResponse({ project }, 201);
     }
 
+    if (body.action === "generate_project_assignments") {
+      const input = parseGenerateProjectAssignmentsRequest(body.payload);
+      const result = await generateProjectAssignments(
+        serviceClient,
+        roles,
+        userData.user.id,
+        input
+      );
+
+      return jsonResponse({ result }, 201);
+    }
+
     return jsonResponse({ error: "UNKNOWN_ACTION" }, 400);
   } catch (error) {
     const message = error instanceof RequestValidationError
@@ -293,9 +338,12 @@ async function listProjectCycles(
     throw error;
   }
 
-  return await attachProjectMembers(
+  return await attachCycleAssignmentSummaries(
     serviceClient,
-    (data ?? []).map(toManagedProject)
+    await attachProjectMembers(
+      serviceClient,
+      (data ?? []).map(toManagedProject)
+    )
   );
 }
 
@@ -444,11 +492,92 @@ async function addProjectMember(
 
   await writeAuditEvent(serviceClient, {
     actorUserId,
+    eventScopeId: input.projectId,
+    eventScopeType: "PROJECT",
     eventType: "PROJECT_MEMBER_ADDED",
-    scopeId: input.projectId
+    safeMetadata: {}
   });
 
   return await readManagedProject(serviceClient, input.projectId);
+}
+
+async function generateProjectAssignments(
+  serviceClient: ReturnType<typeof createClient>,
+  roles: readonly AppRole[],
+  actorUserId: string,
+  input: GenerateProjectAssignmentsRequest
+): Promise<GenerateProjectAssignmentsResult> {
+  const cycle = await readEvaluationCycleRecord(
+    serviceClient,
+    input.evaluationCycleId
+  );
+
+  if (!cycle.project_id) {
+    throw new RequestValidationError("PROJECT_CYCLE_PROJECT_REQUIRED");
+  }
+
+  if (!["DRAFT", "OPEN"].includes(cycle.status)) {
+    throw new RequestValidationError("PROJECT_CYCLE_NOT_ASSIGNABLE");
+  }
+
+  if (!canManageOrganization(roles, cycle.organization_id)) {
+    throw new AuthorizationError("ADMINISTRATION_SCOPE_DENIED");
+  }
+
+  const participants = await readProjectParticipants(
+    serviceClient,
+    cycle.project_id
+  );
+  const candidates = createProjectAssignmentCandidates({
+    actorUserId,
+    cycle,
+    participants
+  });
+  const existingKeys = await readExistingAssignmentKeys(
+    serviceClient,
+    cycle.id
+  );
+  const newAssignments = candidates.filter(
+    (candidate) => !existingKeys.has(toAssignmentKey(candidate))
+  );
+
+  if (newAssignments.length > 0) {
+    const { error } = await serviceClient
+      .from("evaluation_assignments")
+      .insert(newAssignments);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  const assignmentSummary = await readAssignmentSummary(
+    serviceClient,
+    cycle.id
+  );
+
+  await writeAuditEvent(serviceClient, {
+    actorUserId,
+    eventScopeId: cycle.id,
+    eventScopeType: "EVALUATION_CYCLE",
+    eventType: "EVALUATION_ASSIGNMENTS_GENERATED",
+    safeMetadata: {
+      candidate_count: candidates.length,
+      created_count: newAssignments.length,
+      participant_count: participants.length,
+      skipped_duplicate_count: candidates.length - newAssignments.length
+    }
+  });
+
+  return {
+    assignmentSummary,
+    candidateCount: candidates.length,
+    createdCount: newAssignments.length,
+    evaluationCycleId: cycle.id,
+    participantCount: participants.length,
+    projectId: cycle.project_id,
+    skippedDuplicateCount: candidates.length - newAssignments.length
+  };
 }
 
 async function readProjectRecord(
@@ -466,6 +595,227 @@ async function readProjectRecord(
   }
 
   return data;
+}
+
+async function readEvaluationCycleRecord(
+  serviceClient: ReturnType<typeof createClient>,
+  evaluationCycleId: string
+): Promise<{
+  id: string;
+  organization_id: string;
+  project_id: string | null;
+  status: string;
+}> {
+  const { data, error } = await serviceClient
+    .from("evaluation_cycles")
+    .select("id,organization_id,project_id,status")
+    .eq("id", evaluationCycleId)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+async function readProjectParticipants(
+  serviceClient: ReturnType<typeof createClient>,
+  projectId: string
+): Promise<ProjectParticipant[]> {
+  const { data: memberships, error: membershipsError } = await serviceClient
+    .from("project_memberships")
+    .select("user_id,membership_kind")
+    .eq("project_id", projectId)
+    .in("membership_kind", ["MEMBER", "PROJECT_MANAGER"])
+    .is("ends_at", null);
+
+  if (membershipsError) {
+    throw membershipsError;
+  }
+
+  const activeUserIds = await readActiveProfileIds(
+    serviceClient,
+    uniqueStrings((memberships ?? []).map((membership) => membership.user_id))
+  );
+  const participantsByUserId = new Map<string, ProjectParticipant>();
+
+  for (const membership of memberships ?? []) {
+    if (!activeUserIds.has(membership.user_id)) {
+      continue;
+    }
+
+    const membershipKind =
+      membership.membership_kind === "PROJECT_MANAGER"
+        ? "PROJECT_MANAGER"
+        : "MEMBER";
+    const existingParticipant = participantsByUserId.get(membership.user_id);
+
+    participantsByUserId.set(membership.user_id, {
+      membershipKind:
+        existingParticipant?.membershipKind === "PROJECT_MANAGER"
+          || membershipKind === "PROJECT_MANAGER"
+          ? "PROJECT_MANAGER"
+          : "MEMBER",
+      userId: membership.user_id
+    });
+  }
+
+  return Array.from(participantsByUserId.values());
+}
+
+async function readActiveProfileIds(
+  serviceClient: ReturnType<typeof createClient>,
+  userIds: readonly string[]
+): Promise<Set<string>> {
+  if (userIds.length === 0) {
+    return new Set();
+  }
+
+  const { data, error } = await serviceClient
+    .from("user_profiles")
+    .select("user_id")
+    .in("user_id", userIds)
+    .eq("onboarding_status", "ACTIVE");
+
+  if (error) {
+    throw error;
+  }
+
+  return new Set((data ?? []).map((profile) => profile.user_id));
+}
+
+function createProjectAssignmentCandidates({
+  actorUserId,
+  cycle,
+  participants
+}: {
+  readonly actorUserId: string;
+  readonly cycle: {
+    readonly id: string;
+    readonly organization_id: string;
+    readonly project_id: string | null;
+  };
+  readonly participants: readonly ProjectParticipant[];
+}): Array<Record<string, string>> {
+  if (!cycle.project_id) {
+    return [];
+  }
+
+  const assignments: Array<Record<string, string>> = [];
+
+  for (const evaluator of participants) {
+    for (const subject of participants) {
+      if (evaluator.userId === subject.userId) {
+        continue;
+      }
+
+      assignments.push({
+        assignment_kind: toProjectAssignmentKind(evaluator, subject),
+        created_by_user_id: actorUserId,
+        evaluation_cycle_id: cycle.id,
+        evaluator_user_id: evaluator.userId,
+        organization_id: cycle.organization_id,
+        project_id: cycle.project_id,
+        status: "PENDING",
+        subject_user_id: subject.userId
+      });
+    }
+  }
+
+  return assignments;
+}
+
+function toProjectAssignmentKind(
+  evaluator: ProjectParticipant,
+  subject: ProjectParticipant
+): EvaluationAssignmentKind {
+  if (subject.membershipKind === "PROJECT_MANAGER") {
+    return "PROJECT_MANAGER_REVIEW";
+  }
+
+  if (evaluator.membershipKind === "PROJECT_MANAGER") {
+    return "PROJECT_MEMBER_REVIEW";
+  }
+
+  return "PROJECT_PEER";
+}
+
+async function readExistingAssignmentKeys(
+  serviceClient: ReturnType<typeof createClient>,
+  evaluationCycleId: string
+): Promise<Set<string>> {
+  const { data, error } = await serviceClient
+    .from("evaluation_assignments")
+    .select("evaluator_user_id,subject_user_id,assignment_kind")
+    .eq("evaluation_cycle_id", evaluationCycleId)
+    .neq("status", "CANCELLED");
+
+  if (error) {
+    throw error;
+  }
+
+  return new Set((data ?? []).map(toAssignmentKey));
+}
+
+function toAssignmentKey(record: Record<string, unknown>): string {
+  return [
+    readOptionalString(record.evaluator_user_id) ?? "",
+    readOptionalString(record.subject_user_id) ?? "",
+    readOptionalString(record.assignment_kind) ?? ""
+  ].join(":");
+}
+
+async function readAssignmentSummary(
+  serviceClient: ReturnType<typeof createClient>,
+  evaluationCycleId: string
+): Promise<EvaluationAssignmentSummary> {
+  const { data, error } = await serviceClient
+    .from("evaluation_assignments")
+    .select("status")
+    .eq("evaluation_cycle_id", evaluationCycleId);
+
+  if (error) {
+    throw error;
+  }
+
+  return summarizeAssignments(data ?? []);
+}
+
+function summarizeAssignments(
+  records: readonly Record<string, unknown>[]
+): EvaluationAssignmentSummary {
+  let cancelled = 0;
+  let completed = 0;
+  let pending = 0;
+
+  for (const record of records) {
+    const status = readOptionalString(record.status);
+
+    if (status === "PENDING") {
+      pending += 1;
+    } else if (status === "COMPLETED") {
+      completed += 1;
+    } else if (status === "CANCELLED") {
+      cancelled += 1;
+    }
+  }
+
+  return {
+    cancelled,
+    completed,
+    pending,
+    total: pending + completed + cancelled
+  };
+}
+
+function createEmptyAssignmentSummary(): EvaluationAssignmentSummary {
+  return {
+    cancelled: 0,
+    completed: 0,
+    pending: 0,
+    total: 0
+  };
 }
 
 async function requireActiveOrganizationMember(
@@ -531,20 +881,24 @@ async function writeAuditEvent(
   serviceClient: ReturnType<typeof createClient>,
   {
     actorUserId,
+    eventScopeId,
+    eventScopeType,
     eventType,
-    scopeId
+    safeMetadata
   }: {
     readonly actorUserId: string;
+    readonly eventScopeId: string;
+    readonly eventScopeType: "PROJECT" | "EVALUATION_CYCLE";
     readonly eventType: string;
-    readonly scopeId: string;
+    readonly safeMetadata: Record<string, number | string | boolean | null>;
   }
 ) {
   const { error } = await serviceClient.from("audit_events").insert({
     actor_user_id: actorUserId,
-    event_scope_id: scopeId,
-    event_scope_type: "PROJECT",
+    event_scope_id: eventScopeId,
+    event_scope_type: eventScopeType,
     event_type: eventType,
-    safe_metadata: {}
+    safe_metadata: safeMetadata
   });
 
   if (error) {
@@ -627,9 +981,10 @@ async function readManagedProject(
     throw error;
   }
 
-  const [project] = await attachProjectMembers(serviceClient, [
-    toManagedProject(data)
-  ]);
+  const [project] = await attachCycleAssignmentSummaries(
+    serviceClient,
+    await attachProjectMembers(serviceClient, [toManagedProject(data)])
+  );
 
   if (!project) {
     throw new Error("Project could not be read.");
@@ -685,6 +1040,46 @@ async function attachProjectMembers(
   return projects.map((project) => ({
     ...project,
     members: membershipsByProjectId.get(project.id) ?? []
+  }));
+}
+
+async function attachCycleAssignmentSummaries(
+  serviceClient: ReturnType<typeof createClient>,
+  projects: readonly ManagedProject[]
+): Promise<ManagedProject[]> {
+  const cycleIds = projects.flatMap((project) =>
+    project.cycles.map((cycle) => cycle.id)
+  );
+
+  if (cycleIds.length === 0) {
+    return [...projects];
+  }
+
+  const { data, error } = await serviceClient
+    .from("evaluation_assignments")
+    .select("evaluation_cycle_id,status")
+    .in("evaluation_cycle_id", cycleIds);
+
+  if (error) {
+    throw error;
+  }
+
+  const recordsByCycleId = new Map<string, Record<string, unknown>[]>();
+
+  for (const record of data ?? []) {
+    const cycleRecords = recordsByCycleId.get(record.evaluation_cycle_id) ?? [];
+    cycleRecords.push(record);
+    recordsByCycleId.set(record.evaluation_cycle_id, cycleRecords);
+  }
+
+  return projects.map((project) => ({
+    ...project,
+    cycles: project.cycles.map((cycle) => ({
+      ...cycle,
+      assignmentSummary: summarizeAssignments(
+        recordsByCycleId.get(cycle.id) ?? []
+      )
+    }))
   }));
 }
 
@@ -795,6 +1190,21 @@ function parseAddProjectMemberRequest(value: unknown): AddProjectMemberRequest {
   };
 }
 
+function parseGenerateProjectAssignmentsRequest(
+  value: unknown
+): GenerateProjectAssignmentsRequest {
+  if (!isRecord(value)) {
+    throw new RequestValidationError("REQUEST_PAYLOAD_INVALID");
+  }
+
+  return {
+    evaluationCycleId: readRequiredUuid(
+      value.evaluationCycleId,
+      "EVALUATION_CYCLE_ID_REQUIRED"
+    )
+  };
+}
+
 function toManagedProject(record: Record<string, unknown>): ManagedProject {
   return {
     code: readOptionalString(record.code),
@@ -823,7 +1233,8 @@ function toManagedCycle(record: unknown): ManagedEvaluationCycle {
     name: readRequiredString(value.name, "CYCLE_NAME_MISSING"),
     opensAt: readRequiredString(value.opens_at, "CYCLE_OPEN_MISSING"),
     projectCompletedOn: readOptionalString(value.project_completed_on),
-    status: readRequiredString(value.status, "CYCLE_STATUS_MISSING")
+    status: readRequiredString(value.status, "CYCLE_STATUS_MISSING"),
+    assignmentSummary: createEmptyAssignmentSummary()
   };
 }
 

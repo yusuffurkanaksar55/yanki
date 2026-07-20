@@ -10,6 +10,24 @@ export type ManagedEvaluationCycle = {
   readonly closesAt: string;
   readonly projectCompletedOn: string | null;
   readonly anonymityThreshold: number;
+  readonly assignmentSummary: EvaluationAssignmentSummary;
+};
+
+export type EvaluationAssignmentSummary = {
+  readonly total: number;
+  readonly pending: number;
+  readonly completed: number;
+  readonly cancelled: number;
+};
+
+export type GenerateProjectAssignmentsResult = {
+  readonly evaluationCycleId: string;
+  readonly projectId: string;
+  readonly participantCount: number;
+  readonly candidateCount: number;
+  readonly createdCount: number;
+  readonly skippedDuplicateCount: number;
+  readonly assignmentSummary: EvaluationAssignmentSummary;
 };
 
 export type ProjectMembershipKind =
@@ -69,6 +87,9 @@ export type ProjectCycleService = {
   readonly addProjectMember: (
     draft: ProjectMemberDraft
   ) => Promise<ManagedProject>;
+  readonly generateProjectAssignments: (
+    evaluationCycleId: string
+  ) => Promise<GenerateProjectAssignmentsResult>;
   readonly listProjectCycles: () => Promise<readonly ManagedProject[]>;
   readonly listOrganizationMembers: (
     organizationId: string
@@ -83,7 +104,8 @@ export type ProjectCycleServiceErrorCode =
   | "PROJECT_CYCLE_LIST_FAILED"
   | "PROJECT_CYCLE_CREATE_FAILED"
   | "PROJECT_MEMBER_LIST_FAILED"
-  | "PROJECT_MEMBER_ADD_FAILED";
+  | "PROJECT_MEMBER_ADD_FAILED"
+  | "PROJECT_ASSIGNMENT_GENERATE_FAILED";
 
 export class ProjectCycleServiceError extends Error {
   constructor(
@@ -102,6 +124,10 @@ export const browserProjectCycleService: ProjectCycleService = {
     getDefaultProjectCycleService().addProjectMember(draft),
   createProjectCycle: (draft) =>
     getDefaultProjectCycleService().createProjectCycle(draft),
+  generateProjectAssignments: (evaluationCycleId) =>
+    getDefaultProjectCycleService().generateProjectAssignments(
+      evaluationCycleId
+    ),
   listOrganizationMembers: (organizationId) =>
     getDefaultProjectCycleService().listOrganizationMembers(organizationId),
   listProjectCycles: () => getDefaultProjectCycleService().listProjectCycles()
@@ -118,6 +144,15 @@ export function createSupabaseProjectCycleService(
       });
 
       return toManagedProject(data.project);
+    },
+
+    async generateProjectAssignments(evaluationCycleId) {
+      const data = await invokeAdminProjectCycles(client, {
+        action: "generate_project_assignments",
+        payload: { evaluationCycleId }
+      });
+
+      return toGenerateProjectAssignmentsResult(data.result);
     },
 
     async listProjectCycles() {
@@ -238,6 +273,10 @@ function toServiceErrorCode(action: string): ProjectCycleServiceErrorCode {
     return "PROJECT_MEMBER_ADD_FAILED";
   }
 
+  if (action === "generate_project_assignments") {
+    return "PROJECT_ASSIGNMENT_GENERATE_FAILED";
+  }
+
   if (action === "list_organization_members") {
     return "PROJECT_MEMBER_LIST_FAILED";
   }
@@ -266,7 +305,37 @@ function toManagedEvaluationCycle(value: unknown): ManagedEvaluationCycle {
     name: readString(record.name),
     opensAt: readString(record.opensAt),
     projectCompletedOn: readNullableString(record.projectCompletedOn),
-    status: readString(record.status)
+    status: readString(record.status),
+    assignmentSummary: toEvaluationAssignmentSummary(record.assignmentSummary)
+  };
+}
+
+function toGenerateProjectAssignmentsResult(
+  value: unknown
+): GenerateProjectAssignmentsResult {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    assignmentSummary: toEvaluationAssignmentSummary(record.assignmentSummary),
+    candidateCount: readNumber(record.candidateCount),
+    createdCount: readNumber(record.createdCount),
+    evaluationCycleId: readString(record.evaluationCycleId),
+    participantCount: readNumber(record.participantCount),
+    projectId: readString(record.projectId),
+    skippedDuplicateCount: readNumber(record.skippedDuplicateCount)
+  };
+}
+
+function toEvaluationAssignmentSummary(
+  value: unknown
+): EvaluationAssignmentSummary {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    cancelled: readNumber(record.cancelled),
+    completed: readNumber(record.completed),
+    pending: readNumber(record.pending),
+    total: readNumber(record.total)
   };
 }
 
@@ -280,6 +349,10 @@ function readString(value: unknown): string {
 
 function readNullableString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function readNumber(value: unknown): number {
+  return typeof value === "number" ? value : 0;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

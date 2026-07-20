@@ -171,6 +171,20 @@ function createProjectCycleServiceStub(): ProjectCycleService {
     createProjectCycle: vi.fn(async (draft: ProjectCycleDraft) =>
       createManagedProjectStub(draft)
     ),
+    generateProjectAssignments: vi.fn(async (evaluationCycleId) => ({
+      assignmentSummary: {
+        cancelled: 0,
+        completed: 0,
+        pending: 0,
+        total: 0
+      },
+      candidateCount: 0,
+      createdCount: 0,
+      evaluationCycleId,
+      participantCount: 0,
+      projectId: "project-id",
+      skippedDuplicateCount: 0
+    })),
     listOrganizationMembers: vi.fn(async () => []),
     listProjectCycles: vi.fn(async () => [])
   };
@@ -183,6 +197,12 @@ function createManagedProjectStub(draft: ProjectCycleDraft): ManagedProject {
     cycles: [
       {
         anonymityThreshold: 4,
+        assignmentSummary: {
+          cancelled: 0,
+          completed: 0,
+          pending: 0,
+          total: 0
+        },
         closesAt: draft.closesAt,
         id: "cycle-id",
         name: draft.evaluationName,

@@ -98,6 +98,70 @@ export type Database = {
           },
         ]
       }
+      evaluation_assignments: {
+        Row: {
+          assignment_kind: string
+          created_at: string
+          created_by_user_id: string | null
+          evaluation_cycle_id: string
+          evaluator_user_id: string
+          id: string
+          organization_id: string
+          project_id: string | null
+          status: string
+          subject_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          assignment_kind?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          evaluation_cycle_id: string
+          evaluator_user_id: string
+          id?: string
+          organization_id: string
+          project_id?: string | null
+          status?: string
+          subject_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          assignment_kind?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          evaluation_cycle_id?: string
+          evaluator_user_id?: string
+          id?: string
+          organization_id?: string
+          project_id?: string | null
+          status?: string
+          subject_user_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_assignments_evaluation_cycle_id_fkey"
+            columns: ["evaluation_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_assignments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       evaluation_cycles: {
         Row: {
           anonymity_threshold: number

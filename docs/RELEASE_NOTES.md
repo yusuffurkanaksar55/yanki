@@ -1,5 +1,11 @@
 # Release Notes
 
+## 2026-07-20 - Evaluation Assignment Planning Foundation
+
+This is not a product release. The administration screen can now request project-backed evaluation assignment generation through the trusted `admin-project-cycles` Edge Function and see aggregate assignment counts.
+
+The new `evaluation_assignments` table is identity-domain planning data only. It remains default-deny to frontend clients and stores no scores, comments, lessons learned text, anonymous credential secrets, encrypted payloads, or response content.
+
 ## 2026-07-20 - Admin Project Membership Foundation
 
 This is not a product release. The administration screen can now load active organization members through the trusted `admin-project-cycles` Edge Function and add them to projects as members, project managers, sponsors, or observers.

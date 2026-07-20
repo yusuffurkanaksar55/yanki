@@ -8,7 +8,7 @@ High
 
 ### Description
 
-The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, profile/invitation onboarding foundation, organization hierarchy foundation, authenticated own-workspace context RPC, protected administration shell, default-deny project/evaluation-cycle configuration foundation, and admin project/cycle/member Edge Function foundation. Scoped evaluation authorization policies, anonymous credentials, encrypted submissions, and reporting are not implemented yet.
+The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, profile/invitation onboarding foundation, organization hierarchy foundation, authenticated own-workspace context RPC, protected administration shell, default-deny project/evaluation-cycle configuration foundation, default-deny evaluation assignment foundation, and admin project/cycle/member/assignment Edge Function foundation. Scoped employee assignment access, evaluation authorization policies, anonymous credentials, encrypted submissions, and reporting are not implemented yet.
 
 ### Impact
 
@@ -20,7 +20,7 @@ Use the application scaffold only for frontend and trusted-administration founda
 
 ### Planned resolution
 
-Authenticated-smoke-test admin project/cycle/member management, then implement invitation creation/redemption Edge Functions, remaining production administration write actions, evaluation assignment planning, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
+Authenticated-smoke-test admin project/cycle/member/assignment management, then implement invitation creation/redemption Edge Functions, remaining production administration write actions, employee assignment access, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
 
 ### Related tests
 
@@ -34,19 +34,19 @@ High
 
 ### Description
 
-The product requires multiple administrators, CEOs/C-Level users, project managers, and team leaders, plus management flows for project completion dates and evaluation close dates. The application now has a protected administration shell, default-deny project/evaluation-cycle configuration tables, and admin project/cycle/member Edge Function foundation, but not all trusted server-side management actions exist yet.
+The product requires multiple administrators, CEOs/C-Level users, project managers, and team leaders, plus management flows for project completion dates and evaluation close dates. The application now has a protected administration shell, default-deny project/evaluation-cycle/assignment tables, and admin project/cycle/member/assignment Edge Function foundation, but not all trusted server-side management actions exist yet.
 
 ### Impact
 
-Admins and delegated project managers cannot yet persist invitations, general role assignments, hierarchy changes, delegated project-manager date updates, broader evaluation-cycle edits, or evaluation assignments through production application actions. System administrators can add project members through the current Edge Function foundation.
+Admins and delegated project managers cannot yet persist invitations, general role assignments, hierarchy changes, delegated project-manager date updates, broader evaluation-cycle edits, or employee-facing assignment workflows through production application actions. System administrators can add project members and generate project-backed assignment records through the current Edge Function foundation.
 
 ### Workaround
 
-Use the current synthetic fixture only for login, workspace-context, administration-shell, project/cycle/member verification. Do not manage production organization or evaluation response data manually from the browser.
+Use the current synthetic fixture only for login, workspace-context, administration-shell, project/cycle/member/assignment verification. Do not manage production organization or evaluation response data manually from the browser.
 
 ### Planned resolution
 
-Authenticated-smoke-test the project/cycle/member function, then build trusted Edge Functions and production administration forms for invitation, profile, role, hierarchy, delegated date management, and evaluation assignment generation.
+Authenticated-smoke-test the project/cycle/member/assignment function, then build trusted Edge Functions and production administration forms for invitation, profile, role, hierarchy, delegated date management, and employee assignment access.
 
 ### Related tests
 

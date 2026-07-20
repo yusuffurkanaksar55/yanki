@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the intended security model. The repository currently contains Supabase default-deny RLS foundation tables, a typed Supabase Auth client foundation, profile/invitation onboarding foundation, organization hierarchy foundation, authenticated workspace context RPC, project/evaluation-cycle configuration foundation, protected administration shell, and admin project/cycle/member Edge Function foundation, but no production evaluation submission, encryption, reporting, or scoped evaluation authorization runtime.
+This document describes the intended security model. The repository currently contains Supabase default-deny RLS foundation tables, a typed Supabase Auth client foundation, profile/invitation onboarding foundation, organization hierarchy foundation, authenticated workspace context RPC, project/evaluation-cycle configuration foundation, evaluation assignment planning foundation, protected administration shell, and admin project/cycle/member/assignment Edge Function foundation, but no production evaluation submission, encryption, reporting, employee assignment inbox, or scoped evaluation authorization runtime.
 
 ## Security Objectives
 
@@ -79,6 +79,8 @@ Project and evaluation-cycle configuration tables are identity/configuration-dom
 
 `admin-project-cycles` is the first trusted administrative Edge Function. It validates the Supabase access token, requires an active profile, recomputes role scope from database records, and uses service-role credentials only inside the Edge Function runtime. It now also lists active organization members for authorized administrators and writes project membership records after validating the selected user's active organization membership. The browser still has no direct table access to `project_memberships`, `organization_unit_memberships`, or administrative `user_profiles` lists.
 
+`evaluation_assignments` is an identity-domain eligibility table, not a submission-content table. It may store evaluator and subject identifiers so the system can later issue eligibility proofs, but it must never store scores, comments, lessons learned text, encrypted payloads, anonymous credential secrets, or evaluator-to-response mappings. It remains default-deny to frontend clients. The current assignment generation action is admin-only, project-backed, prevents self assignments, and returns aggregate assignment counts rather than response content.
+
 ## Anonymity Threshold
 
 The default minimum result threshold is 4 submissions per reportable group. The threshold must be configurable per evaluation cycle, but lowering it below the documented security minimum requires an explicit administrative warning and recorded decision.
@@ -99,7 +101,7 @@ Database readers may see ciphertext and non-sensitive metadata only. Database en
 
 - Implement invitation creation and redemption through trusted Edge Functions.
 - Extend trusted project and evaluation-cycle management functions for delegated project-manager date update flows.
-- Implement evaluation assignment generation from approved project memberships.
+- Implement employee-facing assignment access only after scoped RLS and server-side authorization rules are designed.
 - Add narrowly scoped Supabase RLS policies only after server-side authorization flows are designed.
 - Implement Edge Functions for anonymous credential issuance, redemption, encryption, and reporting.
 - Implement key management and key rotation procedures.

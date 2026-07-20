@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and has an initial default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, own-workspace context RPC, default-deny project/evaluation-cycle configuration foundation, and first admin project/cycle/member Edge Function. Runtime evaluation policies are not implemented yet.
+Authorization is documented and has an initial default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, own-workspace context RPC, default-deny project/evaluation-cycle configuration foundation, default-deny evaluation assignment foundation, and first admin project/cycle/member/assignment Edge Function. Runtime employee assignment access, evaluation submission, and reporting policies are not implemented yet.
 
 ## Principles
 
@@ -14,15 +14,15 @@ Authorization is documented and has an initial default-deny Supabase foundation,
 
 ## Current Database Foundation
 
-The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`. The project/evaluation-cycle migration creates `projects`, `project_memberships`, and `evaluation_cycles`.
+The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`. The project/evaluation-cycle migration creates `projects`, `project_memberships`, and `evaluation_cycles`. The evaluation assignment migration creates `evaluation_assignments`.
 
-RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `get_my_workspace_context()` allows authenticated users to read only their own non-sensitive role, unit, and manager context. `user_invitations`, roles, role assignments, audit events, organization hierarchy tables, project tables, and evaluation-cycle tables remain default-deny to frontend clients.
+RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `get_my_workspace_context()` allows authenticated users to read only their own non-sensitive role, unit, and manager context. `user_invitations`, roles, role assignments, audit events, organization hierarchy tables, project tables, evaluation-cycle tables, and evaluation assignment tables remain default-deny to frontend clients.
 
 `PLATFORM` is the only null-id global scope. `ORGANIZATION`, `DEPARTMENT`, `UNIT`, `TEAM`, `PROJECT`, and `EVALUATION_CYCLE` scopes must carry an explicit `scope_id`.
 
 The current frontend auth, profile, workspace, and administration gates only control UI visibility. They are not sensitive authorization boundaries.
 
-`admin-project-cycles` validates the authenticated user server-side, requires an active profile, recomputes roles from `user_role_assignments`, and allows project/evaluation-cycle creation only for `SYSTEM_ADMIN` users scoped to `PLATFORM` or the selected organization. Listing returns only configuration records within the user's admin/reviewer/project-manager scopes. Organization member lookup and project membership writes are available only to system administrators with platform or matching organization scope; the function verifies that selected users have active profiles and active organization memberships before adding them to projects.
+`admin-project-cycles` validates the authenticated user server-side, requires an active profile, recomputes roles from `user_role_assignments`, and allows project/evaluation-cycle creation only for `SYSTEM_ADMIN` users scoped to `PLATFORM` or the selected organization. Listing returns only configuration records within the user's admin/reviewer/project-manager scopes. Organization member lookup, project membership writes, and project-backed assignment generation are available only to system administrators with platform or matching organization scope. The function verifies that selected users have active profiles and active organization memberships before adding them to projects, and generates only non-self assignments from active project memberships.
 
 ## Roles
 

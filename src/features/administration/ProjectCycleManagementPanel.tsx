@@ -98,6 +98,8 @@ export function ProjectCycleManagementPanel({
   const [submittingMemberProjectId, setSubmittingMemberProjectId] = useState<
     string | null
   >(null);
+  const [generatingAssignmentCycleId, setGeneratingAssignmentCycleId] =
+    useState<string | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const organizationMembers =
     loadState.status === "ready"
@@ -209,6 +211,38 @@ export function ProjectCycleManagementPanel({
       setFeedbackMessage(toProjectCycleFeedbackMessage(error));
     } finally {
       setSubmittingMemberProjectId(null);
+    }
+  }
+
+  async function handleGenerateProjectAssignments(evaluationCycleId: string) {
+    setGeneratingAssignmentCycleId(evaluationCycleId);
+    setFeedbackMessage(null);
+
+    try {
+      const result = await service.generateProjectAssignments(evaluationCycleId);
+      setLoadState((current) =>
+        current.status === "ready"
+          ? {
+              ...current,
+              projects: current.projects.map((project) => ({
+                ...project,
+                cycles: project.cycles.map((cycle) =>
+                  cycle.id === result.evaluationCycleId
+                    ? {
+                        ...cycle,
+                        assignmentSummary: result.assignmentSummary
+                      }
+                    : cycle
+                )
+              }))
+            }
+          : current
+      );
+      setFeedbackMessage(tr.administration.projects.feedback.assignmentsGenerated);
+    } catch (error) {
+      setFeedbackMessage(toProjectCycleFeedbackMessage(error));
+    } finally {
+      setGeneratingAssignmentCycleId(null);
     }
   }
 
@@ -328,7 +362,11 @@ export function ProjectCycleManagementPanel({
           onAddProjectMember={(projectId, draft) => {
             void handleAddProjectMember(projectId, draft);
           }}
+          onGenerateProjectAssignments={(evaluationCycleId) => {
+            void handleGenerateProjectAssignments(evaluationCycleId);
+          }}
           onMemberFormChange={setMemberFormStates}
+          generatingAssignmentCycleId={generatingAssignmentCycleId}
           submittingMemberProjectId={submittingMemberProjectId}
         />
       </section>
@@ -418,18 +456,22 @@ function UserSelectField({
 }
 
 function ProjectList({
+  generatingAssignmentCycleId,
   loadState,
   memberFormStates,
   onAddProjectMember,
+  onGenerateProjectAssignments,
   onMemberFormChange,
   submittingMemberProjectId
 }: {
+  readonly generatingAssignmentCycleId: string | null;
   readonly loadState: LoadState;
   readonly memberFormStates: Readonly<Record<string, MemberFormState>>;
   readonly onAddProjectMember: (
     projectId: string,
     draft: ProjectMemberDraft
   ) => void;
+  readonly onGenerateProjectAssignments: (evaluationCycleId: string) => void;
   readonly onMemberFormChange: (
     updater: (
       current: Record<string, MemberFormState>
@@ -489,6 +531,13 @@ function ProjectList({
               value={project.cycles[0]?.closesAt ?? null}
             />
           </dl>
+          <ProjectAssignmentPlanning
+            cycle={project.cycles[0] ?? null}
+            isGenerating={
+              project.cycles[0]?.id === generatingAssignmentCycleId
+            }
+            onGenerate={onGenerateProjectAssignments}
+          />
           <ProjectMembers
             members={project.members}
             organizationMembers={
@@ -629,6 +678,88 @@ function ProjectMembers({
         </button>
       </form>
     </section>
+  );
+}
+
+function ProjectAssignmentPlanning({
+  cycle,
+  isGenerating,
+  onGenerate
+}: {
+  readonly cycle: ManagedProject["cycles"][number] | null;
+  readonly isGenerating: boolean;
+  readonly onGenerate: (evaluationCycleId: string) => void;
+}) {
+  if (!cycle) {
+    return (
+      <section className="mt-5 rounded-md border border-slate-200 bg-white p-4">
+        <h4 className="text-sm font-semibold text-slate-800">
+          {tr.administration.projects.assignments.title}
+        </h4>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          {tr.administration.projects.assignments.noCycle}
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mt-5 rounded-md border border-slate-200 bg-white p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h4 className="text-sm font-semibold text-slate-800">
+            {tr.administration.projects.assignments.title}
+          </h4>
+          <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+            <AssignmentMetric
+              label={tr.administration.projects.assignments.total}
+              value={cycle.assignmentSummary.total}
+            />
+            <AssignmentMetric
+              label={tr.administration.projects.assignments.pending}
+              value={cycle.assignmentSummary.pending}
+            />
+            <AssignmentMetric
+              label={tr.administration.projects.assignments.completed}
+              value={cycle.assignmentSummary.completed}
+            />
+            <AssignmentMetric
+              label={tr.administration.projects.assignments.cancelled}
+              value={cycle.assignmentSummary.cancelled}
+            />
+          </dl>
+        </div>
+        <button
+          className="w-fit rounded-md bg-pine px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-400"
+          disabled={isGenerating}
+          onClick={() => {
+            onGenerate(cycle.id);
+          }}
+          type="button"
+        >
+          {isGenerating
+            ? tr.administration.projects.assignments.generating
+            : tr.administration.projects.assignments.generate}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function AssignmentMetric({
+  label,
+  value
+}: {
+  readonly label: string;
+  readonly value: number;
+}) {
+  return (
+    <div>
+      <dt className="text-xs font-semibold uppercase tracking-normal text-slate-500">
+        {label}
+      </dt>
+      <dd className="mt-1 font-semibold text-slate-800">{value}</dd>
+    </div>
   );
 }
 

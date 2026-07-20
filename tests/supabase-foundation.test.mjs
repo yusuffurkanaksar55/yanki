@@ -24,6 +24,10 @@ const projectEvaluationCycleMigrationPath = join(
   migrationsDir,
   "20260719184052_project_evaluation_cycle_foundation.sql"
 );
+const evaluationAssignmentMigrationPath = join(
+  migrationsDir,
+  "20260720223000_evaluation_assignment_foundation.sql"
+);
 
 function readMigration(path) {
   return readFileSync(path, "utf8");
@@ -202,5 +206,25 @@ describe("Supabase security foundation", () => {
     expect(migration).not.toMatch(/\bcomment_text\b/i);
     expect(migration).not.toMatch(/\bsubmission\b/i);
     expect(migration).not.toMatch(/\bplaintext\b/i);
+  });
+
+  it("creates default-deny evaluation assignments without response content", () => {
+    const migration = readMigration(evaluationAssignmentMigrationPath);
+
+    expect(migration).toMatch(/create table public\.evaluation_assignments/);
+    expect(migration).toMatch(
+      /alter table public\.evaluation_assignments enable row level security;/
+    );
+    expect(migration).not.toMatch(
+      /create policy[^;]+on public\.evaluation_assignments/i
+    );
+    expect(migration).toMatch(/evaluator_user_id uuid not null/);
+    expect(migration).toMatch(/subject_user_id uuid not null/);
+    expect(migration).toMatch(/evaluator_user_id <> subject_user_id/);
+    expect(migration).toMatch(/validate_evaluation_assignment_scope/);
+    expect(migration).not.toMatch(/\bscore\b/i);
+    expect(migration).not.toMatch(/\bcomment_text\b/i);
+    expect(migration).not.toMatch(/\bplaintext\b/i);
+    expect(migration).not.toMatch(/\bencrypted_payload\b/i);
   });
 });

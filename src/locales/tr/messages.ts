@@ -233,9 +233,20 @@ export const tr = {
           OBSERVER: "Gözlemci"
         }
       },
+      assignments: {
+        title: "Değerlendirme atamaları",
+        noCycle: "Bu proje için değerlendirme süreci bulunamadı.",
+        total: "Toplam",
+        pending: "Bekleyen",
+        completed: "Tamamlanan",
+        cancelled: "İptal",
+        generate: "Atamaları oluştur",
+        generating: "Oluşturuluyor"
+      },
       feedback: {
         created: "Proje ve değerlendirme süreci oluşturuldu.",
         memberAdded: "Proje üyesi eklendi.",
+        assignmentsGenerated: "Değerlendirme atamaları oluşturuldu.",
         PROJECT_CYCLE_SESSION_REQUIRED:
           "Oturum doğrulanamadı. Lütfen tekrar giriş yap.",
         PROJECT_CYCLE_LIST_FAILED: "Projeler okunamadı.",
@@ -243,6 +254,8 @@ export const tr = {
           "Proje ve değerlendirme süreci oluşturulamadı.",
         PROJECT_MEMBER_LIST_FAILED: "Organizasyon üyeleri okunamadı.",
         PROJECT_MEMBER_ADD_FAILED: "Proje üyesi eklenemedi.",
+        PROJECT_ASSIGNMENT_GENERATE_FAILED:
+          "Değerlendirme atamaları oluşturulamadı.",
         genericError: "Beklenmeyen bir proje yönetimi hatası oluştu."
       }
     },

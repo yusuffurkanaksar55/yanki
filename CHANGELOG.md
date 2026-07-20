@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 - Added project member selection and membership-kind controls to the Turkish administration panel.
 - Added project-member metadata to the managed project service model without exposing direct browser table access.
 - Added ADR-0011 for project membership management through trusted Edge Function actions.
+- Added default-deny `evaluation_assignments` foundation for project-backed assignment planning.
+- Extended `admin-project-cycles` with admin-only project assignment generation from active project memberships.
+- Added assignment count display and Turkish generation control to the administration panel.
+- Added ADR-0012 for default-deny evaluation assignment planning.
 
 ## 2026-07-16
 
