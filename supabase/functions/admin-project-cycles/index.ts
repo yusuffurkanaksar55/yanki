@@ -31,6 +31,13 @@ type GenerateProjectAssignmentsRequest = {
   readonly evaluationCycleId: string;
 };
 
+type UpdateProjectDatesRequest = {
+  readonly projectId: string;
+  readonly evaluationCycleId: string;
+  readonly projectCompletedOn: string | null;
+  readonly closesAt: string;
+};
+
 type EvaluationAssignmentKind =
   | "PROJECT_PEER"
   | "PROJECT_MANAGER_REVIEW"
@@ -227,6 +234,18 @@ Deno.serve(async (request) => {
       );
 
       return jsonResponse({ result }, 201);
+    }
+
+    if (body.action === "update_project_dates") {
+      const input = parseUpdateProjectDatesRequest(body.payload);
+      const project = await updateProjectDates(
+        serviceClient,
+        roles,
+        userData.user.id,
+        input
+      );
+
+      return jsonResponse({ project });
     }
 
     return jsonResponse({ error: "UNKNOWN_ACTION" }, 400);
@@ -580,13 +599,54 @@ async function generateProjectAssignments(
   };
 }
 
+async function updateProjectDates(
+  serviceClient: ReturnType<typeof createClient>,
+  roles: readonly AppRole[],
+  actorUserId: string,
+  input: UpdateProjectDatesRequest
+): Promise<ManagedProject> {
+  const project = await readProjectRecord(serviceClient, input.projectId);
+
+  if (!canManageProjectDates(roles, actorUserId, project)) {
+    throw new AuthorizationError("ADMINISTRATION_SCOPE_DENIED");
+  }
+
+  const { error } = await serviceClient.rpc("admin_update_project_dates", {
+    actor_user_id: actorUserId,
+    managed_evaluation_cycle_id: input.evaluationCycleId,
+    managed_project_id: input.projectId,
+    new_evaluation_closes_at: input.closesAt,
+    new_project_completed_on: input.projectCompletedOn
+  });
+
+  if (error) {
+    const databaseError = readDatabaseError(error);
+
+    if (databaseError === "ADMINISTRATION_SCOPE_DENIED") {
+      throw new AuthorizationError(databaseError);
+    }
+
+    if (databaseError) {
+      throw new RequestValidationError(databaseError);
+    }
+
+    throw error;
+  }
+
+  return await readManagedProject(serviceClient, input.projectId);
+}
+
 async function readProjectRecord(
   serviceClient: ReturnType<typeof createClient>,
   projectId: string
-): Promise<{ id: string; organization_id: string }> {
+): Promise<{
+  id: string;
+  organization_id: string;
+  project_manager_user_id: string | null;
+}> {
   const { data, error } = await serviceClient
     .from("projects")
-    .select("id,organization_id")
+    .select("id,organization_id,project_manager_user_id")
     .eq("id", projectId)
     .single();
 
@@ -1124,6 +1184,26 @@ function canManageOrganization(
   );
 }
 
+function canManageProjectDates(
+  roles: readonly AppRole[],
+  actorUserId: string,
+  project: {
+    readonly id: string;
+    readonly organization_id: string;
+    readonly project_manager_user_id: string | null;
+  }
+): boolean {
+  return canManageOrganization(roles, project.organization_id)
+    || (
+      project.project_manager_user_id === actorUserId
+      && roles.some((role) =>
+        role.role_code === "PROJECT_MANAGER"
+        && role.scope_type === "PROJECT"
+        && role.scope_id === project.id
+      )
+    );
+}
+
 function parseCreateProjectCycleRequest(
   value: unknown
 ): CreateProjectCycleRequest {
@@ -1202,6 +1282,24 @@ function parseGenerateProjectAssignmentsRequest(
       value.evaluationCycleId,
       "EVALUATION_CYCLE_ID_REQUIRED"
     )
+  };
+}
+
+function parseUpdateProjectDatesRequest(
+  value: unknown
+): UpdateProjectDatesRequest {
+  if (!isRecord(value)) {
+    throw new RequestValidationError("REQUEST_PAYLOAD_INVALID");
+  }
+
+  return {
+    closesAt: readRequiredDateTime(value.closesAt, "CLOSES_AT_REQUIRED"),
+    evaluationCycleId: readRequiredUuid(
+      value.evaluationCycleId,
+      "EVALUATION_CYCLE_ID_REQUIRED"
+    ),
+    projectCompletedOn: readOptionalDate(value.projectCompletedOn),
+    projectId: readRequiredUuid(value.projectId, "PROJECT_ID_REQUIRED")
   };
 }
 
@@ -1374,6 +1472,25 @@ function readArray(value: unknown): unknown[] {
 
 function readNumber(value: unknown): number {
   return typeof value === "number" ? value : 0;
+}
+
+function readDatabaseError(error: unknown): string | null {
+  if (!isRecord(error) || typeof error.message !== "string") {
+    return null;
+  }
+
+  const knownErrors = [
+    "ACTIVE_PROFILE_REQUIRED",
+    "ADMINISTRATION_SCOPE_DENIED",
+    "CLOSES_AT_MUST_BE_AFTER_OPENS_AT",
+    "CLOSES_AT_REQUIRED",
+    "EVALUATION_CYCLE_NOT_FOUND",
+    "PROJECT_COMPLETED_ON_MUST_NOT_PRECEDE_START",
+    "PROJECT_DATES_NOT_EDITABLE",
+    "PROJECT_NOT_FOUND"
+  ];
+
+  return knownErrors.find((code) => error.message.includes(code)) ?? null;
 }
 
 function uniqueStrings(values: readonly unknown[]): string[] {

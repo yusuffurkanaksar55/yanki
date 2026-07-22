@@ -49,7 +49,7 @@ Use `db push --dry-run` before remote changes. Never run destructive linked rese
 
 The applied migrations create foundational authorization tables, safe audit metadata tables, profile and invitation onboarding tables, organization hierarchy tables, project and time-bound evaluation-cycle configuration tables, default-deny evaluation assignment planning tables, and a narrow authenticated own-workspace context RPC. They intentionally do not create evaluation submission content tables yet.
 
-The `admin-project-cycles` Edge Function is the first trusted administrative function. It uses `SUPABASE_SERVICE_ROLE_KEY` only in the Edge Function runtime and must not expose that value to frontend code. It supports project/cycle listing and creation, organization member lookup, project member assignment, and project-backed evaluation assignment generation.
+The `admin-project-cycles` Edge Function is the first trusted administrative function. It uses `SUPABASE_SERVICE_ROLE_KEY` only in the Edge Function runtime and must not expose that value to frontend code. It supports project/cycle listing and creation, organization member lookup, project member assignment, project-backed evaluation assignment generation, and atomic delegated project-date updates through service-role-only `admin_update_project_dates()`.
 
 The `user-onboarding` Edge Function uses the same trusted boundary for system-admin invitation options, invitation creation, revocation, and authenticated acceptance. Supabase Auth delivers the user-facing invite link. The application does not return a custom raw invitation secret to the administration browser. Acceptance calls service-role-only `accept_user_invitation()` for one atomic identity-domain update.
 
@@ -79,7 +79,7 @@ Current baseline rules:
 - Project and evaluation-cycle configuration tables have no client-facing policies.
 - Evaluation assignment planning tables have no client-facing policies and store identity-domain eligibility only.
 - `get_my_workspace_context()` is executable only by authenticated users and returns only the caller's own non-sensitive profile, role, membership, and manager context.
-- `admin-project-cycles` validates the caller's JWT and active profile before using scoped role records for project/cycle/member/assignment administration.
+- `admin-project-cycles` validates the caller's JWT and active profile before using scoped role records for project/cycle/member/assignment/date administration. Delegated date updates require both the exact project-manager reference and an active matching project-scoped role.
 - `user-onboarding` validates the caller's JWT, recomputes system-admin scope for management actions, and binds acceptance to the invited Auth user id and verified email.
 - `organization-administration` recomputes system-admin scope, returns only authorized organization identity metadata, and delegates all mutations to service-role-only atomic RPCs.
 - `PLATFORM` is the global null-id scope; organization, team, project, and evaluation-cycle roles must use explicit `scope_id` values.
@@ -109,3 +109,13 @@ npm run smoke:hierarchy
 ```
 
 The script lists authorized hierarchy data, creates and archives a temporary unit, performs an idempotent hierarchy update, assigns and ends a temporary reviewer role, verifies manager-cycle rejection, and verifies employee and unauthenticated denial. It leaves safe audit records and an archived synthetic unit for traceability.
+
+## Project Date Administration Smoke Test
+
+The reusable date smoke script reads public Supabase connection values and synthetic administrator, project-manager, and employee credentials from process environment variables. It does not contain credentials and must not be run against real employee accounts.
+
+```bash
+npm run smoke:project-dates
+```
+
+The script selects an editable project returned to the synthetic project manager, temporarily advances its evaluation close timestamp, verifies employee and unauthenticated denial, and uses the synthetic system administrator to restore and verify the original timestamp.

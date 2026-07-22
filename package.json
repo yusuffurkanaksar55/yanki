@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "fixture:demo": "node scripts/create-demo-fixture.mjs",
     "smoke:hierarchy": "node scripts/smoke-hierarchy-administration.mjs",
+    "smoke:project-dates": "node scripts/smoke-project-date-administration.mjs",
     "supabase:migrations": "npx supabase migration list",
     "supabase:lint:linked": "npx supabase db lint --linked",
     "supabase:push:dry-run": "npx supabase db push --dry-run",

@@ -20,7 +20,7 @@ Use the application scaffold only for frontend and trusted-administration founda
 
 ### Planned resolution
 
-Authenticated project/cycle/member/assignment management, invitation administration listing, and existing-user role/hierarchy administration are smoke-tested. Next complete invitation email delivery/acceptance verification when an approved mailbox is available, then delegated date management, employee assignment access, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
+Authenticated project/cycle/member/assignment management, delegated date management, invitation administration listing, and existing-user role/hierarchy administration are smoke-tested. Next complete invitation email delivery/acceptance verification when an approved mailbox is available, then employee assignment access, scoped authorization, explicit evaluation RLS policies, versioned templates, anonymous credentials, and encrypted submission flows in separate reviewable phases.
 
 ### Related tests
 
@@ -30,27 +30,27 @@ Authenticated project/cycle/member/assignment management, invitation administrat
 
 ### Severity
 
-High
+Resolved
 
 ### Description
 
-The product requires multiple administrators, CEOs/C-Level users, project managers, and team leaders, plus management flows for project completion dates and evaluation close dates. The application now has a protected administration shell, default-deny project/evaluation-cycle/assignment tables, an admin project/cycle/member/assignment Edge Function foundation, and authenticated smoke verification, but not all trusted server-side management actions exist yet.
+The product requires multiple administrators, CEOs/C-Level users, project managers, and team leaders, plus management flows for project completion dates and evaluation close dates. The application now has a protected administration shell, default-deny project/evaluation-cycle/assignment tables, trusted project administration, and atomic delegated date updates.
 
 ### Impact
 
-System administrators can now persist existing-user role changes, organization-unit edits, primary membership changes, and direct-manager changes. Delegated project managers still cannot update project completion or evaluation close dates, and employee-facing assignment workflows do not exist yet.
+Resolved for the delegated date requirement. System administrators and exact assigned project managers can update project completion and evaluation close dates. Employee-facing assignment workflows remain tracked by ISSUE-001.
 
 ### Workaround
 
-Use the current synthetic fixture for login, workspace-context, invitation, role/hierarchy, and project/cycle/member/assignment verification. Do not manage evaluation response data manually from the browser.
+None for delegated date management. Continue to avoid manual browser access to evaluation response data because the sensitive submission runtime is not implemented.
 
 ### Planned resolution
 
-Complete invitation delivery/acceptance verification when an approved mailbox is available, then build delegated project-manager date management and employee assignment access through separate trusted actions.
+Completed on 2026-07-22 through service-role-only `admin_update_project_dates()`, `admin-project-cycles`, a role-aware Turkish UI, and authenticated live verification.
 
 ### Related tests
 
-`tests/organization-administration-function.test.mjs`, `src/features/administration/RoleHierarchyManagementPanel.test.tsx`
+`tests/admin-project-cycle-function.test.mjs`, `src/features/administration/ProjectCycleManagementPanel.test.tsx`, `npm run smoke:project-dates`
 
 ## ISSUE-006 - Invitation email delivery and acceptance need an approved mailbox smoke test
 

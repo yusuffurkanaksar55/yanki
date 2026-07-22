@@ -1,5 +1,69 @@
 # Test Report
 
+## 2026-07-22 - Delegated Project Date Administration
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- Supabase CLI: 2.109.1
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+- Deployed Edge Function: `admin-project-cycles`, version `6`, `ACTIVE`, `verify_jwt=false`
+
+### Commands executed
+
+- `npm run check`
+- `npm test -- --run src/features/administration/ProjectCycleManagementPanel.test.tsx tests/admin-project-cycle-function.test.mjs`
+- `npm test -- --run src/features/administration/AdministrationPage.test.tsx`
+- `npx supabase db push --linked --include-all --dry-run`
+- `npx supabase db push --linked --include-all --yes`
+- `npx supabase db lint --linked`
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
+- `npx supabase functions list`
+- `npm run smoke:project-dates`
+- Authenticated browser verification at the default desktop viewport and a 390-pixel mobile viewport.
+
+### Passed
+
+- Final application checks passed lint, typecheck, 15 Vitest files with 68 tests, and production build.
+- Initial dry-run showed only `20260722234500_delegated_project_date_administration.sql`; final dry-run reports the remote database is up to date.
+- Linked database lint reports no schema errors.
+- `admin-project-cycles` deployed as `ACTIVE`, version `6`, with internal bearer-token validation.
+- The project manager updated an assigned project's evaluation close date and the system administrator restored the original value.
+- The employee date update returned HTTP 403 with `ADMINISTRATION_SCOPE_DENIED`.
+- The unauthenticated project request returned HTTP 401 with `AUTHENTICATION_REQUIRED`.
+- Component tests verify system-administrator controls and project-manager date-only controls.
+- Boundary tests verify service-role-only RPC execution, exact assigned-manager plus matching project-role checks, editable cycle rules, and safe auditing.
+- Desktop and 390-pixel mobile browser verification found no horizontal overflow, no browser warnings/errors, and a usable single-column mobile date form.
+
+### Failed
+
+- Initial component/page tests used page-global selectors for repeated date labels and project headings; selectors were scoped to their semantic form/region.
+- The first full check found smoke-script lint errors for an unused initial assignment and a throwing `finally`; restoration and error propagation were separated.
+- The first live assertion compared equivalent `Z` and `+00:00` timestamp strings literally; it was corrected to compare epoch instants. The script restored the original date before failing.
+- The first sandboxed linked lint could not write Supabase telemetry under the user profile; the same command passed with the required narrow filesystem permission.
+- Migration/function deployment repeated the known warning that Docker Desktop was not running in the current shell; remote deployment still completed.
+
+### Skipped
+
+- Real invitation delivery and acceptance remain deferred because no approved mailbox/provider decision is available.
+- Local Supabase reset remains skipped because the Docker Desktop engine is not running in this shell.
+- Closed/archived live cycle mutation was not attempted against retained synthetic data; database and source-level tests cover that rejection.
+
+### Security checks
+
+- Verified delegated authorization requires both exact project-manager ownership and an active matching project scope.
+- Verified organization/platform system administrators can restore configuration.
+- Verified employee and unauthenticated denial.
+- Verified project and evaluation-cycle dates update atomically through a service-role-only RPC.
+- Verified browser code contains no service-role key and has no direct project-table mutation.
+- Verified no evaluation content, evaluator-response linkage, anonymous credential, or encryption material was introduced.
+
+### Remaining risks
+
+- Employee assignment access and scoped evaluation authorization are not implemented.
+- Versioned templates, sensitive evaluation submission, anonymous credentials, encryption, thresholded reporting, and self-access prevention runtimes remain unimplemented.
+
 ## 2026-07-22 - Existing-User Role And Hierarchy Administration
 
 ### Environment

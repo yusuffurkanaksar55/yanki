@@ -83,6 +83,13 @@ export type ProjectMemberDraft = {
   readonly membershipKind: ProjectMembershipKind;
 };
 
+export type ProjectDateUpdateDraft = {
+  readonly projectId: string;
+  readonly evaluationCycleId: string;
+  readonly projectCompletedOn: string | null;
+  readonly closesAt: string;
+};
+
 export type ProjectCycleService = {
   readonly addProjectMember: (
     draft: ProjectMemberDraft
@@ -97,6 +104,9 @@ export type ProjectCycleService = {
   readonly createProjectCycle: (
     draft: ProjectCycleDraft
   ) => Promise<ManagedProject>;
+  readonly updateProjectDates: (
+    draft: ProjectDateUpdateDraft
+  ) => Promise<ManagedProject>;
 };
 
 export type ProjectCycleServiceErrorCode =
@@ -105,7 +115,8 @@ export type ProjectCycleServiceErrorCode =
   | "PROJECT_CYCLE_CREATE_FAILED"
   | "PROJECT_MEMBER_LIST_FAILED"
   | "PROJECT_MEMBER_ADD_FAILED"
-  | "PROJECT_ASSIGNMENT_GENERATE_FAILED";
+  | "PROJECT_ASSIGNMENT_GENERATE_FAILED"
+  | "PROJECT_DATE_UPDATE_FAILED";
 
 export class ProjectCycleServiceError extends Error {
   constructor(
@@ -130,7 +141,9 @@ export const browserProjectCycleService: ProjectCycleService = {
     ),
   listOrganizationMembers: (organizationId) =>
     getDefaultProjectCycleService().listOrganizationMembers(organizationId),
-  listProjectCycles: () => getDefaultProjectCycleService().listProjectCycles()
+  listProjectCycles: () => getDefaultProjectCycleService().listProjectCycles(),
+  updateProjectDates: (draft) =>
+    getDefaultProjectCycleService().updateProjectDates(draft)
 };
 
 export function createSupabaseProjectCycleService(
@@ -175,6 +188,15 @@ export function createSupabaseProjectCycleService(
     async createProjectCycle(draft) {
       const data = await invokeAdminProjectCycles(client, {
         action: "create_project_cycle",
+        payload: draft
+      });
+
+      return toManagedProject(data.project);
+    },
+
+    async updateProjectDates(draft) {
+      const data = await invokeAdminProjectCycles(client, {
+        action: "update_project_dates",
         payload: draft
       });
 
@@ -275,6 +297,10 @@ function toServiceErrorCode(action: string): ProjectCycleServiceErrorCode {
 
   if (action === "generate_project_assignments") {
     return "PROJECT_ASSIGNMENT_GENERATE_FAILED";
+  }
+
+  if (action === "update_project_dates") {
+    return "PROJECT_DATE_UPDATE_FAILED";
   }
 
   if (action === "list_organization_members") {

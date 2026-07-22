@@ -26,37 +26,53 @@ describe("ProjectCycleManagementPanel", () => {
     expect(
       screen.getByLabelText(tr.administration.projects.form.organizationId)
     ).toHaveValue("organization-id");
+    const creationForm = screen
+      .getByText(tr.administration.projects.form.title)
+      .closest("form");
+
+    expect(creationForm).not.toBeNull();
+    const creationFormRegion = within(creationForm as HTMLFormElement);
 
     await user.type(
-      screen.getByLabelText(tr.administration.projects.form.projectName),
+      creationFormRegion.getByLabelText(
+        tr.administration.projects.form.projectName
+      ),
       "New Project"
     );
     await user.type(
-      screen.getByLabelText(tr.administration.projects.form.projectCode),
+      creationFormRegion.getByLabelText(
+        tr.administration.projects.form.projectCode
+      ),
       "NEW"
     );
     await user.type(
-      screen.getByLabelText(tr.administration.projects.form.projectCompletedOn),
+      creationFormRegion.getByLabelText(
+        tr.administration.projects.form.projectCompletedOn
+      ),
       "2026-07-19"
     );
     await user.type(
-      screen.getByLabelText(tr.administration.projects.form.evaluationName),
+      creationFormRegion.getByLabelText(
+        tr.administration.projects.form.evaluationName
+      ),
       "New Project Evaluation"
     );
     await user.selectOptions(
-      screen.getByLabelText(tr.administration.projects.form.projectManagerUserId),
+      creationFormRegion.getByLabelText(
+        tr.administration.projects.form.projectManagerUserId
+      ),
       "manager-user-id"
     );
     await user.type(
-      screen.getByLabelText(tr.administration.projects.form.opensAt),
+      creationFormRegion.getByLabelText(tr.administration.projects.form.opensAt),
       "2026-07-19T09:00"
     );
     await user.type(
-      screen.getByLabelText(tr.administration.projects.form.closesAt),
+      creationFormRegion.getByLabelText(tr.administration.projects.form.closesAt),
       "2026-07-30T18:00"
     );
     await user.click(
-      screen.getByRole("button", {
+      creationFormRegion.getByRole("button", {
         name: tr.administration.projects.form.submit
       })
     );
@@ -153,6 +169,64 @@ describe("ProjectCycleManagementPanel", () => {
     ).toBeInTheDocument();
     expect(screen.getAllByText("6")).toHaveLength(2);
   });
+
+  it("lets a scoped project manager update only project dates", async () => {
+    const user = userEvent.setup();
+    const service = createProjectCycleServiceStub();
+
+    render(
+      <ProjectCycleManagementPanel
+        service={service}
+        workspaceContext={createProjectManagerWorkspaceContext()}
+      />
+    );
+
+    await screen.findByText("Existing Project");
+    expect(
+      screen.queryByText(tr.administration.projects.form.title)
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", {
+        name: tr.administration.projects.assignments.generate
+      })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", {
+        name: tr.administration.projects.members.add
+      })
+    ).not.toBeInTheDocument();
+
+    await user.clear(
+      screen.getByLabelText(tr.administration.projects.dates.projectCompletedOn)
+    );
+    await user.type(
+      screen.getByLabelText(tr.administration.projects.dates.projectCompletedOn),
+      "2026-07-22"
+    );
+    await user.clear(
+      screen.getByLabelText(tr.administration.projects.dates.closesAt)
+    );
+    await user.type(
+      screen.getByLabelText(tr.administration.projects.dates.closesAt),
+      "2026-08-05T18:00"
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: tr.administration.projects.dates.save
+      })
+    );
+
+    expect(service.updateProjectDates).toHaveBeenCalledWith(
+      expect.objectContaining({
+        evaluationCycleId: "existing-project-id-cycle",
+        projectCompletedOn: "2026-07-22",
+        projectId: "existing-project-id"
+      })
+    );
+    expect(
+      await screen.findByText(tr.administration.projects.feedback.datesUpdated)
+    ).toBeInTheDocument();
+  });
 });
 
 function createProjectCycleServiceStub(): ProjectCycleService {
@@ -204,7 +278,19 @@ function createProjectCycleServiceStub(): ProjectCycleService {
     ]),
     listProjectCycles: vi.fn(async () => [
       createManagedProject("existing-project-id", "Existing Project")
-    ])
+    ]),
+    updateProjectDates: vi.fn(async (draft) => ({
+      ...createManagedProject("existing-project-id", "Existing Project"),
+      completesOn: draft.projectCompletedOn,
+      cycles: [
+        {
+          ...createManagedProject("existing-project-id", "Existing Project")
+            .cycles[0],
+          closesAt: draft.closesAt,
+          projectCompletedOn: draft.projectCompletedOn
+        }
+      ]
+    }))
   };
 }
 
@@ -264,5 +350,19 @@ function createWorkspaceContext(): WorkspaceContext {
       }
     ],
     managers: []
+  };
+}
+
+function createProjectManagerWorkspaceContext(): WorkspaceContext {
+  return {
+    managers: [],
+    memberships: [],
+    roles: [
+      {
+        roleCode: "PROJECT_MANAGER",
+        scopeId: "existing-project-id",
+        scopeType: "PROJECT"
+      }
+    ]
   };
 }

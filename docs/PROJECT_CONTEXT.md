@@ -18,6 +18,7 @@ The repository currently contains the documentation foundation and a React, Type
 - Administration UI: protected hash-route administration shell implemented for admin-like roles, with system-admin invitation, role, unit, membership, direct-manager, project/cycle, project-member, and assignment management.
 - Project and evaluation-cycle configuration: default-deny project, project membership, and time-bound evaluation-cycle foundation implemented.
 - Evaluation assignment planning: default-deny assignment table and admin-only project assignment generation foundation implemented from active project memberships.
+- Delegated project date administration: system administrators and assigned project managers can atomically update project completion and evaluation close dates through a trusted boundary.
 - Authenticated integration verification: synthetic admin, project-manager, and employee accounts have been exercised against the deployed Auth, project, onboarding, and organization-administration boundaries.
 - Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context RPC, project, evaluation-cycle, and evaluation-assignment migrations applied.
 - Edge Functions: `admin-project-cycles` handles project/cycle/member/assignment administration; `user-onboarding` handles scoped invitation options, creation, revocation, and authenticated acceptance; `organization-administration` handles existing-user roles and hierarchy.
@@ -37,7 +38,7 @@ The repository currently contains the documentation foundation and a React, Type
 - Project completion can trigger lessons learned collection.
 - Multiple users may hold admin, CEO/C-Level, project manager, team leader, and reviewer roles.
 - Evaluation cycles are time-bound and do not require a fixed participant count to be opened.
-- Administrators, or delegated project managers, can configure project completion and evaluation close dates in future management flows.
+- Administrators, or delegated project managers, can configure project completion and evaluation close dates for authorized projects.
 
 ## Security Constraints
 
@@ -51,7 +52,7 @@ The repository currently contains the documentation foundation and a React, Type
 
 ## Current Database Structure
 
-The applied Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, `user_invitations`, `organizations`, `organization_units`, `organization_unit_memberships`, `manager_assignments`, `projects`, `project_memberships`, `evaluation_cycles`, `evaluation_assignments`, `get_my_workspace_context()`, service-role-only `accept_user_invitation()`, and service-role-only atomic organization-administration functions. RLS is enabled on all public tables. The only client-facing table policy allows authenticated users to read their own `user_profiles` row. The workspace context RPC returns only the caller's own non-sensitive role, unit, and manager context. Invitation, organization, project, evaluation-cycle, and evaluation-assignment administration records remain default-deny to frontend clients. The conceptual complete data model is documented in `docs/DATA_MODEL.md`.
+The applied Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, `user_invitations`, `organizations`, `organization_units`, `organization_unit_memberships`, `manager_assignments`, `projects`, `project_memberships`, `evaluation_cycles`, `evaluation_assignments`, `get_my_workspace_context()`, service-role-only `accept_user_invitation()`, service-role-only atomic organization-administration functions, and service-role-only `admin_update_project_dates()`. RLS is enabled on all public tables. The only client-facing table policy allows authenticated users to read their own `user_profiles` row. The workspace context RPC returns only the caller's own non-sensitive role, unit, and manager context. Invitation, organization, project, evaluation-cycle, and evaluation-assignment administration records remain default-deny to frontend clients. The conceptual complete data model is documented in `docs/DATA_MODEL.md`.
 
 ## Current Authentication Model
 
@@ -66,7 +67,7 @@ Runtime evaluation authorization is not implemented. Current trusted administrat
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
 - Runtime authorization, encryption, anonymous credential, and reporting controls are not implemented.
 - Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
-- No Microsoft Entra ID, delegated project-manager date update flow, employee assignment inbox, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
+- No Microsoft Entra ID, employee assignment inbox, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
 - Synthetic test users were created by running `npm run fixture:demo`. Authenticated administration, project-manager visibility, employee denial, project membership, and assignment-generation smoke checks have been verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
@@ -86,11 +87,12 @@ Runtime evaluation authorization is not implemented. Current trusted administrat
 - 2026-07-20: Completed authenticated live smoke verification for admin project creation, membership management, assignment generation, project-manager visibility, and employee administration denial.
 - 2026-07-20: Added Supabase Auth-backed invitation creation/revocation, service-role-only atomic acceptance, Turkish admin invitation management, and invited-profile acceptance UI.
 - 2026-07-22: Added and deployed trusted existing-user role, organization-unit, primary-membership, and direct-manager administration with Turkish system-admin UI and live synthetic verification.
+- 2026-07-22: Added and deployed atomic project completion/evaluation close date updates for scoped system administrators and assigned project managers, with Turkish UI and live synthetic verification.
 
 ## Current Development Priorities
 
 1. Configure or verify Supabase Auth email delivery and run invitation delivery/acceptance smoke testing with an approved test mailbox.
-2. Implement delegated project-manager project-completion and evaluation-close-date update flows.
-3. Implement employee-facing assignment access only after scoped authorization policies are designed.
+2. Implement employee-facing assignment access with scoped server-side authorization and narrowly reviewed RLS/RPC boundaries.
+3. Implement versioned evaluation templates and bind assignments to immutable template versions.
 4. Implement anonymous credentials and encrypted submissions before reporting.
 5. Implement scoped reporting with threshold and self-access prevention, then add Playwright end-to-end coverage.

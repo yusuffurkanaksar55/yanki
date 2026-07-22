@@ -81,6 +81,8 @@ Project and evaluation-cycle configuration tables are identity/configuration-dom
 
 `admin-project-cycles` is the first trusted administrative Edge Function. It validates the Supabase access token, requires an active profile, recomputes role scope from database records, and uses service-role credentials only inside the Edge Function runtime. It now also lists active organization members for authorized administrators and writes project membership records after validating the selected user's active organization membership. The browser still has no direct table access to `project_memberships`, `organization_unit_memberships`, or administrative `user_profiles` lists.
 
+Delegated project-date updates use the same Edge Function and service-role-only `admin_update_project_dates()`. A project manager must be both the project's current manager reference and the holder of an active matching project-scoped role. The database repeats authorization, locks both configuration records, updates them atomically, and writes only safe date/configuration audit metadata. This flow does not read or write evaluation content.
+
 `evaluation_assignments` is an identity-domain eligibility table, not a submission-content table. It may store evaluator and subject identifiers so the system can later issue eligibility proofs, but it must never store scores, comments, lessons learned text, encrypted payloads, anonymous credential secrets, or evaluator-to-response mappings. It remains default-deny to frontend clients. The current assignment generation action is admin-only, project-backed, prevents self assignments, and returns aggregate assignment counts rather than response content.
 
 ## Anonymity Threshold
@@ -102,7 +104,6 @@ Database readers may see ciphertext and non-sensitive metadata only. Database en
 ## Remaining Security Work
 
 - Complete live invitation email delivery and acceptance verification with an approved test mailbox.
-- Extend trusted project and evaluation-cycle management functions for delegated project-manager date update flows.
 - Implement employee-facing assignment access only after scoped RLS and server-side authorization rules are designed.
 - Add narrowly scoped Supabase RLS policies only after server-side authorization flows are designed.
 - Implement Edge Functions for anonymous credential issuance, redemption, encryption, and reporting.

@@ -11,6 +11,9 @@ All notable changes to this project are documented in this file.
 - Added the Turkish role and hierarchy management panel for organization-scoped system administrators.
 - Added reusable authenticated hierarchy smoke testing and focused component/security regression coverage.
 - Added ADR-0014 for the atomic organization administration boundary.
+- Added service-role-only atomic project completion and evaluation close date updates for system administrators and exact assigned project managers.
+- Added a role-aware Turkish project date form while hiding system-administrator-only project, membership, and assignment controls from project managers.
+- Added reusable authenticated project-date smoke testing and ADR-0015 for the delegated date administration boundary.
 
 ## 2026-07-20
 

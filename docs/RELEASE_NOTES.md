@@ -1,5 +1,13 @@
 # Release Notes
 
+## 2026-07-22 - Delegated Project Date Administration
+
+This is not a product release. System administrators and exact assigned project managers can now update project completion and evaluation close dates from the Turkish administration UI.
+
+The browser calls `admin-project-cycles`; service-role-only `admin_update_project_dates()` rechecks the active actor and exact scope, locks project/cycle configuration, validates editable status and date order, and updates both records atomically. Project managers do not receive project creation, membership, or assignment-generation controls. No evaluation response content is exposed or stored by this workflow.
+
+Live synthetic verification passed for project-manager update, system-administrator restoration, employee denial, and unauthenticated denial. Desktop and 390-pixel mobile browser checks found no horizontal overflow or console errors. Invitation email delivery remains deferred until an approved mailbox and provider decision are available.
+
 ## 2026-07-22 - Existing-User Role And Hierarchy Administration
 
 This is not a product release. System administrators now have a Turkish management panel for organization units, existing-user primary memberships, direct-manager relationships, and scoped role assignments.

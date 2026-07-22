@@ -17,6 +17,12 @@ const servicePath = join(
   "administration",
   "projectCycleService.ts"
 );
+const dateAdministrationMigrationPath = join(
+  root,
+  "supabase",
+  "migrations",
+  "20260722234500_delegated_project_date_administration.sql"
+);
 
 function readProjectFile(path) {
   return readFileSync(path, "utf8");
@@ -35,6 +41,28 @@ describe("admin project cycle Edge Function foundation", () => {
     expect(functionSource).toMatch(/list_organization_members/);
     expect(functionSource).toMatch(/add_project_member/);
     expect(functionSource).toMatch(/generate_project_assignments/);
+    expect(functionSource).toMatch(/update_project_dates/);
+  });
+
+  it("rechecks delegated project-date authorization inside an atomic RPC", () => {
+    const functionSource = readProjectFile(functionPath);
+    const migrationSource = readProjectFile(dateAdministrationMigrationPath);
+
+    expect(functionSource).toMatch(/\.rpc\("admin_update_project_dates"/);
+    expect(functionSource).toMatch(/canManageProjectDates/);
+    expect(migrationSource).toMatch(
+      /project_record\.project_manager_user_id = actor_user_id/
+    );
+    expect(migrationSource).toMatch(/role_assignment\.role_code = 'PROJECT_MANAGER'/);
+    expect(migrationSource).toMatch(/role_assignment\.scope_type = 'PROJECT'/);
+    expect(migrationSource).toMatch(/PROJECT_DATES_NOT_EDITABLE/);
+    expect(migrationSource).toMatch(/PROJECT_DATES_UPDATED/);
+    expect(migrationSource).toMatch(
+      /revoke all on function public\.admin_update_project_dates[\s\S]*from public, anon, authenticated/
+    );
+    expect(migrationSource).toMatch(
+      /grant execute on function public\.admin_update_project_dates[\s\S]*to service_role/
+    );
   });
 
   it("requires administration scope for project creation", () => {

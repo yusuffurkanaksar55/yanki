@@ -765,6 +765,16 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_update_project_dates: {
+        Args: {
+          actor_user_id: string
+          managed_evaluation_cycle_id: string
+          managed_project_id: string
+          new_evaluation_closes_at: string
+          new_project_completed_on: string
+        }
+        Returns: Json
+      }
       admin_upsert_organization_unit: {
         Args: {
           actor_user_id: string

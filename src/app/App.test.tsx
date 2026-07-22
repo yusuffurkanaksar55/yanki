@@ -186,7 +186,8 @@ function createProjectCycleServiceStub(): ProjectCycleService {
       skippedDuplicateCount: 0
     })),
     listOrganizationMembers: vi.fn(async () => []),
-    listProjectCycles: vi.fn(async () => [])
+    listProjectCycles: vi.fn(async () => []),
+    updateProjectDates: vi.fn()
   };
 }
 

@@ -1,5 +1,96 @@
 # Error Log
 
+## ERR-20260722-019 - Live smoke test compared equivalent timestamps as text
+
+### Context
+
+The delegated project-date live smoke test updated and restored an existing synthetic project's evaluation close date.
+
+### Symptoms
+
+The update succeeded, but the first assertion rejected the returned value because PostgreSQL serialized UTC with `+00:00` while the request used `Z`.
+
+### Root cause
+
+The smoke script compared timestamp strings rather than instants.
+
+### Correct solution
+
+Compare parsed epoch values and always restore the original date before propagating a smoke-test failure.
+
+### Prevention
+
+Normalize or parse database timestamps in integration assertions when multiple valid ISO 8601 encodings are possible.
+
+### Related files
+
+- `scripts/smoke-project-date-administration.mjs`
+
+### Related tests
+
+- `npm run smoke:project-dates`
+
+## ERR-20260722-018 - Project administration tests used page-global repeated selectors
+
+### Context
+
+The project date form introduced labels and headings that legitimately repeat elsewhere in the administration page.
+
+### Symptoms
+
+The first targeted test matched both project-completion fields, and the first full-page test matched both `Projects` headings.
+
+### Root cause
+
+Queries were not scoped to the project-creation form or project-management region.
+
+### Correct solution
+
+Resolve the semantic form/region first and query its controls or headings with `within(...)`.
+
+### Prevention
+
+Scope tests whenever independent workflows share domain-appropriate labels or headings.
+
+### Related files
+
+- `src/features/administration/ProjectCycleManagementPanel.test.tsx`
+- `src/features/administration/AdministrationPage.test.tsx`
+
+### Related tests
+
+- `npm run check`
+
+## ERR-20260722-017 - Smoke restoration used a throwing finally block
+
+### Context
+
+The reusable project-date smoke script must restore the original synthetic project date even when an assertion fails.
+
+### Symptoms
+
+ESLint reported `no-unsafe-finally` and `no-useless-assignment` during the first combined check.
+
+### Root cause
+
+The initial restoration implementation could throw from `finally` and initialized a state variable whose first value could never be observed.
+
+### Correct solution
+
+Capture the test failure, restore and validate the original state outside `finally`, then rethrow the captured failure.
+
+### Prevention
+
+Keep test cleanup unconditional without throwing from `finally`; separate cleanup verification from primary failure propagation.
+
+### Related files
+
+- `scripts/smoke-project-date-administration.mjs`
+
+### Related tests
+
+- `npm run check`
+
 ## ERR-20260722-016 - Hierarchy smoke script retained an unused response assignment
 
 ### Context

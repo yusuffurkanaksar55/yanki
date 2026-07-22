@@ -24,6 +24,8 @@ The current frontend auth, profile, workspace, and administration gates only con
 
 `admin-project-cycles` validates the authenticated user server-side, requires an active profile, recomputes roles from `user_role_assignments`, and allows project/evaluation-cycle creation only for `SYSTEM_ADMIN` users scoped to `PLATFORM` or the selected organization. Listing returns only configuration records within the user's admin/reviewer/project-manager scopes. Organization member lookup, project membership writes, and project-backed assignment generation are available only to system administrators with platform or matching organization scope. The function verifies that selected users have active profiles and active organization memberships before adding them to projects, and generates only non-self assignments from active project memberships.
 
+Project date updates are available to platform/matching-organization system administrators and exact assigned project managers. Delegated access requires both `projects.project_manager_user_id = actor_user_id` and an active `PROJECT_MANAGER` role scoped to the same project. The service-role-only atomic database function repeats this check before updating the project and evaluation cycle.
+
 `user-onboarding` requires a platform or matching-organization `SYSTEM_ADMIN` role for invitation listing, creation, and revocation. Invitation acceptance is available only to the exact Supabase Auth user created for the invitation, after verified-email, expiration, terminal-state, organization, unit, and optional manager checks. The acceptance database function is executable only by `service_role`.
 
 `organization-administration` requires an active profile and a platform or matching-organization `SYSTEM_ADMIN` role. The Edge Function recomputes authorization from `user_role_assignments`; service-role-only database functions revalidate the actor within each mutation transaction. Unit changes, primary membership/direct-manager updates, and manageable existing-user role assignments remain organization-scoped. Direct-manager cycles, cross-organization membership, invalid unit-scoped roles, unsafe unit archival, and removal of the final organization-scoped system administrator are denied. `PROJECT_MANAGER` remains owned by the project administration boundary.
@@ -46,7 +48,7 @@ Can access authorized anonymous aggregate results for users in assigned scope af
 
 Can manage assigned projects according to explicit scope. When delegated by an administrator, can configure project completion dates and evaluation close dates for assigned projects. Can be evaluated. Cannot infer evaluator identities or view own results unless a separate approved reviewer role and scope explicitly permits it.
 
-The first Edge Function foundation lists assigned project configuration for `PROJECT_MANAGER` roles. Delegated date update and membership-management actions for project managers are planned separately.
+The project administration boundary lists assigned project configuration and permits exact assigned project managers to update project completion and evaluation close dates. Project creation, membership management, and assignment generation remain system-administrator-only.
 
 ### `C_LEVEL_REVIEWER`
 

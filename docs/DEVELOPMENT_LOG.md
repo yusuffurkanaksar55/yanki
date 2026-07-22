@@ -1,5 +1,67 @@
 # Development Log
 
+## 2026-07-22 - Delegated Project Date Administration
+
+### Objective
+
+Allow system administrators and exact assigned project managers to update project completion and evaluation close dates without exposing project tables or privileged credentials to the browser.
+
+### Changes
+
+- Added service-role-only `admin_update_project_dates()` for atomic project/cycle date updates and database-side authorization revalidation.
+- Added project status, cycle status, date ordering, exact project-manager reference, active scoped-role, and active-profile checks.
+- Extended `admin-project-cycles` with `update_project_dates` and retained system-admin-only project creation, membership, and assignment generation.
+- Extended the typed browser service with `ProjectDateUpdateDraft` and `updateProjectDates()`.
+- Added a Turkish project-date form for authorized projects and role-aware control visibility for project managers.
+- Added targeted component and trusted-boundary tests plus a reusable authenticated live smoke script with restoration of the original test date.
+- Added ADR-0015 and updated project context, architecture, security, authorization, data model, known issues, README, changelog, test report, and error log.
+
+### Files affected
+
+- `supabase/migrations/20260722234500_delegated_project_date_administration.sql`
+- `supabase/functions/admin-project-cycles/index.ts`
+- `src/features/administration/ProjectCycleManagementPanel.tsx`
+- `src/features/administration/projectCycleService.ts`
+- `src/locales/tr/messages.ts`
+- `scripts/smoke-project-date-administration.mjs`
+- `tests/admin-project-cycle-function.test.mjs`
+- `src/features/administration/*test.tsx`
+- `docs/*`
+- `README.md`
+- `CHANGELOG.md`
+- `package.json`
+
+### Database changes
+
+Applied `20260722234500_delegated_project_date_administration.sql` to Supabase project `daxaymcmtbmummrxdyjy`. It adds no table or evaluation-content column. The new function updates existing configuration fields in `projects` and `evaluation_cycles`, emits safe audit metadata, and is executable only by `service_role`.
+
+### Security impact
+
+Positive foundation impact. The browser still has no direct project-table write path. Both the Edge Function and database transaction verify the actor. Delegated authority requires the actor to be both the project's current manager and the holder of an active matching project-scoped role. Closed/archived cycles, cross-project cycle ids, invalid date windows, employees, and unauthenticated requests are rejected. No scores, comments, lessons learned, submissions, anonymous credentials, or encryption material are accessed.
+
+### Tests performed
+
+- `npm run check`
+- Targeted project panel and trusted-boundary Vitest runs.
+- `npx supabase db push --linked --include-all --dry-run`
+- `npx supabase db push --linked --include-all --yes`
+- `npx supabase db lint --linked`
+- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
+- `npx supabase functions list`
+- `npm run smoke:project-dates` with synthetic HR administrator, team leader/project manager, and employee accounts.
+- Authenticated desktop and 390-pixel mobile browser verification.
+- `git diff --check`
+
+### Result
+
+The migration is applied and the remote database is up to date. Linked schema lint reports no errors. `admin-project-cycles` is `ACTIVE` as version `6` with gateway JWT verification disabled and internal bearer-token validation enabled. The live smoke test confirmed project-manager update, system-administrator restoration, employee denial, and unauthenticated denial. Desktop and mobile browser checks found no horizontal overflow or console errors. Application checks pass with 15 test files and 68 tests.
+
+### Remaining work
+
+- Keep invitation email delivery/acceptance open until an approved mailbox and provider decision are available.
+- Implement employee-facing assignment access with scoped server-side authorization next.
+- Implement versioned evaluation templates, anonymous credentials, encrypted submissions, and reporting in later security-reviewed phases.
+
 ## 2026-07-22 - Existing-User Role And Hierarchy Administration
 
 ### Objective

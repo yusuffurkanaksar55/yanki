@@ -10,9 +10,11 @@ import {
   browserProjectCycleService,
   ProjectCycleServiceError,
   type ManagedProject,
+  type ManagedEvaluationCycle,
   type OrganizationMember,
   type ProjectCycleDraft,
   type ProjectCycleService,
+  type ProjectDateUpdateDraft,
   type ProjectMemberDraft,
   type ProjectMembershipKind
 } from "./projectCycleService";
@@ -36,6 +38,11 @@ type FormState = {
 type MemberFormState = {
   readonly userId: string;
   readonly membershipKind: ProjectMembershipKind;
+};
+
+type DateFormState = {
+  readonly projectCompletedOn: string;
+  readonly closesAt: string;
 };
 
 type LoadState =
@@ -84,6 +91,7 @@ export function ProjectCycleManagementPanel({
     () => workspaceContext.roles.some((role) => role.roleCode === "SYSTEM_ADMIN"),
     [workspaceContext.roles]
   );
+  const canCreateProjectCycles = canLoadOrganizationMembers;
   const [formState, setFormState] = useState<FormState>({
     ...initialFormState,
     organizationId: defaultOrganizationId
@@ -100,6 +108,12 @@ export function ProjectCycleManagementPanel({
   >(null);
   const [generatingAssignmentCycleId, setGeneratingAssignmentCycleId] =
     useState<string | null>(null);
+  const [dateFormStates, setDateFormStates] = useState<
+    Record<string, DateFormState>
+  >({});
+  const [updatingDateCycleId, setUpdatingDateCycleId] = useState<string | null>(
+    null
+  );
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const organizationMembers =
     loadState.status === "ready"
@@ -246,17 +260,50 @@ export function ProjectCycleManagementPanel({
     }
   }
 
+  async function handleUpdateProjectDates(draft: ProjectDateUpdateDraft) {
+    setUpdatingDateCycleId(draft.evaluationCycleId);
+    setFeedbackMessage(null);
+
+    try {
+      const project = await service.updateProjectDates(draft);
+      setLoadState((current) =>
+        current.status === "ready"
+          ? {
+              ...current,
+              projects: current.projects.map((existingProject) =>
+                existingProject.id === project.id ? project : existingProject
+              )
+            }
+          : current
+      );
+      setDateFormStates((current) => {
+        const remaining = { ...current };
+        delete remaining[draft.evaluationCycleId];
+
+        return remaining;
+      });
+      setFeedbackMessage(tr.administration.projects.feedback.datesUpdated);
+    } catch (error) {
+      setFeedbackMessage(toProjectCycleFeedbackMessage(error));
+    } finally {
+      setUpdatingDateCycleId(null);
+    }
+  }
+
   return (
     <section
       aria-label={tr.administration.projects.sectionLabel}
-      className="mt-8 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]"
+      className={`mt-8 grid gap-4 ${
+        canCreateProjectCycles ? "lg:grid-cols-[0.95fr_1.05fr]" : ""
+      }`}
     >
-      <form
-        className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
-        onSubmit={(event) => {
-          void handleSubmit(event);
-        }}
-      >
+      {canCreateProjectCycles ? (
+        <form
+          className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+          onSubmit={(event) => {
+            void handleSubmit(event);
+          }}
+        >
         <h2 className="text-lg font-semibold">
           {tr.administration.projects.form.title}
         </h2>
@@ -345,18 +392,26 @@ export function ProjectCycleManagementPanel({
             ? tr.administration.projects.form.submitting
             : tr.administration.projects.form.submit}
         </button>
-        {feedbackMessage ? (
-          <p className="mt-4 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-700">
-            {feedbackMessage}
-          </p>
-        ) : null}
-      </form>
+        </form>
+      ) : null}
 
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold">
           {tr.administration.projects.list.title}
         </h2>
+        {feedbackMessage ? (
+          <p className="mt-4 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-700">
+            {feedbackMessage}
+          </p>
+        ) : null}
         <ProjectList
+          canAdministerProject={(project) =>
+            canAdministerProject(workspaceContext, project)
+          }
+          canUpdateProjectDates={(project) =>
+            canUpdateProjectDates(workspaceContext, project)
+          }
+          dateFormStates={dateFormStates}
           loadState={loadState}
           memberFormStates={memberFormStates}
           onAddProjectMember={(projectId, draft) => {
@@ -365,9 +420,14 @@ export function ProjectCycleManagementPanel({
           onGenerateProjectAssignments={(evaluationCycleId) => {
             void handleGenerateProjectAssignments(evaluationCycleId);
           }}
+          onDateFormChange={setDateFormStates}
+          onUpdateProjectDates={(draft) => {
+            void handleUpdateProjectDates(draft);
+          }}
           onMemberFormChange={setMemberFormStates}
           generatingAssignmentCycleId={generatingAssignmentCycleId}
           submittingMemberProjectId={submittingMemberProjectId}
+          updatingDateCycleId={updatingDateCycleId}
         />
       </section>
     </section>
@@ -456,14 +516,23 @@ function UserSelectField({
 }
 
 function ProjectList({
+  canAdministerProject,
+  canUpdateProjectDates,
+  dateFormStates,
   generatingAssignmentCycleId,
   loadState,
   memberFormStates,
   onAddProjectMember,
   onGenerateProjectAssignments,
+  onDateFormChange,
   onMemberFormChange,
-  submittingMemberProjectId
+  onUpdateProjectDates,
+  submittingMemberProjectId,
+  updatingDateCycleId
 }: {
+  readonly canAdministerProject: (project: ManagedProject) => boolean;
+  readonly canUpdateProjectDates: (project: ManagedProject) => boolean;
+  readonly dateFormStates: Readonly<Record<string, DateFormState>>;
   readonly generatingAssignmentCycleId: string | null;
   readonly loadState: LoadState;
   readonly memberFormStates: Readonly<Record<string, MemberFormState>>;
@@ -472,12 +541,19 @@ function ProjectList({
     draft: ProjectMemberDraft
   ) => void;
   readonly onGenerateProjectAssignments: (evaluationCycleId: string) => void;
+  readonly onDateFormChange: (
+    updater: (
+      current: Record<string, DateFormState>
+    ) => Record<string, DateFormState>
+  ) => void;
   readonly onMemberFormChange: (
     updater: (
       current: Record<string, MemberFormState>
     ) => Record<string, MemberFormState>
   ) => void;
+  readonly onUpdateProjectDates: (draft: ProjectDateUpdateDraft) => void;
   readonly submittingMemberProjectId: string | null;
+  readonly updatingDateCycleId: string | null;
 }) {
   if (loadState.status === "loading") {
     return (
@@ -531,31 +607,62 @@ function ProjectList({
               value={project.cycles[0]?.closesAt ?? null}
             />
           </dl>
+          {canUpdateProjectDates(project) ? (
+            <ProjectDateManagement
+              cycle={project.cycles[0] ?? null}
+              isSubmitting={
+                project.cycles[0]?.id === updatingDateCycleId
+              }
+              onChange={(nextState) => {
+                const cycleId = project.cycles[0]?.id;
+
+                if (!cycleId) {
+                  return;
+                }
+
+                onDateFormChange((current) => ({
+                  ...current,
+                  [cycleId]: nextState
+                }));
+              }}
+              onSubmit={onUpdateProjectDates}
+              project={project}
+              state={
+                project.cycles[0]
+                  ? dateFormStates[project.cycles[0].id]
+                    ?? toDateFormState(project, project.cycles[0])
+                  : null
+              }
+            />
+          ) : null}
           <ProjectAssignmentPlanning
+            canGenerate={canAdministerProject(project)}
             cycle={project.cycles[0] ?? null}
             isGenerating={
               project.cycles[0]?.id === generatingAssignmentCycleId
             }
             onGenerate={onGenerateProjectAssignments}
           />
-          <ProjectMembers
-            members={project.members}
-            organizationMembers={
-              loadState.organizationMembersById[project.organizationId] ?? []
-            }
-            project={project}
-            state={memberFormStates[project.id] ?? initialMemberFormState}
-            isSubmitting={submittingMemberProjectId === project.id}
-            onChange={(nextState) => {
-              onMemberFormChange((current) => ({
-                ...current,
-                [project.id]: nextState
-              }));
-            }}
-            onSubmit={(draft) => {
-              onAddProjectMember(project.id, draft);
-            }}
-          />
+          {canAdministerProject(project) ? (
+            <ProjectMembers
+              members={project.members}
+              organizationMembers={
+                loadState.organizationMembersById[project.organizationId] ?? []
+              }
+              project={project}
+              state={memberFormStates[project.id] ?? initialMemberFormState}
+              isSubmitting={submittingMemberProjectId === project.id}
+              onChange={(nextState) => {
+                onMemberFormChange((current) => ({
+                  ...current,
+                  [project.id]: nextState
+                }));
+              }}
+              onSubmit={(draft) => {
+                onAddProjectMember(project.id, draft);
+              }}
+            />
+          ) : null}
         </article>
       ))}
     </div>
@@ -681,11 +788,92 @@ function ProjectMembers({
   );
 }
 
+function ProjectDateManagement({
+  cycle,
+  isSubmitting,
+  onChange,
+  onSubmit,
+  project,
+  state
+}: {
+  readonly cycle: ManagedEvaluationCycle | null;
+  readonly isSubmitting: boolean;
+  readonly onChange: (state: DateFormState) => void;
+  readonly onSubmit: (draft: ProjectDateUpdateDraft) => void;
+  readonly project: ManagedProject;
+  readonly state: DateFormState | null;
+}) {
+  return (
+    <section
+      aria-label={`${project.name} ${tr.administration.projects.dates.sectionLabel}`}
+      className="mt-5 border-t border-slate-200 pt-4"
+    >
+      <h4 className="text-sm font-semibold text-slate-800">
+        {tr.administration.projects.dates.title}
+      </h4>
+      {!cycle || !state ? (
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          {tr.administration.projects.dates.noCycle}
+        </p>
+      ) : (
+        <form
+          className="mt-3 grid gap-3 sm:grid-cols-[1fr_1.35fr_auto] sm:items-end"
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSubmit(toProjectDateUpdateDraft(project.id, cycle.id, state));
+          }}
+        >
+          <label className="block text-sm font-semibold text-slate-800">
+            {tr.administration.projects.dates.projectCompletedOn}
+            <input
+              className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900 shadow-sm focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20"
+              onChange={(event) => {
+                onChange({
+                  ...state,
+                  projectCompletedOn: event.currentTarget.value
+                });
+              }}
+              type="date"
+              value={state.projectCompletedOn}
+            />
+          </label>
+          <label className="block text-sm font-semibold text-slate-800">
+            {tr.administration.projects.dates.closesAt}
+            <input
+              className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900 shadow-sm focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20"
+              onChange={(event) => {
+                onChange({
+                  ...state,
+                  closesAt: event.currentTarget.value
+                });
+              }}
+              required
+              type="datetime-local"
+              value={state.closesAt}
+            />
+          </label>
+          <button
+            className="rounded-md border border-pine bg-white px-3 py-2 text-sm font-semibold text-pine transition hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:border-slate-300 disabled:text-slate-400"
+            disabled={isSubmitting}
+            type="submit"
+          >
+            {isSubmitting
+              ? tr.administration.projects.dates.saving
+              : tr.administration.projects.dates.save}
+          </button>
+        </form>
+      )}
+    </section>
+  );
+}
+
 function ProjectAssignmentPlanning({
+  canGenerate,
   cycle,
   isGenerating,
   onGenerate
 }: {
+  readonly canGenerate: boolean;
   readonly cycle: ManagedProject["cycles"][number] | null;
   readonly isGenerating: boolean;
   readonly onGenerate: (evaluationCycleId: string) => void;
@@ -729,18 +917,20 @@ function ProjectAssignmentPlanning({
             />
           </dl>
         </div>
-        <button
-          className="w-fit rounded-md bg-pine px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-400"
-          disabled={isGenerating}
-          onClick={() => {
-            onGenerate(cycle.id);
-          }}
-          type="button"
-        >
-          {isGenerating
-            ? tr.administration.projects.assignments.generating
-            : tr.administration.projects.assignments.generate}
-        </button>
+        {canGenerate ? (
+          <button
+            className="w-fit rounded-md bg-pine px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-400"
+            disabled={isGenerating}
+            onClick={() => {
+              onGenerate(cycle.id);
+            }}
+            type="button"
+          >
+            {isGenerating
+              ? tr.administration.projects.assignments.generating
+              : tr.administration.projects.assignments.generate}
+          </button>
+        ) : null}
       </div>
     </section>
   );
@@ -807,6 +997,34 @@ function uniqueStrings(values: readonly string[]): string[] {
   );
 }
 
+function canAdministerProject(
+  workspaceContext: WorkspaceContext,
+  project: ManagedProject
+): boolean {
+  return workspaceContext.roles.some((role) =>
+    role.roleCode === "SYSTEM_ADMIN"
+    && (
+      role.scopeType === "PLATFORM"
+      || (
+        role.scopeType === "ORGANIZATION"
+        && role.scopeId === project.organizationId
+      )
+    )
+  );
+}
+
+function canUpdateProjectDates(
+  workspaceContext: WorkspaceContext,
+  project: ManagedProject
+): boolean {
+  return canAdministerProject(workspaceContext, project)
+    || workspaceContext.roles.some((role) =>
+      role.roleCode === "PROJECT_MANAGER"
+      && role.scopeType === "PROJECT"
+      && role.scopeId === project.id
+    );
+}
+
 function ProjectDate({
   label,
   value
@@ -837,6 +1055,44 @@ function toDraft(formState: FormState): ProjectCycleDraft {
     projectManagerUserId: normalizeOptionalValue(formState.projectManagerUserId),
     projectName: formState.projectName
   };
+}
+
+function toDateFormState(
+  project: ManagedProject,
+  cycle: ManagedEvaluationCycle
+): DateFormState {
+  return {
+    closesAt: toLocalDateTimeInput(cycle.closesAt),
+    projectCompletedOn:
+      cycle.projectCompletedOn ?? project.completesOn ?? ""
+  };
+}
+
+function toProjectDateUpdateDraft(
+  projectId: string,
+  evaluationCycleId: string,
+  state: DateFormState
+): ProjectDateUpdateDraft {
+  return {
+    closesAt: new Date(state.closesAt).toISOString(),
+    evaluationCycleId,
+    projectCompletedOn: normalizeOptionalValue(state.projectCompletedOn),
+    projectId
+  };
+}
+
+function toLocalDateTimeInput(value: string): string {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const pad = (part: number) => String(part).padStart(2, "0");
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function normalizeOptionalValue(value: string): string | null {

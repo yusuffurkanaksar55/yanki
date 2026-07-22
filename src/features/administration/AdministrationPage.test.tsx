@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { tr } from "../../locales/tr/messages";
 import type { ProjectCycleService } from "./projectCycleService";
@@ -17,11 +17,20 @@ describe("AdministrationPage", () => {
     expect(
       screen.getByRole("heading", { name: tr.administration.title })
     ).toBeInTheDocument();
+    const projectManagementRegion = screen.getByRole("region", {
+      name: tr.administration.projects.sectionLabel
+    });
+
     expect(
-      screen.getByRole("heading", {
-        name: tr.administration.projects.form.title
+      within(projectManagementRegion).getByRole("heading", {
+        name: tr.administration.projects.list.title
       })
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", {
+        name: tr.administration.projects.form.title
+      })
+    ).not.toBeInTheDocument();
     expect(
       screen.getByText(tr.administration.datePolicy.evaluationCloseLabel)
     ).toBeInTheDocument();
@@ -73,6 +82,7 @@ function createProjectCycleServiceStub(): ProjectCycleService {
     createProjectCycle: vi.fn(),
     generateProjectAssignments: vi.fn(),
     listOrganizationMembers: vi.fn(async () => []),
-    listProjectCycles: vi.fn(async () => [])
+    listProjectCycles: vi.fn(async () => []),
+    updateProjectDates: vi.fn()
   };
 }

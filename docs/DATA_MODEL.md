@@ -59,6 +59,7 @@ Implemented foundation functions:
 - `admin_set_user_hierarchy_context()`
 - `admin_assign_user_role()`
 - `admin_end_user_role()`
+- `admin_update_project_dates()`
 
 ## Identity Domain
 
@@ -84,6 +85,8 @@ The service-role-only organization-administration functions mutate units, primar
 
 `evaluation_cycles` stores time-bound evaluation configuration with open and close timestamps, optional project completion date, cycle type, status, and anonymity threshold. It does not require a fixed participant count to open a cycle.
 
+`admin_update_project_dates()` atomically updates `projects.completes_on`, `evaluation_cycles.project_completed_on`, and `evaluation_cycles.closes_at` after verifying record scope, editable status, date ordering, and current system-administrator or exact assigned-project-manager authority. It is executable only by `service_role`.
+
 `evaluation_assignments` stores identity-domain evaluator-to-subject eligibility for a cycle, with assignment kind and completion status. It prevents self assignments, validates organization and project scope consistency, remains default-deny to frontend clients, and does not store scores, comments, lessons learned text, anonymous credentials, encrypted payloads, or response content.
 
 `get_my_workspace_context()` returns the authenticated caller's own profile, roles, memberships, and manager relationships as non-sensitive JSON. It is not an evaluation content API and must not include scores, comments, submissions, anonymous credentials, or decrypted payloads.
@@ -104,7 +107,7 @@ No anonymous content-domain table has been implemented yet.
 
 ## Project And Evaluation Cycle Data
 
-Project and evaluation-cycle tables support multiple administrators and delegated project managers at the data-model level. Evaluation cycles may be opened without a fixed participant-count requirement, but they are time-bound with configurable open and close dates. Project completion dates, evaluation close dates, project memberships, and evaluation assignments must be set through trusted administrative flows rather than direct frontend table access.
+Project and evaluation-cycle tables support multiple administrators and delegated project managers. Evaluation cycles may be opened without a fixed participant-count requirement, but they are time-bound with configurable open and close dates. Project completion and evaluation close dates now use an atomic trusted update flow; project memberships and evaluation assignments also remain behind trusted administration rather than direct frontend table access.
 
 ## Migration Rules
 

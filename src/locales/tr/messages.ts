@@ -321,6 +321,15 @@ export const tr = {
         evaluationClose: "Değerlendirme kapanışı",
         noDate: "Tarih yok"
       },
+      dates: {
+        sectionLabel: "proje tarihleri",
+        title: "Proje tarihlerini yönet",
+        projectCompletedOn: "Proje bitiş tarihi",
+        closesAt: "Değerlendirme kapanış zamanı",
+        save: "Tarihleri kaydet",
+        saving: "Kaydediliyor",
+        noCycle: "Düzenlenebilir değerlendirme süreci bulunamadı."
+      },
       members: {
         sectionLabel: "proje üyeleri",
         title: "Proje üyeleri",
@@ -353,6 +362,7 @@ export const tr = {
         created: "Proje ve değerlendirme süreci oluşturuldu.",
         memberAdded: "Proje üyesi eklendi.",
         assignmentsGenerated: "Değerlendirme atamaları oluşturuldu.",
+        datesUpdated: "Proje ve değerlendirme tarihleri güncellendi.",
         PROJECT_CYCLE_SESSION_REQUIRED:
           "Oturum doğrulanamadı. Lütfen tekrar giriş yap.",
         PROJECT_CYCLE_LIST_FAILED: "Projeler okunamadı.",
@@ -362,6 +372,8 @@ export const tr = {
         PROJECT_MEMBER_ADD_FAILED: "Proje üyesi eklenemedi.",
         PROJECT_ASSIGNMENT_GENERATE_FAILED:
           "Değerlendirme atamaları oluşturulamadı.",
+        PROJECT_DATE_UPDATE_FAILED:
+          "Proje ve değerlendirme tarihleri güncellenemedi.",
         genericError: "Beklenmeyen bir proje yönetimi hatası oluştu."
       }
     },
