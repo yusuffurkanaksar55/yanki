@@ -704,7 +704,101 @@ export type Database = {
         Args: { accepting_user_id: string; invitation_id: string }
         Returns: Json
       }
+      admin_assign_user_role: {
+        Args: {
+          actor_user_id: string
+          assigned_role_code: string
+          assigned_unit_id: string
+          managed_organization_id: string
+          target_user_id: string
+        }
+        Returns: {
+          created_at: string
+          ends_at: string | null
+          id: string
+          role_code: string
+          scope_id: string | null
+          scope_type: string
+          starts_at: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_role_assignments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_end_user_role: {
+        Args: {
+          actor_user_id: string
+          managed_organization_id: string
+          role_assignment_id: string
+        }
+        Returns: {
+          created_at: string
+          ends_at: string | null
+          id: string
+          role_code: string
+          scope_id: string | null
+          scope_type: string
+          starts_at: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_role_assignments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_set_user_hierarchy_context: {
+        Args: {
+          actor_user_id: string
+          direct_manager_user_id: string
+          managed_organization_id: string
+          primary_membership_kind: string
+          primary_unit_id: string
+          target_user_id: string
+        }
+        Returns: Json
+      }
+      admin_upsert_organization_unit: {
+        Args: {
+          actor_user_id: string
+          managed_organization_id: string
+          managed_parent_unit_id: string
+          managed_status: string
+          managed_unit_id: string
+          managed_unit_type: string
+          unit_name: string
+          unit_slug: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          parent_unit_id: string | null
+          slug: string
+          status: string
+          unit_type: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "organization_units"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       get_my_workspace_context: { Args: never; Returns: Json }
+      require_active_system_admin: {
+        Args: { actor_user_id: string; managed_organization_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -54,6 +54,11 @@ Implemented foundation functions:
 
 - `get_my_workspace_context()`
 - `accept_user_invitation()`
+- `require_active_system_admin()`
+- `admin_upsert_organization_unit()`
+- `admin_set_user_hierarchy_context()`
+- `admin_assign_user_role()`
+- `admin_end_user_role()`
 
 ## Identity Domain
 
@@ -70,6 +75,8 @@ Identity-domain tables store users, roles, organization hierarchy, memberships, 
 `organization_unit_memberships` places users in organization units and can mark a primary membership.
 
 `manager_assignments` stores direct manager, functional manager, and executive sponsor relationships.
+
+The service-role-only organization-administration functions mutate units, primary memberships, direct-manager relationships, and manageable scoped roles atomically. They emit safe identity-domain audit metadata and do not access evaluation content.
 
 `projects` stores identity-domain project metadata, including project manager, status, and optional start/completion dates.
 

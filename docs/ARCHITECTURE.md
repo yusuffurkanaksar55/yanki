@@ -2,7 +2,7 @@
 
 ## Status
 
-Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has default-deny security, Supabase Auth-backed invitation onboarding, organization hierarchy, workspace context, project/evaluation-cycle, and evaluation-assignment migrations. A typed Supabase Auth client, own-profile gate, own-workspace context panel, protected administration shell, user invitation management, and trusted project/cycle/member/assignment administration are implemented.
+Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has default-deny security, Supabase Auth-backed invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context, project/evaluation-cycle, and evaluation-assignment migrations. A typed Supabase Auth client, own-profile gate, own-workspace context panel, protected administration shell, user invitation management, trusted existing-user role/hierarchy management, and trusted project/cycle/member/assignment administration are implemented.
 
 ## Target System
 
@@ -84,6 +84,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Dashboard feature: `src/features/dashboard/DashboardPage.tsx`
 - Administration feature: `src/features/administration/AdministrationPage.tsx`
 - Administration project/cycle/member/assignment service and panel: `src/features/administration/projectCycleService.ts`, `src/features/administration/ProjectCycleManagementPanel.tsx`
+- Administration role/hierarchy service and panel: `src/features/administration/hierarchyAdministrationService.ts`, `src/features/administration/RoleHierarchyManagementPanel.tsx`
 - Turkish messages: `src/locales/tr/messages.ts`
 - Authentication context and UI: `src/features/authentication/`
 - Profile onboarding gate and service: `src/features/profiles/`
@@ -100,6 +101,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Seed file: `supabase/seed.sql`
 - Admin project/cycle/member Edge Function: `supabase/functions/admin-project-cycles/index.ts`
 - User onboarding Edge Function: `supabase/functions/user-onboarding/index.ts`
+- Organization administration Edge Function: `supabase/functions/organization-administration/index.ts`
 - Initial migration: `supabase/migrations/20260719132911_initial_security_foundation.sql`
 - Profile/invitation migration: `supabase/migrations/20260719171413_user_profile_invitation_foundation.sql`
 - Organization hierarchy migration: `supabase/migrations/20260719174459_organization_hierarchy_foundation.sql`
@@ -108,6 +110,8 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Evaluation assignment migration: `supabase/migrations/20260720223000_evaluation_assignment_foundation.sql`
 - Invitation acceptance migration: `supabase/migrations/20260720232000_user_invitation_acceptance_flow.sql`
 - Invitation acceptance revalidation migration: `supabase/migrations/20260720234500_invitation_acceptance_context_revalidation.sql`
+- Organization administration migration: `supabase/migrations/20260722210000_hierarchy_administration_foundation.sql`
+- Hierarchy context hardening migration: `supabase/migrations/20260722223000_hierarchy_context_integrity_hardening.sql`
 - Setup notes: `docs/SUPABASE_SETUP.md`
 - Demo fixture notes: `docs/TEST_FIXTURES.md`
 - Demo fixture script: `scripts/create-demo-fixture.mjs`

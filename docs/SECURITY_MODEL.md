@@ -73,7 +73,7 @@ Invitation records store only hashed invitation secrets and remain inaccessible 
 
 `user-onboarding` uses Supabase Auth for user-facing invitation delivery and email ownership proof. The administration browser never receives a custom action link or raw invitation secret. Invitation creation and revocation require a platform or matching-organization `SYSTEM_ADMIN` role. Acceptance binds the authenticated Auth user id and verified email to the invitation, revalidates expiration and hierarchy context, and calls service-role-only `accept_user_invitation()` for atomic activation. Real email delivery still depends on approved Supabase Auth SMTP settings.
 
-Organization hierarchy records are identity-domain metadata and remain inaccessible to frontend clients until trusted administrative authorization is implemented. Demo fixture credentials must be generated at runtime and must not be committed.
+Organization hierarchy records are identity-domain metadata and remain inaccessible to frontend clients. `organization-administration` validates the caller's authenticated active profile and database-backed platform or matching-organization `SYSTEM_ADMIN` role, then delegates mutations to service-role-only atomic database functions that revalidate the actor. The database rejects manager cycles, invalid role scopes, unsafe unit archival, and removal of the final organization administrator. Demo fixture credentials must be generated at runtime and must not be committed.
 
 The workspace context RPC returns only the authenticated user's own non-sensitive profile, role, membership, and manager context. It must not return evaluation submissions, scores, comments, lessons learned payloads, anonymous credentials, decrypted content, or evaluator-to-response relationships.
 
@@ -102,7 +102,6 @@ Database readers may see ciphertext and non-sensitive metadata only. Database en
 ## Remaining Security Work
 
 - Complete live invitation email delivery and acceptance verification with an approved test mailbox.
-- Implement general existing-user role, hierarchy, membership, and manager administration actions.
 - Extend trusted project and evaluation-cycle management functions for delegated project-manager date update flows.
 - Implement employee-facing assignment access only after scoped RLS and server-side authorization rules are designed.
 - Add narrowly scoped Supabase RLS policies only after server-side authorization flows are designed.

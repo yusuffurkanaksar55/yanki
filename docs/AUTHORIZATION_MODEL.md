@@ -26,6 +26,8 @@ The current frontend auth, profile, workspace, and administration gates only con
 
 `user-onboarding` requires a platform or matching-organization `SYSTEM_ADMIN` role for invitation listing, creation, and revocation. Invitation acceptance is available only to the exact Supabase Auth user created for the invitation, after verified-email, expiration, terminal-state, organization, unit, and optional manager checks. The acceptance database function is executable only by `service_role`.
 
+`organization-administration` requires an active profile and a platform or matching-organization `SYSTEM_ADMIN` role. The Edge Function recomputes authorization from `user_role_assignments`; service-role-only database functions revalidate the actor within each mutation transaction. Unit changes, primary membership/direct-manager updates, and manageable existing-user role assignments remain organization-scoped. Direct-manager cycles, cross-organization membership, invalid unit-scoped roles, unsafe unit archival, and removal of the final organization-scoped system administrator are denied. `PROJECT_MANAGER` remains owned by the project administration boundary.
+
 ## Roles
 
 ### `SYSTEM_ADMIN`

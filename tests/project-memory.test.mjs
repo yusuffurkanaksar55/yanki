@@ -34,7 +34,8 @@ const requiredFiles = [
   "docs/decisions/ADR-0010-use-admin-project-cycle-edge-function.md",
   "docs/decisions/ADR-0011-use-admin-project-membership-edge-function-actions.md",
   "docs/decisions/ADR-0012-use-default-deny-evaluation-assignment-planning.md",
-  "docs/decisions/ADR-0013-use-supabase-auth-backed-invitation-onboarding.md"
+  "docs/decisions/ADR-0013-use-supabase-auth-backed-invitation-onboarding.md",
+  "docs/decisions/ADR-0014-use-atomic-organization-administration-boundary.md"
 ];
 
 function readProjectFile(relativePath) {

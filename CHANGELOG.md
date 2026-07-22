@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-07-22
+
+### Added
+
+- Added trusted existing-user role, organization-unit, primary-membership, and direct-manager administration.
+- Added service-role-only atomic hierarchy mutation functions with manager-cycle, unit-archive, role-scope, and final-system-admin protections.
+- Added the Turkish role and hierarchy management panel for organization-scoped system administrators.
+- Added reusable authenticated hierarchy smoke testing and focused component/security regression coverage.
+- Added ADR-0014 for the atomic organization administration boundary.
+
 ## 2026-07-20
 
 ### Added

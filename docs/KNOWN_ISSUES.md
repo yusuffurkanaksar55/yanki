@@ -8,7 +8,7 @@ High
 
 ### Description
 
-The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, profile/invitation onboarding foundation, organization hierarchy foundation, authenticated own-workspace context RPC, protected administration shell, default-deny project/evaluation-cycle configuration foundation, default-deny evaluation assignment foundation, and admin project/cycle/member/assignment Edge Function foundation. Scoped employee assignment access, evaluation authorization policies, anonymous credentials, encrypted submissions, and reporting are not implemented yet.
+The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, profile/invitation onboarding, trusted existing-user role/hierarchy administration, authenticated own-workspace context RPC, protected administration shell, default-deny project/evaluation-cycle configuration, default-deny evaluation assignment planning, and trusted project administration. Scoped employee assignment access, evaluation authorization policies, anonymous credentials, encrypted submissions, and reporting are not implemented yet.
 
 ### Impact
 
@@ -20,13 +20,13 @@ Use the application scaffold only for frontend and trusted-administration founda
 
 ### Planned resolution
 
-Authenticated admin project/cycle/member/assignment management and user-administration listing are smoke-tested. Next complete invitation email delivery/acceptance verification, remaining production administration write actions, employee assignment access, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
+Authenticated project/cycle/member/assignment management, invitation administration listing, and existing-user role/hierarchy administration are smoke-tested. Next complete invitation email delivery/acceptance verification when an approved mailbox is available, then delegated date management, employee assignment access, scoped authorization, explicit evaluation RLS policies, anonymous credentials, and encrypted submission flows in separate reviewable phases.
 
 ### Related tests
 
 `tests/project-memory.test.mjs`, `src/app/App.test.tsx`, `src/features/workspace/WorkspaceContextGate.test.tsx`
 
-## ISSUE-005 - Administration write actions are not implemented
+## ISSUE-005 - Remaining delegated administration actions are not implemented
 
 ### Severity
 
@@ -38,19 +38,19 @@ The product requires multiple administrators, CEOs/C-Level users, project manage
 
 ### Impact
 
-Admins and delegated project managers cannot yet persist general existing-user role changes, hierarchy edits, delegated project-manager date updates, broader evaluation-cycle edits, or employee-facing assignment workflows through production application actions. System administrators can create/revoke invitations, add project members, and generate project-backed assignment records through trusted Edge Functions.
+System administrators can now persist existing-user role changes, organization-unit edits, primary membership changes, and direct-manager changes. Delegated project managers still cannot update project completion or evaluation close dates, and employee-facing assignment workflows do not exist yet.
 
 ### Workaround
 
-Use the current synthetic fixture only for login, workspace-context, administration-shell, project/cycle/member/assignment verification. Do not manage production organization or evaluation response data manually from the browser.
+Use the current synthetic fixture for login, workspace-context, invitation, role/hierarchy, and project/cycle/member/assignment verification. Do not manage evaluation response data manually from the browser.
 
 ### Planned resolution
 
-Complete invitation delivery/acceptance verification, then build trusted actions and production administration forms for existing-user roles, hierarchy edits, delegated date management, and employee assignment access.
+Complete invitation delivery/acceptance verification when an approved mailbox is available, then build delegated project-manager date management and employee assignment access through separate trusted actions.
 
 ### Related tests
 
-`tests/supabase-foundation.test.mjs`, `src/app/App.test.tsx`
+`tests/organization-administration-function.test.mjs`, `src/features/administration/RoleHierarchyManagementPanel.test.tsx`
 
 ## ISSUE-006 - Invitation email delivery and acceptance need an approved mailbox smoke test
 

@@ -1,5 +1,72 @@
 # Development Log
 
+## 2026-07-22 - Existing-User Role And Hierarchy Administration
+
+### Objective
+
+Provide trusted system-administrator workflows for existing-user roles, organization units, primary memberships, and direct-manager relationships while keeping identity tables default-deny and evaluation content outside the administration boundary.
+
+### Changes
+
+- Added service-role-only atomic database functions for unit create/update, user hierarchy context updates, role assignment, and role termination.
+- Added database-side active-system-admin scope revalidation, manager-cycle detection, active-membership checks, unsafe unit-archive prevention, and final organization-admin protection.
+- Added the `organization-administration` Edge Function for scoped hierarchy summaries and trusted mutations.
+- Added an injectable typed browser service that calls only the Edge Function.
+- Added a Turkish three-workflow administration panel for units, membership/manager context, and roles.
+- Added component tests, trusted-boundary regression tests, and a reusable authenticated live smoke script.
+- Added ADR-0014 and updated project memory, setup notes, release notes, and generated Supabase types.
+
+### Files affected
+
+- `supabase/migrations/20260722210000_hierarchy_administration_foundation.sql`
+- `supabase/migrations/20260722223000_hierarchy_context_integrity_hardening.sql`
+- `supabase/functions/organization-administration/index.ts`
+- `src/features/administration/*`
+- `src/app/App.tsx`
+- `src/locales/tr/messages.ts`
+- `src/types/supabase.ts`
+- `scripts/smoke-hierarchy-administration.mjs`
+- `tests/*`
+- `docs/*`
+- `README.md`
+- `CHANGELOG.md`
+- `package.json`
+
+### Database changes
+
+Applied `20260722210000_hierarchy_administration_foundation.sql` and follow-up `20260722223000_hierarchy_context_integrity_hardening.sql` to Supabase project `daxaymcmtbmummrxdyjy`. They add service-role-only identity-administration functions, strengthen direct-manager and parent-unit validation, expire stale unit roles after membership moves, and keep manager unit scope aligned. They create no evaluation-content table or column.
+
+### Security impact
+
+Positive foundation impact. The browser cannot read or write role, hierarchy, membership, manager, audit, or profile-directory tables directly. The Edge Function validates the authenticated active profile and database-backed system-admin scope. Database functions revalidate the actor transactionally and reject cross-organization context, manager cycles, invalid unit roles, unsafe archival, project-manager role mutation, and final organization-admin removal. Audit metadata contains identity/configuration references only.
+
+### Tests performed
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run build`
+- `npm run check`
+- `npx supabase db push --dry-run`
+- `npx supabase db push --linked --include-all --yes`
+- `npx supabase db lint --linked`
+- `npx supabase gen types typescript --linked`
+- `npx supabase functions deploy organization-administration --no-verify-jwt`
+- `npx supabase functions list --project-ref daxaymcmtbmummrxdyjy`
+- `npm run smoke:hierarchy` with synthetic HR administrator and employee accounts.
+- Authenticated desktop and 390-pixel mobile browser verification.
+- `git diff --check`
+
+### Result
+
+Both migrations are applied, linked schema lint reports no errors, and the remote database is up to date. `organization-administration` is `ACTIVE` as version `2` with gateway JWT verification disabled and internal token validation enabled. The live smoke test returned one organization and six members, archived its temporary unit, ended its temporary role, rejected a manager cycle, denied an employee, and denied an unauthenticated request. Desktop and mobile browser checks found no horizontal overflow or console errors. Application checks pass with 15 test files and 66 tests.
+
+### Remaining work
+
+- Keep invitation email delivery/acceptance open until an approved mailbox and provider decision are available.
+- Implement delegated project-manager project-completion and evaluation-close-date updates next.
+- Implement employee assignment access, anonymous credentials, encrypted submissions, and reporting in later security-reviewed phases.
+
 ## 2026-07-20 - Supabase Auth-Backed Invitation Onboarding
 
 ### Objective

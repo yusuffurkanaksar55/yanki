@@ -1,5 +1,13 @@
 # Release Notes
 
+## 2026-07-22 - Existing-User Role And Hierarchy Administration
+
+This is not a product release. System administrators now have a Turkish management panel for organization units, existing-user primary memberships, direct-manager relationships, and scoped role assignments.
+
+All browser operations cross the trusted `organization-administration` Edge Function and service-role-only atomic database functions. Organization scope is revalidated server-side and in the database. Manager cycles, unsafe unit archival, invalid unit-role scope, and removal of the final organization administrator are blocked. No evaluation response content is exposed or stored by this workflow.
+
+Live synthetic verification passed for create/archive unit, idempotent hierarchy update, temporary role assignment/termination, cycle rejection, employee denial, and unauthenticated denial. Invitation email delivery remains deferred until an approved mailbox and provider decision are available.
+
 ## 2026-07-20 - Supabase Auth-Backed Invitation Onboarding
 
 This is not a product release. System administrators now have a Turkish invitation management panel backed by the trusted `user-onboarding` Edge Function. They can select an organization, unit, role, optional manager, and invitation lifetime, then create or revoke a Supabase Auth invitation.

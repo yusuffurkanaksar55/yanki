@@ -7,12 +7,15 @@ import {
   canAccessAdministration,
   getAdministrationRoles
 } from "../workspace/workspaceAuthorization";
+import type { HierarchyAdministrationService } from "./hierarchyAdministrationService";
 import { ProjectCycleManagementPanel } from "./ProjectCycleManagementPanel";
 import type { ProjectCycleService } from "./projectCycleService";
+import { RoleHierarchyManagementPanel } from "./RoleHierarchyManagementPanel";
 import { UserInvitationManagementPanel } from "./UserInvitationManagementPanel";
 import type { UserAdministrationService } from "./userAdministrationService";
 
 type AdministrationPageProps = {
+  readonly hierarchyAdministrationService?: HierarchyAdministrationService;
   readonly isSigningOut?: boolean;
   readonly onSignOut?: () => Promise<void>;
   readonly profileDisplayName?: string | null;
@@ -23,6 +26,7 @@ type AdministrationPageProps = {
 };
 
 export function AdministrationPage({
+  hierarchyAdministrationService,
   isSigningOut = false,
   onSignOut,
   profileDisplayName,
@@ -141,6 +145,11 @@ export function AdministrationPage({
 
         <UserInvitationManagementPanel
           service={userAdministrationService}
+          workspaceContext={workspaceContext}
+        />
+
+        <RoleHierarchyManagementPanel
+          service={hierarchyAdministrationService}
           workspaceContext={workspaceContext}
         />
 

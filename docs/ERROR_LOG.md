@@ -1,5 +1,104 @@
 # Error Log
 
+## ERR-20260722-016 - Hierarchy smoke script retained an unused response assignment
+
+### Context
+
+The final combined application check linted the reusable hierarchy smoke script.
+
+### Symptoms
+
+ESLint reported `no-useless-assignment` for the idempotent hierarchy-update response.
+
+### Root cause
+
+The call was intentionally checked for success, but its refreshed data was not needed until a later independent mutation.
+
+### Correct solution
+
+Await the function call without assigning its response.
+
+### Prevention
+
+Keep smoke-script responses only when a subsequent assertion or mutation consumes them.
+
+### Related files
+
+- `scripts/smoke-hierarchy-administration.mjs`
+
+### Related tests
+
+- `npm run check`
+
+## ERR-20260722-014 - Supabase CLI telemetry write failed inside the workspace sandbox
+
+### Context
+
+Generated database types and linked database lint were run after deploying the organization-administration migration.
+
+### Symptoms
+
+The CLI completed remote work but then returned `EPERM` while writing a telemetry temporary file under the user profile. Shell redirection also left `src/types/supabase.ts` empty after the failed generation attempt.
+
+### Root cause
+
+The workspace sandbox allowed repository writes but not Supabase CLI telemetry writes under `C:\Users\Yusuf_Furkan\.supabase`.
+
+### Incorrect approach
+
+Running a command with output redirection before accounting for the CLI's additional profile-directory write requirement.
+
+### Correct solution
+
+Rerun type generation and linked lint with the narrowly required filesystem permission. The generated file was restored from the live schema and linked lint returned no errors.
+
+### Prevention
+
+Check generated-file size immediately after redirected CLI commands and use the approved Supabase command permission when the CLI must update its own profile metadata.
+
+### Related files
+
+- `src/types/supabase.ts`
+
+### Related tests
+
+- `npm run supabase:types`
+- `npm run supabase:lint:linked`
+
+## ERR-20260722-015 - Hierarchy component test used an ambiguous global label
+
+### Context
+
+The hierarchy panel intentionally has separate employee selectors for membership/manager context and role assignment.
+
+### Symptoms
+
+Two component tests failed because a global `getByLabelText("Çalışan")` query matched both controls.
+
+### Root cause
+
+The tests ignored the form-level semantic grouping visible in the interface.
+
+### Incorrect approach
+
+Using a page-global label query for a repeated, domain-appropriate field label.
+
+### Correct solution
+
+Scope each query to the form identified by its `Üyelik ve yönetici` or `Rol atamaları` heading.
+
+### Prevention
+
+When labels repeat across independent workflows, locate the semantic region first and query within that region.
+
+### Related files
+
+- `src/features/administration/RoleHierarchyManagementPanel.test.tsx`
+
+### Related tests
+
+- `npx vitest run src/features/administration/RoleHierarchyManagementPanel.test.tsx`
+
 ## ERR-20260720-012 - Administration Edge Functions rejected browser CORS preflight
 
 ### Context

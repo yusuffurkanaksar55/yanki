@@ -53,7 +53,9 @@ The `admin-project-cycles` Edge Function is the first trusted administrative fun
 
 The `user-onboarding` Edge Function uses the same trusted boundary for system-admin invitation options, invitation creation, revocation, and authenticated acceptance. Supabase Auth delivers the user-facing invite link. The application does not return a custom raw invitation secret to the administration browser. Acceptance calls service-role-only `accept_user_invitation()` for one atomic identity-domain update.
 
-`admin-project-cycles` and `user-onboarding` are deployed with Supabase gateway JWT verification disabled so browser CORS preflight can reach the functions. Both functions validate the bearer token internally with `auth.getUser()`.
+The `organization-administration` Edge Function handles existing-user role, organization-unit, primary-membership, and direct-manager administration. It invokes service-role-only atomic database functions that revalidate the acting system administrator, reject manager cycles and unsafe unit archival, constrain unit-scoped roles to active memberships, and preserve at least one organization-scoped system administrator.
+
+`admin-project-cycles`, `user-onboarding`, and `organization-administration` are deployed with Supabase gateway JWT verification disabled so browser CORS preflight can reach the functions. All three functions validate the bearer token internally with `auth.getUser()`.
 
 ## Auth Dashboard Settings
 
@@ -79,6 +81,7 @@ Current baseline rules:
 - `get_my_workspace_context()` is executable only by authenticated users and returns only the caller's own non-sensitive profile, role, membership, and manager context.
 - `admin-project-cycles` validates the caller's JWT and active profile before using scoped role records for project/cycle/member/assignment administration.
 - `user-onboarding` validates the caller's JWT, recomputes system-admin scope for management actions, and binds acceptance to the invited Auth user id and verified email.
+- `organization-administration` recomputes system-admin scope, returns only authorized organization identity metadata, and delegates all mutations to service-role-only atomic RPCs.
 - `PLATFORM` is the global null-id scope; organization, team, project, and evaluation-cycle roles must use explicit `scope_id` values.
 - No plaintext evaluation scores, comments, lessons learned content, or evaluator-to-response linkage are stored.
 - Sensitive evaluation submission and reporting flows must be implemented through trusted server-side functions later.
@@ -96,3 +99,13 @@ npm run fixture:demo
 The fixture command prints generated test credentials. Do not commit the output or add service-role values to Vite environment variables.
 
 At least one synthetic fixture user has been verified through local sign-in. Recreate or rotate fixture users with the script whenever credentials need to be refreshed for acceptance testing. The fixture also creates `Yanki Demo Project` and a project-completion evaluation cycle that closes on 2026-07-30.
+
+## Hierarchy Administration Smoke Test
+
+The reusable live smoke script reads public Supabase connection values and synthetic admin/employee credentials from process environment variables. It does not contain credentials and must not be run against real employee accounts.
+
+```bash
+npm run smoke:hierarchy
+```
+
+The script lists authorized hierarchy data, creates and archives a temporary unit, performs an idempotent hierarchy update, assigns and ends a temporary reviewer role, verifies manager-cycle rejection, and verifies employee and unauthenticated denial. It leaves safe audit records and an archived synthetic unit for traceability.

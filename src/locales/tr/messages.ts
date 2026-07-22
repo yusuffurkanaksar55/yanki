@@ -143,10 +143,10 @@ export const tr = {
         ]
       },
       {
-        status: "Yetkilendirme bekliyor",
+        status: "Canlı temel",
         title: "Rol ve hiyerarşi",
         description:
-          "Birden fazla admin, CEO, proje müdürü ve takım lideri kapsamlı rol atamalarıyla yönetilecek.",
+          "Birimler, ana üyelikler, doğrudan yönetici ilişkileri ve kapsamlı roller güvenilir backend üzerinden yönetilir.",
         items: [
           "Birim yönetimi",
           "Rol kapsamı",
@@ -232,6 +232,70 @@ export const tr = {
         USER_INVITATION_CREATE_FAILED: "Davet oluşturulamadı.",
         USER_INVITATION_REVOKE_FAILED: "Davet iptal edilemedi.",
         genericError: "Beklenmeyen bir kullanıcı yönetimi hatası oluştu."
+      }
+    },
+    hierarchy: {
+      sectionLabel: "Rol ve organizasyon hiyerarşisi yönetimi",
+      eyebrow: "Organizasyon yapısı",
+      title: "Rol ve hiyerarşi",
+      loading: "Organizasyon yapısı yükleniyor.",
+      empty: "Yönetilebilecek aktif bir organizasyon bulunamadı.",
+      organization: "Organizasyon",
+      units: {
+        title: "Birimler",
+        selectedUnit: "Düzenlenecek birim",
+        newUnit: "Yeni birim",
+        name: "Birim adı",
+        slug: "Birim kodu",
+        type: "Birim türü",
+        parent: "Üst birim",
+        noParent: "Üst birim yok",
+        status: "Durum",
+        active: "Aktif",
+        archived: "Arşivlenmiş",
+        submitCreate: "Birim oluştur",
+        submitUpdate: "Birimi güncelle",
+        submitting: "Kaydediliyor"
+      },
+      people: {
+        title: "Üyelik ve yönetici",
+        user: "Çalışan",
+        primaryUnit: "Ana birim",
+        membershipKind: "Üyelik türü",
+        member: "Üye",
+        leader: "Lider",
+        manager: "Doğrudan yönetici",
+        noManager: "Doğrudan yönetici yok",
+        submit: "Hiyerarşiyi güncelle",
+        submitting: "Güncelleniyor"
+      },
+      roles: {
+        title: "Rol atamaları",
+        user: "Çalışan",
+        role: "Rol",
+        unit: "Rol birimi",
+        submit: "Rol ata",
+        submitting: "Atanıyor",
+        activeTitle: "Etkin roller",
+        empty: "Bu çalışan için yönetilebilir etkin rol yok.",
+        end: "Rolü sonlandır",
+        ending: "Sonlandırılıyor"
+      },
+      feedback: {
+        unitSaved: "Birim kaydedildi.",
+        contextSaved: "Üyelik ve yönetici bilgisi güncellendi.",
+        roleAssigned: "Rol atandı.",
+        roleEnded: "Rol sonlandırıldı.",
+        HIERARCHY_ADMINISTRATION_SESSION_REQUIRED:
+          "Oturum doğrulanamadı. Lütfen tekrar giriş yap.",
+        HIERARCHY_ADMINISTRATION_LIST_FAILED:
+          "Rol ve hiyerarşi bilgileri okunamadı.",
+        HIERARCHY_UNIT_SAVE_FAILED: "Birim kaydedilemedi.",
+        HIERARCHY_CONTEXT_SAVE_FAILED:
+          "Üyelik ve yönetici bilgisi güncellenemedi.",
+        HIERARCHY_ROLE_ASSIGN_FAILED: "Rol atanamadı.",
+        HIERARCHY_ROLE_END_FAILED: "Rol sonlandırılamadı.",
+        genericError: "Beklenmeyen bir rol ve hiyerarşi hatası oluştu."
       }
     },
     projects: {
