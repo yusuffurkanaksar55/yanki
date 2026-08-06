@@ -24,6 +24,7 @@ Read these files before making meaningful changes:
 - `docs/SECURITY_MODEL.md`
 - `docs/AUTHORIZATION_MODEL.md`
 - `docs/DATA_MODEL.md`
+- `docs/DEPLOYMENT.md`
 - `docs/ERROR_LOG.md`
 - `docs/KNOWN_ISSUES.md`
 - `docs/DEVELOPMENT_LOG.md`
@@ -39,6 +40,7 @@ npm run typecheck
 npm test
 npm run build
 npm run check
+npm run deployment:config
 npm run supabase:lint:linked
 npm run supabase:push:dry-run
 ```
@@ -49,7 +51,11 @@ When Supabase and end-to-end workflows are added, extend the command set with Su
 
 For each meaningful change:
 
-- Append a development log entry.
-- Update `docs/TEST_REPORT.md`.
+- Add the newest development log and test report entries at the top.
+- Keep only the latest 5 entries in `docs/DEVELOPMENT_LOG.md` and `docs/TEST_REPORT.md`.
+- Keep only the latest 10 real entries in `docs/ERROR_LOG.md`; preserve its template.
+- Run `npm run memory:trim` after updating these operational logs.
 - Update architecture, security, data model, authorization, assumptions, known issues, or ADR files when decisions or behavior change.
 - Record discovered errors in `docs/ERROR_LOG.md`.
+
+Durable decisions and current truth belong in ADRs, `CHANGELOG.md`, and the focused context documents. Operational logs are intentionally bounded so repository memory remains concise.

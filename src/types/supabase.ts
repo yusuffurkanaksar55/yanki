@@ -410,6 +410,7 @@ export type Database = {
           ends_at: string | null
           id: string
           membership_kind: string
+          organization_id: string
           project_id: string
           starts_at: string
           updated_at: string
@@ -420,6 +421,7 @@ export type Database = {
           ends_at?: string | null
           id?: string
           membership_kind?: string
+          organization_id: string
           project_id: string
           starts_at?: string
           updated_at?: string
@@ -430,6 +432,7 @@ export type Database = {
           ends_at?: string | null
           id?: string
           membership_kind?: string
+          organization_id?: string
           project_id?: string
           starts_at?: string
           updated_at?: string
@@ -437,11 +440,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "project_memberships_project_id_fkey"
-            columns: ["project_id"]
+            foreignKeyName: "project_memberships_organization_fk"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_memberships_project_tenant_fk"
+            columns: ["organization_id", "project_id"]
             isOneToOne: false
             referencedRelation: "projects"
-            referencedColumns: ["id"]
+            referencedColumns: ["organization_id", "id"]
           },
         ]
       }
@@ -805,6 +815,10 @@ export type Database = {
         }
       }
       get_my_workspace_context: { Args: never; Returns: Json }
+      require_active_organization_identity: {
+        Args: { checked_organization_id: string; checked_user_id: string }
+        Returns: undefined
+      }
       require_active_system_admin: {
         Args: { actor_user_id: string; managed_organization_id: string }
         Returns: undefined

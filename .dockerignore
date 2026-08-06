@@ -1,0 +1,15 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+node_modules
+dist
+coverage
+.supabase
+supabase/.branches
+supabase/.temp
+playwright-report
+test-results
+vite-dev-server*.log
+*.tsbuildinfo

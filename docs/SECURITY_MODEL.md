@@ -101,6 +101,16 @@ Forbidden logs include scores, comments, lessons learned text, decrypted payload
 
 Database readers may see ciphertext and non-sensitive metadata only. Database encryption protects stored content from direct database inspection, but a party controlling both application code and encryption secrets could alter the system to access content. This limitation must remain documented and must not be hidden in product claims.
 
+## Tenant Isolation
+
+`organizations.id` is the canonical tenant boundary in shared deployments. Trusted actions must derive organization scope from database records and reject client-selected cross-tenant relationships. Tenant-owned tables carry or derive the organization id, and database constraints require active organization membership for project managers, project members, manager relationships, evaluators, and evaluation subjects.
+
+`user_profiles` remains global because one Auth identity may participate in multiple organizations. Membership, roles, projects, assignments, submissions, and reports remain organization-scoped. Dedicated customer infrastructure adds physical isolation but does not relax these application controls.
+
+## Self-Hosted Responsibility
+
+In customer-managed installations, the customer controls the host, database, application code, and secrets. The operator is responsible for TLS, network isolation, patching, backups, restore drills, availability, monitoring, SMTP, and secret rotation. The product must not claim protection from an operator that controls both ciphertext and encryption keys. Browser runtime configuration still contains public values only.
+
 ## Remaining Security Work
 
 - Complete live invitation email delivery and acceptance verification with an approved test mailbox.
@@ -109,3 +119,4 @@ Database readers may see ciphertext and non-sensitive metadata only. Database en
 - Implement Edge Functions for anonymous credential issuance, redemption, encryption, and reporting.
 - Implement key management and key rotation procedures.
 - Add security regression tests for self-access, threshold enforcement, duplicate credential redemption, plaintext persistence, and authorization bypass attempts.
+- Add executable cross-tenant database tests against a running local or dedicated Supabase stack.

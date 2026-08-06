@@ -6,7 +6,7 @@ The product is a secure company-internal web platform for anonymous employee, te
 
 ## Current Architecture
 
-The repository currently contains the documentation foundation and a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library application scaffold. The target backend architecture remains Supabase PostgreSQL, Supabase Auth, Supabase Edge Functions, and Supabase Row Level Security.
+The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library application, Supabase PostgreSQL/Auth/Edge Function foundations, and a portable Docker/Nginx frontend package. The product supports vendor-hosted shared SaaS and customer-managed dedicated Supabase deployments with the same application schema.
 
 ## Current Implementation Status
 
@@ -19,6 +19,9 @@ The repository currently contains the documentation foundation and a React, Type
 - Project and evaluation-cycle configuration: default-deny project, project membership, and time-bound evaluation-cycle foundation implemented.
 - Evaluation assignment planning: default-deny assignment table and admin-only project assignment generation foundation implemented from active project memberships.
 - Delegated project date administration: system administrators and assigned project managers can atomically update project completion and evaluation close dates through a trusted boundary.
+- Deployment portability: one frontend image can receive public Supabase runtime configuration at container startup and run against managed or self-hosted Supabase.
+- Multi-tenant integrity: `organizations.id` is the company boundary; project memberships carry explicit organization scope and identity-bearing relationships require active matching organization membership.
+- Bounded repository memory: development and test logs retain 5 entries, error logs retain 10 entries, and durable decisions remain in ADRs and focused context documents.
 - Authenticated integration verification: synthetic admin, project-manager, and employee accounts have been exercised against the deployed Auth, project, onboarding, and organization-administration boundaries.
 - Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context RPC, project, evaluation-cycle, and evaluation-assignment migrations applied.
 - Edge Functions: `admin-project-cycles` handles project/cycle/member/assignment administration; `user-onboarding` handles scoped invitation options, creation, revocation, and authenticated acceptance; `organization-administration` handles existing-user roles and hierarchy.
@@ -52,7 +55,7 @@ The repository currently contains the documentation foundation and a React, Type
 
 ## Current Database Structure
 
-The applied Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, `user_invitations`, `organizations`, `organization_units`, `organization_unit_memberships`, `manager_assignments`, `projects`, `project_memberships`, `evaluation_cycles`, `evaluation_assignments`, `get_my_workspace_context()`, service-role-only `accept_user_invitation()`, service-role-only atomic organization-administration functions, and service-role-only `admin_update_project_dates()`. RLS is enabled on all public tables. The only client-facing table policy allows authenticated users to read their own `user_profiles` row. The workspace context RPC returns only the caller's own non-sensitive role, unit, and manager context. Invitation, organization, project, evaluation-cycle, and evaluation-assignment administration records remain default-deny to frontend clients. The conceptual complete data model is documented in `docs/DATA_MODEL.md`.
+The Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, `user_invitations`, `organizations`, `organization_units`, `organization_unit_memberships`, `manager_assignments`, `projects`, `project_memberships`, `evaluation_cycles`, `evaluation_assignments`, `get_my_workspace_context()`, service-role-only `accept_user_invitation()`, service-role-only atomic organization-administration functions, and service-role-only `admin_update_project_dates()`. The tenant hardening migration adds explicit organization scope to project memberships and active-tenant identity constraints. RLS is enabled on all public tables. The only client-facing table policy allows authenticated users to read their own `user_profiles` row. Other administration records remain default-deny to frontend clients.
 
 ## Current Authentication Model
 
@@ -68,31 +71,22 @@ Runtime evaluation authorization is not implemented. Current trusted administrat
 - Runtime authorization, encryption, anonymous credential, and reporting controls are not implemented.
 - Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
 - No Microsoft Entra ID, employee assignment inbox, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
+- The Docker delivery foundation exists, but production organization bootstrap, backup automation, release automation, and customer acceptance automation are not implemented.
+- Docker CLI is installed locally, but Docker Engine was not running during the latest container verification.
 - Synthetic test users were created by running `npm run fixture:demo`. Authenticated administration, project-manager visibility, employee denial, project membership, and assignment-generation smoke checks have been verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
 
-- 2026-07-16: Created the initial persistent project memory foundation and documentation validation test.
-- 2026-07-16: Scaffolded the React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library application foundation.
-- 2026-07-19: Linked Supabase project `daxaymcmtbmummrxdyjy` and applied the initial default-deny security foundation migration.
-- 2026-07-19: Initialized Git, connected GitHub remote `yusuffurkanaksar55/yanki`, and pushed `main`.
-- 2026-07-19: Added typed Supabase Auth client foundation and generated database types.
-- 2026-07-19: Added user profile and invitation onboarding foundation.
-- 2026-07-19: Added configurable organization hierarchy and demo fixture foundation.
-- 2026-07-19: Added authenticated workspace context RPC and dashboard panel.
-- 2026-07-19: Added protected administration shell and default-deny project/evaluation-cycle foundation.
-- 2026-07-19: Added admin project/cycle Edge Function and frontend management panel.
-- 2026-07-20: Extended admin project management with organization member lookup and project membership assignment through the Edge Function.
-- 2026-07-20: Added default-deny evaluation assignment planning from project memberships through the Edge Function.
-- 2026-07-20: Completed authenticated live smoke verification for admin project creation, membership management, assignment generation, project-manager visibility, and employee administration denial.
-- 2026-07-20: Added Supabase Auth-backed invitation creation/revocation, service-role-only atomic acceptance, Turkish admin invitation management, and invited-profile acceptance UI.
-- 2026-07-22: Added and deployed trusted existing-user role, organization-unit, primary-membership, and direct-manager administration with Turkish system-admin UI and live synthetic verification.
-- 2026-07-22: Added and deployed atomic project completion/evaluation close date updates for scoped system administrators and assigned project managers, with Turkish UI and live synthetic verification.
+- 2026-08-06: Added portable managed/self-hosted deployment foundation, organization tenant hardening, and bounded repository-memory automation.
+- 2026-07-22: Added and deployed atomic project completion/evaluation close date updates for scoped system administrators and assigned project managers.
+- 2026-07-22: Added and deployed trusted existing-user role, organization-unit, primary-membership, and direct-manager administration.
+- 2026-07-20: Added Supabase Auth-backed invitation onboarding and atomic acceptance.
+- 2026-07-20: Added default-deny evaluation assignment planning and authenticated administration verification.
 
 ## Current Development Priorities
 
-1. Configure or verify Supabase Auth email delivery and run invitation delivery/acceptance smoke testing with an approved test mailbox.
-2. Implement employee-facing assignment access with scoped server-side authorization and narrowly reviewed RLS/RPC boundaries.
-3. Implement versioned evaluation templates and bind assignments to immutable template versions.
-4. Implement anonymous credentials and encrypted submissions before reporting.
-5. Implement scoped reporting with threshold and self-access prevention, then add Playwright end-to-end coverage.
+1. Implement employee-facing assignment access with scoped server-side authorization and narrowly reviewed RLS/RPC boundaries.
+2. Implement versioned evaluation templates and bind assignments to immutable template versions.
+3. Implement anonymous credentials and encrypted submissions before reporting or production deployment.
+4. Add production tenant bootstrap, database-backed cross-tenant tests, backup/restore automation, and customer deployment acceptance checks.
+5. Configure email delivery when a provider is approved, then implement scoped reporting and Playwright end-to-end coverage.

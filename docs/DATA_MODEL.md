@@ -81,13 +81,15 @@ The service-role-only organization-administration functions mutate units, primar
 
 `projects` stores identity-domain project metadata, including project manager, status, and optional start/completion dates.
 
-`project_memberships` stores project participation and project-management membership metadata. Administrators can now add active organization members to projects through `admin-project-cycles`; browser clients still do not read or write this table directly.
+`project_memberships` stores project participation and project-management membership metadata. It carries a required `organization_id` and a composite foreign key that must match the parent project tenant. Administrators can add active organization members to projects through `admin-project-cycles`; browser clients still do not read or write this table directly.
 
 `evaluation_cycles` stores time-bound evaluation configuration with open and close timestamps, optional project completion date, cycle type, status, and anonymity threshold. It does not require a fixed participant count to open a cycle.
 
 `admin_update_project_dates()` atomically updates `projects.completes_on`, `evaluation_cycles.project_completed_on`, and `evaluation_cycles.closes_at` after verifying record scope, editable status, date ordering, and current system-administrator or exact assigned-project-manager authority. It is executable only by `service_role`.
 
 `evaluation_assignments` stores identity-domain evaluator-to-subject eligibility for a cycle, with assignment kind and completion status. It prevents self assignments, validates organization and project scope consistency, remains default-deny to frontend clients, and does not store scores, comments, lessons learned text, anonymous credentials, encrypted payloads, or response content.
+
+Project managers, project members, manager relationships, evaluators, and evaluation subjects must have active profiles and active memberships in the matching organization. Direct-manager uniqueness is scoped per organization so one global Auth identity can participate in multiple tenants.
 
 `get_my_workspace_context()` returns the authenticated caller's own profile, roles, memberships, and manager relationships as non-sensitive JSON. It is not an evaluation content API and must not include scores, comments, submissions, anonymous credentials, or decrypted payloads.
 

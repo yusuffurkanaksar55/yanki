@@ -11,6 +11,9 @@
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
     "test:watch": "vitest",
+    "memory:trim": "node scripts/trim-project-memory.mjs",
+    "memory:check": "node scripts/trim-project-memory.mjs --check",
+    "deployment:config": "docker compose --env-file deploy/compose.env.example config --quiet",
     "fixture:demo": "node scripts/create-demo-fixture.mjs",
     "smoke:hierarchy": "node scripts/smoke-hierarchy-administration.mjs",
     "smoke:project-dates": "node scripts/smoke-project-date-administration.mjs",
@@ -18,7 +21,7 @@
     "supabase:lint:linked": "npx supabase db lint --linked",
     "supabase:push:dry-run": "npx supabase db push --dry-run",
     "supabase:types": "npx supabase gen types typescript --linked > src/types/supabase.ts",
-    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+    "check": "npm run lint && npm run typecheck && npm test && npm run build && npm run memory:check"
   },
   "engines": {
     "node": ">=20"

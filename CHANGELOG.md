@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-08-06
+
+### Added
+
+- Added one-image runtime public configuration for managed and self-hosted Supabase environments.
+- Added a multi-stage Dockerfile, Nginx SPA/health configuration, Compose example, and customer deployment guide.
+- Added explicit project-membership tenant scope and database tenant-identity validation for project, hierarchy, and evaluation relationships.
+- Scoped active direct-manager uniqueness per organization for multi-company identities.
+- Added ADR-0016 for shared/dedicated deployments and ADR-0017 for organization tenant integrity.
+- Added automatic retention of the latest 5 development/test entries and latest 10 error entries.
+
 ## 2026-07-22
 
 ### Added

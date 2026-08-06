@@ -33,4 +33,36 @@ describe("readPublicEnvironment", () => {
       })
     ).toThrow(EnvironmentConfigurationError);
   });
+
+  it("prefers a complete runtime configuration over build-time values", () => {
+    expect(
+      readPublicEnvironment(
+        {
+          VITE_SUPABASE_URL: "https://build.example.com",
+          VITE_SUPABASE_ANON_KEY: "build-key"
+        },
+        {
+          supabaseUrl: " https://customer.example.com ",
+          supabaseAnonKey: " customer-public-key "
+        }
+      )
+    ).toEqual({
+      supabaseUrl: "https://customer.example.com",
+      supabaseAnonKey: "customer-public-key"
+    });
+  });
+
+  it("rejects a partial runtime configuration instead of mixing environments", () => {
+    expect(() =>
+      readPublicEnvironment(
+        {
+          VITE_SUPABASE_URL: "https://build.example.com",
+          VITE_SUPABASE_ANON_KEY: "build-key"
+        },
+        {
+          supabaseUrl: "https://customer.example.com"
+        }
+      )
+    ).toThrow(EnvironmentConfigurationError);
+  });
 });

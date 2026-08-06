@@ -6,7 +6,7 @@ Secure company-internal web platform for anonymous employee, team, project, mana
 
 ## Current Status
 
-The repository is in application foundation phase. It contains persistent project memory, security architecture notes, authorization boundaries, data model documentation, ADRs, a React + TypeScript + Vite application shell, Supabase Auth-backed invitation/profile onboarding, configurable organization hierarchy, trusted existing-user role/hierarchy administration, authenticated own-workspace context, protected administration, project/evaluation-cycle configuration, atomic delegated project-date management, default-deny evaluation assignment planning, trusted user/project administration Edge Functions, Tailwind CSS styling, ESLint, TypeScript checking, Vitest, and React Testing Library tests.
+The repository is in application foundation phase. It contains persistent project memory, security architecture notes, authorization boundaries, data model documentation, ADRs, a React + TypeScript + Vite application shell, Supabase Auth-backed invitation/profile onboarding, configurable organization hierarchy, trusted existing-user role/hierarchy administration, authenticated own-workspace context, protected administration, project/evaluation-cycle configuration, atomic delegated project-date management, default-deny evaluation assignment planning, trusted user/project administration Edge Functions, a portable Docker/Nginx frontend package, explicit multi-tenant database integrity controls, Tailwind CSS styling, ESLint, TypeScript checking, Vitest, and React Testing Library tests.
 
 Invitation delivery and acceptance still need an approved mailbox smoke test. Employee assignment inbox, evaluation authorization enforcement, versioned evaluation templates, anonymous credential flow, and encryption runtime have not been implemented yet.
 
@@ -21,6 +21,8 @@ Invitation delivery and acceptance still need an approved mailbox smoke test. Em
 - Supabase Auth
 - Supabase Edge Functions
 - Supabase Row Level Security
+- Docker and Docker Compose
+- Nginx
 - Vitest
 - React Testing Library
 - Playwright
@@ -45,6 +47,9 @@ npm run typecheck
 npm test
 npm run build
 npm run check
+npm run memory:trim
+npm run memory:check
+npm run deployment:config
 npm run smoke:hierarchy
 npm run smoke:project-dates
 npm run supabase:migrations
@@ -59,7 +64,11 @@ These commands currently validate the React application scaffold, documentation 
 
 The remote Supabase project is linked to project ref `daxaymcmtbmummrxdyjy`. Public frontend environment examples are documented in `.env.example`; real local values belong in `.env.local`, which is ignored by Git.
 
-The applied migrations create a default-deny security foundation, Auth-backed user invitation/profile onboarding, configurable organization hierarchy tables, atomic organization-administration functions, project and time-bound evaluation-cycle configuration tables, atomic delegated project-date administration, an evaluation assignment planning table, a narrow authenticated own-workspace context RPC, and a service-role-only atomic invitation acceptance function. They do not create evaluation submission tables or store sensitive evaluation content.
+The applied migrations create a default-deny security foundation, Auth-backed user invitation/profile onboarding, configurable organization hierarchy tables, atomic organization-administration functions, project and time-bound evaluation-cycle configuration tables, atomic delegated project-date administration, an evaluation assignment planning table, a narrow authenticated own-workspace context RPC, and a service-role-only atomic invitation acceptance function. The pending multi-tenant hardening migration makes project membership tenant scope explicit and validates organization membership for identity-bearing relationships. The schema does not create evaluation submission tables or store sensitive evaluation content.
+
+## Deployment
+
+The same application supports a vendor-hosted shared SaaS topology and a customer-managed dedicated topology. The frontend image reads only public Supabase configuration at container startup, so one immutable image can target managed or self-hosted Supabase without rebuilding. See `docs/DEPLOYMENT.md` for tools, topology, installation, backup, update, and production-gate requirements.
 
 ## Demo Fixtures
 
@@ -80,3 +89,4 @@ Only public Supabase values are used in the browser. Service-role keys, database
 - `docs/AUTHORIZATION_MODEL.md` - roles and scoped access rules
 - `docs/DATA_MODEL.md` - initial conceptual data model
 - `docs/decisions/` - architecture decision records
+- `docs/DEPLOYMENT.md` - shared SaaS and customer-managed deployment runbook

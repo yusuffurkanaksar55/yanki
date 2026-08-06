@@ -3,9 +3,14 @@ export type PublicEnvironment = {
   readonly supabaseAnonKey: string;
 };
 
-type PublicEnvironmentInput = {
+export type BuildTimePublicEnvironment = {
   readonly VITE_SUPABASE_URL?: string;
   readonly VITE_SUPABASE_ANON_KEY?: string;
+};
+
+export type RuntimePublicEnvironment = {
+  readonly supabaseUrl?: string;
+  readonly supabaseAnonKey?: string;
 };
 
 export class EnvironmentConfigurationError extends Error {
@@ -18,25 +23,47 @@ export class EnvironmentConfigurationError extends Error {
 }
 
 export function readPublicEnvironment(
-  environment: PublicEnvironmentInput = import.meta.env as PublicEnvironmentInput
+  buildTimeEnvironment: BuildTimePublicEnvironment =
+    import.meta.env as BuildTimePublicEnvironment,
+  runtimeEnvironment: RuntimePublicEnvironment | undefined =
+    readBrowserRuntimeEnvironment()
 ): PublicEnvironment {
-  const supabaseUrl = normalizeRequiredValue(environment.VITE_SUPABASE_URL);
+  const hasRuntimeEnvironment =
+    runtimeEnvironment?.supabaseUrl !== undefined ||
+    runtimeEnvironment?.supabaseAnonKey !== undefined;
+  const supabaseUrl = normalizeRequiredValue(
+    hasRuntimeEnvironment
+      ? runtimeEnvironment?.supabaseUrl
+      : buildTimeEnvironment.VITE_SUPABASE_URL
+  );
   const supabaseAnonKey = normalizeRequiredValue(
-    environment.VITE_SUPABASE_ANON_KEY
+    hasRuntimeEnvironment
+      ? runtimeEnvironment?.supabaseAnonKey
+      : buildTimeEnvironment.VITE_SUPABASE_ANON_KEY
   );
 
   if (!supabaseUrl || !isValidHttpUrl(supabaseUrl)) {
-    throw new EnvironmentConfigurationError("VITE_SUPABASE_URL is invalid.");
+    throw new EnvironmentConfigurationError("Public Supabase URL is invalid.");
   }
 
   if (!supabaseAnonKey) {
-    throw new EnvironmentConfigurationError("VITE_SUPABASE_ANON_KEY is missing.");
+    throw new EnvironmentConfigurationError(
+      "Public Supabase anonymous key is missing."
+    );
   }
 
   return {
     supabaseUrl,
     supabaseAnonKey
   };
+}
+
+function readBrowserRuntimeEnvironment(): RuntimePublicEnvironment | undefined {
+  if (typeof window === "undefined") {
+    return undefined;
+  }
+
+  return window.__YANKI_CONFIG__;
 }
 
 function normalizeRequiredValue(value: string | undefined): string | null {

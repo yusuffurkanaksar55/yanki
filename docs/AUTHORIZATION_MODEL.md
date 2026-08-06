@@ -11,6 +11,13 @@ Authorization is documented and has a default-deny Supabase foundation, a narrow
 - Every sensitive action validates authentication, role, scope, ownership or hierarchy, input schema, and business rules in trusted server-side code.
 - Database Row Level Security enforces access restrictions where applicable.
 - UI route guards improve usability but are not security boundaries.
+- Every organization-owned action resolves one explicit tenant id and rejects cross-tenant identity references.
+
+## Tenant Boundary
+
+`organizations.id` is the canonical tenant identifier. Shared SaaS users may belong to more than one organization, so identity is global while memberships and authorization are scoped. Project membership stores `organization_id` explicitly and must match its parent project. Project managers, project members, manager relationships, evaluators, and subjects require active membership in the matching organization.
+
+Dedicated customer installations retain the same checks. Physical infrastructure isolation is defense in depth, not authorization.
 
 ## Current Database Foundation
 

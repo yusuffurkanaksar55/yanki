@@ -378,6 +378,7 @@ async function upsertManagerAssignments(
     const { data: existingAssignment, error: readError } = await supabase
       .from("manager_assignments")
       .select("id")
+      .eq("organization_id", organizationId)
       .eq("direct_report_user_id", directReport.userId)
       .eq("relationship_type", "DIRECT_MANAGER")
       .is("ends_at", null)
@@ -411,7 +412,7 @@ async function upsertManagerAssignments(
 async function upsertProjectAndEvaluationCycle(organizationId, accountRecords) {
   const project = await upsertProject(organizationId, accountRecords);
 
-  await upsertProjectMemberships(project.id, accountRecords);
+  await upsertProjectMemberships(organizationId, project.id, accountRecords);
   await upsertProjectManagerRole(project.id, accountRecords);
   await upsertEvaluationCycle(organizationId, project.id, accountRecords);
 }
@@ -459,7 +460,11 @@ async function upsertProject(organizationId, accountRecords) {
   return data;
 }
 
-async function upsertProjectMemberships(projectId, accountRecords) {
+async function upsertProjectMemberships(
+  organizationId,
+  projectId,
+  accountRecords
+) {
   const memberships = [
     { accountKey: "ceo", membershipKind: "SPONSOR" },
     { accountKey: "team_leader", membershipKind: "PROJECT_MANAGER" },
@@ -471,6 +476,7 @@ async function upsertProjectMemberships(projectId, accountRecords) {
   for (const membership of memberships) {
     const account = requireAccountRecord(accountRecords, membership.accountKey);
     await upsertProjectMembership(
+      organizationId,
       projectId,
       account.userId,
       membership.membershipKind
@@ -478,7 +484,12 @@ async function upsertProjectMemberships(projectId, accountRecords) {
   }
 }
 
-async function upsertProjectMembership(projectId, userId, membershipKind) {
+async function upsertProjectMembership(
+  organizationId,
+  projectId,
+  userId,
+  membershipKind
+) {
   const { data: existingMembership, error: readError } = await supabase
     .from("project_memberships")
     .select("id")
@@ -493,6 +504,7 @@ async function upsertProjectMembership(projectId, userId, membershipKind) {
   }
 
   const payload = {
+    organization_id: organizationId,
     project_id: projectId,
     user_id: userId,
     membership_kind: membershipKind

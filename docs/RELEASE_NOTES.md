@@ -1,5 +1,13 @@
 # Release Notes
 
+## 2026-08-06 - Portable Deployment And Tenant Integrity Foundation
+
+This is not a product release. The application now has a multi-stage Docker/Nginx frontend package whose public Supabase configuration is written at container startup. The same reviewed image can target vendor-managed or customer-managed Supabase without embedding customer-specific server secrets.
+
+`organizations.id` is now the documented tenant boundary. The new migration makes project membership scope explicit, requires active matching organization membership for identity-bearing project, hierarchy, and evaluation relationships, and allows one Auth user to have independent direct managers in different companies.
+
+Operational repository memory is bounded to 5 development/test entries and 10 error entries while ADRs and current-context documents preserve durable decisions. Docker Engine was not running during local image verification, and production bootstrap, encrypted evaluation flows, backup automation, and customer acceptance automation remain release blockers.
+
 ## 2026-07-22 - Delegated Project Date Administration
 
 This is not a product release. System administrators and exact assigned project managers can now update project completion and evaluation close dates from the Turkish administration UI.

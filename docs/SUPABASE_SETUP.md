@@ -1,5 +1,7 @@
 # Supabase Setup
 
+For customer-managed dedicated installation, use the official self-hosted Supabase Docker release and follow `docs/DEPLOYMENT.md`. The Supabase CLI local stack is a development tool and is not the production self-host topology.
+
 ## Remote Project
 
 - Project ref: `daxaymcmtbmummrxdyjy`

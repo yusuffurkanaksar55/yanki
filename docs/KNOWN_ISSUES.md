@@ -141,20 +141,47 @@ Medium
 
 ### Description
 
-Docker Desktop is installed, but `docker` is not available on PATH in the current shell. The default Docker binary path exists, reading Docker config emitted a user-profile permission warning, and Supabase CLI migration catalog caching later received a Docker Desktop API 500 image-inspection response.
+Docker CLI 29.6.1 is installed and available on PATH, but Docker Engine was not running during the 2026-08-06 deployment verification. Reading the user Docker config also emitted a workspace permission warning.
 
 ### Impact
 
-Local `supabase db reset`, local database linting, and local Studio workflows have not been verified yet.
+Container image build, local `supabase db reset`, local database linting, and local Studio workflows have not been verified yet.
 
 ### Workaround
 
-Use linked remote lint for now. Add Docker to PATH or run Docker-aware commands from a normal terminal.
+Use static deployment tests and linked remote database checks for now. Start Docker Desktop before local container verification.
 
 ### Planned resolution
 
-Verify Docker CLI access, then run `npx supabase start`, `npx supabase db reset`, and `npx supabase db lint --local`.
+Start Docker Desktop, build the application image, run its health check, then run `npx supabase start`, `npx supabase db reset`, and `npx supabase db lint --local`.
 
 ### Related tests
 
 - `npx supabase db lint --linked`
+
+## ISSUE-007 - Production dedicated-install automation is incomplete
+
+### Severity
+
+High
+
+### Description
+
+The repository now contains a portable frontend image, customer Compose example, self-host deployment runbook, and tenant-integrity migration. Production organization bootstrap, backup/restore automation, immutable release publishing, customer acceptance automation, and encrypted evaluation workflows are not implemented.
+
+### Impact
+
+The deployment package can be tested as infrastructure foundation but must not be handed over for live evaluation content.
+
+### Workaround
+
+None for production. Use managed development and synthetic fixture environments only.
+
+### Planned resolution
+
+Complete the sensitive evaluation runtime first, then add a reviewed first-organization bootstrap boundary, image publishing with checksums, backup/restore drills, deployment smoke tests, and an operator acceptance checklist.
+
+### Related tests
+
+- `tests/deployment-foundation.test.mjs`
+- `tests/tenant-isolation.test.mjs`

@@ -2,7 +2,7 @@
 
 ## Status
 
-Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has default-deny security, Supabase Auth-backed invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context, project/evaluation-cycle, and evaluation-assignment migrations. A typed Supabase Auth client, own-profile gate, own-workspace context panel, protected administration shell, user invitation management, trusted existing-user role/hierarchy management, and trusted project/cycle/member/assignment administration are implemented.
+Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has default-deny security, Supabase Auth-backed invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context, project/evaluation-cycle, and evaluation-assignment migrations. A typed Supabase Auth client, own-profile gate, own-workspace context panel, protected administration shell, user invitation management, trusted existing-user role/hierarchy management, trusted project/cycle/member/assignment administration, portable Docker/Nginx frontend, and multi-tenant integrity hardening migration are implemented.
 
 ## Target System
 
@@ -12,7 +12,19 @@ The target system is a single-page web application with a trusted backend bounda
 - Auth: Supabase Auth for email/password, invitation onboarding, password reset, and Microsoft Entra ID.
 - Database: Supabase PostgreSQL with Row Level Security enabled for all exposed tables.
 - Trusted server code: Supabase Edge Functions for sensitive validation, anonymous credential handling, encryption, decryption, aggregation, and reporting.
+- Runtime delivery: one Docker image serving the static SPA through Nginx, configured at container startup with public Supabase values.
 - Tests: Vitest and React Testing Library for the current frontend scaffold and documentation foundation checks. Playwright and Supabase database tests are planned for later workflow phases.
+
+## Deployment Topologies
+
+- Shared SaaS: one vendor-operated stack stores multiple companies with `organizations.id` as the tenant boundary.
+- Dedicated: one customer-operated application container and one official self-hosted Supabase stack.
+
+Both topologies use the same migrations, Edge Functions, and tenant authorization. Dedicated infrastructure is additional isolation and never disables organization scope checks. The official Supabase self-host Compose project remains an external pinned dependency; this repository owns the application image and application-specific database/function artifacts. See `docs/DEPLOYMENT.md` and ADR-0016.
+
+## Runtime Configuration
+
+`/app-config.js` is loaded before the Vite bundle. A container entrypoint writes only the public Supabase URL and anon or publishable key. Local Vite development falls back to `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. A partial runtime configuration is rejected to prevent accidental mixing between customer and build-time environments.
 
 ## Module Boundaries
 
@@ -128,7 +140,7 @@ The initial migration creates `app_roles`, `scope_types`, `user_role_assignments
 - Own-profile service and gate: `src/features/profiles/profileService.ts`, `src/features/profiles/ProfileGate.tsx`
 - Own-workspace context service and gate: `src/features/workspace/workspaceContextService.ts`, `src/features/workspace/WorkspaceContextGate.tsx`
 
-The auth service is injectable so unit and component tests do not call the network. Browser runtime uses only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+The auth service is injectable so unit and component tests do not call the network. Local development uses only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`; container deployments inject equivalent public values through `/app-config.js` at startup.
 
 The profile service is injectable and reads only the authenticated user's own profile row. A signed-in user without an active profile sees a Turkish invitation onboarding state instead of the dashboard.
 

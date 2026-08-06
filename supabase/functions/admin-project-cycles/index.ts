@@ -437,6 +437,7 @@ async function createProjectCycle(
   if (input.projectManagerUserId) {
     await assignProjectManager(
       serviceClient,
+      input.organizationId,
       project.id,
       input.projectManagerUserId
     );
@@ -499,10 +500,16 @@ async function addProjectMember(
   );
 
   if (input.membershipKind === "PROJECT_MANAGER") {
-    await assignProjectManager(serviceClient, input.projectId, input.userId);
+    await assignProjectManager(
+      serviceClient,
+      project.organization_id,
+      input.projectId,
+      input.userId
+    );
   } else {
     await insertProjectMembership(
       serviceClient,
+      project.organization_id,
       input.projectId,
       input.userId,
       input.membershipKind
@@ -920,6 +927,7 @@ async function requireActiveOrganizationMember(
 
 async function insertProjectMembership(
   serviceClient: ReturnType<typeof createClient>,
+  organizationId: string,
   projectId: string,
   userId: string,
   membershipKind: ProjectMembershipKind
@@ -928,6 +936,7 @@ async function insertProjectMembership(
     .from("project_memberships")
     .insert({
       membership_kind: membershipKind,
+      organization_id: organizationId,
       project_id: projectId,
       user_id: userId
     });
@@ -968,6 +977,7 @@ async function writeAuditEvent(
 
 async function assignProjectManager(
   serviceClient: ReturnType<typeof createClient>,
+  organizationId: string,
   projectId: string,
   projectManagerUserId: string
 ) {
@@ -1019,6 +1029,7 @@ async function assignProjectManager(
 
   await insertProjectMembership(
     serviceClient,
+    organizationId,
     projectId,
     projectManagerUserId,
     "PROJECT_MANAGER"

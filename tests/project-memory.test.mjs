@@ -20,6 +20,7 @@ const requiredFiles = [
   "docs/TEST_REPORT.md",
   "docs/RELEASE_NOTES.md",
   "docs/ASSUMPTIONS.md",
+  "docs/DEPLOYMENT.md",
   "docs/SUPABASE_SETUP.md",
   "docs/TEST_FIXTURES.md",
   "docs/decisions/ADR-0001-use-react-vite-supabase.md",
@@ -36,7 +37,9 @@ const requiredFiles = [
   "docs/decisions/ADR-0012-use-default-deny-evaluation-assignment-planning.md",
   "docs/decisions/ADR-0013-use-supabase-auth-backed-invitation-onboarding.md",
   "docs/decisions/ADR-0014-use-atomic-organization-administration-boundary.md",
-  "docs/decisions/ADR-0015-use-atomic-delegated-project-date-administration.md"
+  "docs/decisions/ADR-0015-use-atomic-delegated-project-date-administration.md",
+  "docs/decisions/ADR-0016-support-shared-and-dedicated-deployments.md",
+  "docs/decisions/ADR-0017-enforce-organization-tenant-integrity.md"
 ];
 
 function readProjectFile(relativePath) {
@@ -71,5 +74,15 @@ describe("project memory foundation", () => {
 
     expect(authorizationModel).toMatch(/Report access requires the configured anonymity threshold to be met/);
     expect(authorizationModel).toMatch(/Users must not access results about themselves/);
+  });
+
+  it("documents portable deployment and tenant isolation", () => {
+    const deploymentGuide = readProjectFile("docs/DEPLOYMENT.md");
+    const tenantDecision = readProjectFile(
+      "docs/decisions/ADR-0017-enforce-organization-tenant-integrity.md"
+    );
+
+    expect(deploymentGuide).toMatch(/Customer-Managed Dedicated Installation/);
+    expect(tenantDecision).toMatch(/canonical tenant identifier/);
   });
 });

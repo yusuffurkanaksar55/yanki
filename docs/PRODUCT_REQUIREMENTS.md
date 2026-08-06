@@ -34,7 +34,10 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 - Administrators, or project managers delegated by administrators, may set project completion dates and evaluation close dates.
 - The website interface is Turkish.
 - Source code and technical artifacts are English.
-- Development history, errors, decisions, and tests are preserved in the repository.
+- The product supports both vendor-hosted multi-company SaaS and customer-managed dedicated installation.
+- Company data is isolated by an explicit tenant boundary even when multiple companies share one database.
+- Deployment artifacts must not contain customer server secrets.
+- Durable decisions are preserved; operational history is retained within documented bounded limits.
 
 ## Roles
 
