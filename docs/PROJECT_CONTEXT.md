@@ -18,6 +18,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Administration UI: protected hash-route administration shell implemented for admin-like roles, with system-admin invitation, role, unit, membership, direct-manager, project/cycle, project-member, and assignment management.
 - Project and evaluation-cycle configuration: default-deny project, project membership, and time-bound evaluation-cycle foundation implemented.
 - Evaluation assignment planning: default-deny assignment table and admin-only project assignment generation foundation implemented from active project memberships.
+- Employee assignment access: authenticated own-assignment RPC, typed frontend service, Turkish assignment inbox, server-derived availability states, and Docker-backed database authorization tests implemented.
 - Delegated project date administration: system administrators and assigned project managers can atomically update project completion and evaluation close dates through a trusted boundary.
 - Deployment portability: one frontend image can receive public Supabase runtime configuration at container startup and run against managed or self-hosted Supabase.
 - Multi-tenant integrity: `organizations.id` is the company boundary; project memberships carry explicit organization scope and identity-bearing relationships require active matching organization membership.
@@ -55,28 +56,29 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 
 ## Current Database Structure
 
-The Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, `user_invitations`, `organizations`, `organization_units`, `organization_unit_memberships`, `manager_assignments`, `projects`, `project_memberships`, `evaluation_cycles`, `evaluation_assignments`, `get_my_workspace_context()`, service-role-only `accept_user_invitation()`, service-role-only atomic organization-administration functions, and service-role-only `admin_update_project_dates()`. The tenant hardening migration adds explicit organization scope to project memberships and active-tenant identity constraints. RLS is enabled on all public tables. The only client-facing table policy allows authenticated users to read their own `user_profiles` row. Other administration records remain default-deny to frontend clients.
+The Supabase migrations create `app_roles`, `scope_types`, `user_role_assignments`, `audit_events`, `user_profiles`, `user_invitations`, `organizations`, `organization_units`, `organization_unit_memberships`, `manager_assignments`, `projects`, `project_memberships`, `evaluation_cycles`, `evaluation_assignments`, `get_my_workspace_context()`, `get_my_evaluation_assignments()`, service-role-only `accept_user_invitation()`, service-role-only atomic organization-administration functions, and service-role-only `admin_update_project_dates()`. The tenant hardening migration adds explicit organization scope to project memberships and active-tenant identity constraints. RLS is enabled on all public tables. The only client-facing table policy allows authenticated users to read their own `user_profiles` row. Other administration records remain default-deny to frontend clients and assignment metadata is exposed only through the authenticated own-assignment RPC.
 
 ## Current Authentication Model
 
-The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, trusted project/cycle administration, system-admin invitation creation/revocation, authenticated invitation acceptance, and trusted existing-user role/hierarchy administration. Real invitation email delivery and acceptance still require an approved mailbox smoke test. Microsoft Entra ID, tenant restrictions, and sensitive evaluation authorization checks are not implemented yet.
+The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, own-assignment display, trusted project/cycle administration, system-admin invitation creation/revocation, authenticated invitation acceptance, and trusted existing-user role/hierarchy administration. Real invitation email delivery and acceptance still require an approved mailbox smoke test. Microsoft Entra ID, immutable evaluation templates, anonymous credentials, encrypted submission, and reporting authorization are not implemented yet.
 
 ## Current Authorization Model
 
-Runtime evaluation authorization is not implemented. Current trusted administration actions use server-side scoped role checks through Edge Functions, while sensitive evaluation submission, reporting, and employee assignment-access policies remain future work. See `docs/AUTHORIZATION_MODEL.md`.
+Own-assignment read authorization is implemented through an authenticated database RPC that derives the actor from `auth.uid()` and revalidates active tenant membership. Current trusted administration actions use server-side scoped role checks through Edge Functions. Sensitive evaluation submission, anonymous credentials, completion mutation, and reporting authorization remain future work. See `docs/AUTHORIZATION_MODEL.md`.
 
 ## Known Limitations
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
 - Runtime authorization, encryption, anonymous credential, and reporting controls are not implemented.
 - Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
-- No Microsoft Entra ID, employee assignment inbox, scoped evaluation RLS policies, encrypted submission flow, or anonymity credential flow exists yet.
+- No Microsoft Entra ID, versioned evaluation template, encrypted submission flow, or anonymity credential flow exists yet.
 - The Docker delivery foundation exists, but production organization bootstrap, backup automation, release automation, and customer acceptance automation are not implemented.
-- Docker CLI is installed locally, but Docker Engine was not running during the latest container verification.
+- Docker Desktop is available and the local Supabase stack is verified; local migration reset, database lint, and pgTAP authorization tests pass.
 - Synthetic test users were created by running `npm run fixture:demo`. Authenticated administration, project-manager visibility, employee denial, project membership, and assignment-generation smoke checks have been verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
 
+- 2026-08-06: Added authenticated employee assignment access, Turkish assignment inbox, database authorization tests, and live synthetic verification.
 - 2026-08-06: Added portable managed/self-hosted deployment foundation, organization tenant hardening, and bounded repository-memory automation.
 - 2026-07-22: Added and deployed atomic project completion/evaluation close date updates for scoped system administrators and assigned project managers.
 - 2026-07-22: Added and deployed trusted existing-user role, organization-unit, primary-membership, and direct-manager administration.
@@ -85,8 +87,7 @@ Runtime evaluation authorization is not implemented. Current trusted administrat
 
 ## Current Development Priorities
 
-1. Implement employee-facing assignment access with scoped server-side authorization and narrowly reviewed RLS/RPC boundaries.
-2. Implement versioned evaluation templates and bind assignments to immutable template versions.
-3. Implement anonymous credentials and encrypted submissions before reporting or production deployment.
-4. Add production tenant bootstrap, database-backed cross-tenant tests, backup/restore automation, and customer deployment acceptance checks.
-5. Configure email delivery when a provider is approved, then implement scoped reporting and Playwright end-to-end coverage.
+1. Implement versioned evaluation templates and bind assignments to immutable template versions.
+2. Implement anonymous credentials and encrypted submissions before reporting or production deployment.
+3. Add production tenant bootstrap, broader database-backed cross-tenant tests, backup/restore automation, and customer deployment acceptance checks.
+4. Configure email delivery when a provider is approved, then implement scoped reporting and Playwright end-to-end coverage.

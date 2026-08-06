@@ -1,5 +1,66 @@
 # Test Report
 
+## 2026-08-06 - Authenticated Employee Assignment Access
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- Supabase CLI: 2.109.1
+- Docker Desktop: 4.82.0
+- Docker Engine: 29.6.1, Linux containers
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+
+### Commands executed
+
+- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run check`
+- `npx supabase start`, `npx supabase db reset --local`
+- `npm run supabase:test:local`, `npm run supabase:lint:local`
+- Linked migration dry-run, push, type generation, lint, and final dry-run
+- `npm run smoke:assignments`
+- `docker build --tag yanki-frontend:local .`
+- Temporary frontend container health and runtime configuration checks
+- `npm audit --omit=dev --audit-level=high`, `npm audit fix`, final `npm audit`
+
+### Passed
+
+- Vitest passed 20 files and 89 tests; TypeScript, ESLint, production build, and memory checks passed.
+- Clean local database reset applied all migrations through `20260806233000_employee_assignment_access.sql`.
+- pgTAP passed 8 authorization tests covering own-only access, draft/cancelled exclusion, authenticated-only execution, forbidden-field absence, membership expiry, and inactive-profile denial.
+- Local and linked database lint reported no schema errors.
+- Remote dry-run identified only the employee assignment migration before deployment and reported up to date afterward.
+- Generated types include `get_my_evaluation_assignments()`.
+- Live synthetic employee authentication returned three own assignments with `CLOSED` availability; anonymous RPC access was denied and forbidden fields were absent.
+- Frontend Docker image built successfully, reported `healthy`, returned `ok` from `/healthz`, and wrote public runtime Supabase configuration.
+- The local Supabase stack was stopped after verification with its Docker volume preserved.
+- Production dependency audit found zero vulnerabilities; compatible development dependency patches reduced the full audit to zero.
+
+### Failed
+
+- Docker Desktop Linux Engine stopped during the first large local Supabase image bootstrap. Restarting Docker Desktop and cleanly stopping/starting the partial stack resolved it.
+- The pgTAP runner image first failed DNS resolution against ECR, then Supabase CLI pulled the same image from GHCR and all tests passed.
+- Remote migration application emitted a non-fatal experimental pg-delta cache warning for a missing temporary certificate file. The migration applied; type generation, linked lint, and final dry-run passed.
+- The first smoke command expected `.env`; the project uses `.env.local`. After correcting the command, one transient Supabase DNS lookup failed and the retry passed after DNS resolution was confirmed.
+- The first temporary frontend container mapped host port to container port 80 instead of the documented 8080. Recreating it with `18080:8080` passed both internal and external health checks.
+- Codex in-app browser setup failed before navigation because its runtime could not write kernel assets.
+
+### Skipped
+
+- Desktop and mobile visual browser inspection was skipped because the browser runtime did not initialize. Component rendering and production image/build checks passed.
+- Real invitation email delivery and acceptance remain deferred pending an approved provider and mailbox.
+
+### Security checks
+
+- Verified assignment ownership is derived only from `auth.uid()` and accepts no client-selected user or tenant id.
+- Verified evaluator and subject active tenant membership at read time.
+- Verified assignment and related identity tables remain default-deny to browser clients.
+- Verified no evaluator identity field, response content, score, comment, payload, credential, service-role key, or encryption key is returned or logged.
+
+### Remaining risks
+
+- Assignment display does not authorize submission; templates, anonymous credentials, encryption, completion mutation, and reporting remain production blockers.
+- Automated visual and full browser end-to-end coverage remain incomplete.
+
 ## 2026-08-06 - Portable Deployment And Multi-Tenant Hardening
 
 ### Environment
@@ -284,61 +345,3 @@
 - SMTP delivery and invited-user acceptance require an approved mailbox smoke test.
 - Existing-user role edits and general hierarchy administration remain incomplete.
 - Sensitive evaluation submission, anonymous credentials, encryption, and reporting remain unimplemented.
-
-## 2026-07-20 - Authenticated Administration Smoke Verification
-
-### Environment
-
-- Workspace: `D:\Projects\anonim_degerlendirme`
-- Runtime: Node.js v24.14.0
-- Supabase CLI: 2.109.1
-- Linked Supabase project: `daxaymcmtbmummrxdyjy`
-- Deployed Edge Function: `admin-project-cycles`, version `4`
-
-### Commands executed
-
-- Authenticated Supabase Auth password-grant requests with synthetic accounts.
-- Authenticated `get_my_workspace_context()` RPC requests.
-- Authenticated `admin-project-cycles` requests for project listing, project/cycle creation, project membership writes, assignment generation, and authorization denial.
-- `npx supabase functions list --project-ref daxaymcmtbmummrxdyjy`.
-- `npm run check`.
-
-### Passed
-
-- Synthetic HR administrator authentication succeeded with an active profile and matching-organization `SYSTEM_ADMIN` role.
-- Synthetic team leader authentication succeeded with an active profile and team membership.
-- Project and evaluation-cycle creation succeeded through the deployed Edge Function.
-- Five project memberships were present: one project manager, one sponsor, and three members.
-- Assignment generation found four evaluating participants, produced 12 non-self candidates, created 12 assignments, and reported 12 pending assignments.
-- The synthetic team leader could list the project after receiving the project-scoped manager role.
-- A synthetic employee request for `list_organization_members` returned HTTP 403 with `ADMINISTRATION_SCOPE_DENIED`.
-- `npx supabase functions list` confirmed `admin-project-cycles` is `ACTIVE`, version `4`, with `verify_jwt` set to `false`; the function performs bearer-token validation internally.
-- `npm run check` passed lint, typecheck, Vitest with 11 test files and 49 tests, and the production build.
-
-### Failed
-
-- In-app browser automation could not initialize because the browser runtime received an `EPERM` error while resolving the local user-profile path. API-level authenticated smoke testing was used instead.
-- The first admin project-list check returned no projects because the supplied synthetic credentials predated the fixture script's project extension. A synthetic project was then created through the deployed administration action.
-
-### Skipped
-
-- Visual browser verification was skipped because the in-app browser runtime could not initialize in this environment.
-- Playwright end-to-end coverage remains skipped because Playwright is not installed and stable authenticated browser automation is not available.
-
-### Manual tests
-
-- Verified the administrator's own workspace context contains the expected scoped role and organization membership.
-- Verified the project manager's scoped project visibility after project creation.
-- Verified the generated candidate count matches all directed, non-self pairs for four evaluating participants: `4 * 3 = 12`.
-
-### Security checks
-
-- Verified the employee cannot use an administration member-directory action.
-- Verified assignment generation excludes self assignments.
-- Verified the sponsor is not treated as an evaluating participant.
-- Verified test output and documentation contain no passwords, access tokens, service-role values, or evaluation response content.
-
-### Remaining risks
-
-- Browser rendering and interaction remain unverified by automation.
-- Invitation, role, hierarchy, delegated project-manager updates, employee assignment access, anonymous credentials, encrypted submissions, and reporting remain incomplete.

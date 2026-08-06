@@ -1,4 +1,10 @@
+import { useCallback, useState } from "react";
 import { tr } from "../../locales/tr/messages";
+import {
+  AssignmentInbox,
+  type AssignmentInboxSummary
+} from "../evaluations/AssignmentInbox";
+import type { EvaluationAssignmentService } from "../evaluations/evaluationAssignmentService";
 import type {
   WorkspaceContext,
   WorkspaceMembership,
@@ -11,33 +17,10 @@ import {
 
 const baseNavigationItems = [
   { href: "#dashboard", label: tr.navigation.dashboard },
-  { href: "#content", label: tr.navigation.cycles },
+  { href: "#assignments", label: tr.navigation.cycles },
   { href: "#content", label: tr.navigation.projects },
   { href: "#content", label: tr.navigation.reports }
 ];
-
-const metricCards = [
-  {
-    label: tr.dashboard.metrics.activeCycles.label,
-    value: "0",
-    detail: tr.dashboard.metrics.activeCycles.detail
-  },
-  {
-    label: tr.dashboard.metrics.pendingAssignments.label,
-    value: "0",
-    detail: tr.dashboard.metrics.pendingAssignments.detail
-  },
-  {
-    label: tr.dashboard.metrics.threshold.label,
-    value: "4",
-    detail: tr.dashboard.metrics.threshold.detail
-  },
-  {
-    label: tr.dashboard.metrics.secureStorage.label,
-    value: tr.dashboard.metrics.secureStorage.value,
-    detail: tr.dashboard.metrics.secureStorage.detail
-  }
-] as const;
 
 const readinessItems = [
   {
@@ -59,6 +42,7 @@ const readinessItems = [
 ] as const;
 
 type DashboardPageProps = {
+  readonly evaluationAssignmentService?: EvaluationAssignmentService;
   readonly profileDisplayName?: string | null;
   readonly userEmail?: string | null;
   readonly isSigningOut?: boolean;
@@ -67,14 +51,22 @@ type DashboardPageProps = {
 };
 
 export function DashboardPage({
+  evaluationAssignmentService,
   profileDisplayName,
   userEmail,
   isSigningOut = false,
   onSignOut,
   workspaceContext
 }: DashboardPageProps) {
+  const [assignmentSummary, setAssignmentSummary] =
+    useState<AssignmentInboxSummary | null>(null);
   const navigationItems = getNavigationItems(workspaceContext);
   const hasAdministrationRole = canAccessAdministration(workspaceContext);
+  const metricCards = createMetricCards(assignmentSummary);
+  const handleAssignmentSummaryChange = useCallback(
+    (summary: AssignmentInboxSummary) => setAssignmentSummary(summary),
+    []
+  );
 
   return (
     <div className="min-h-screen bg-mist text-ink">
@@ -168,6 +160,11 @@ export function DashboardPage({
           />
         ) : null}
 
+        <AssignmentInbox
+          onSummaryChange={handleAssignmentSummaryChange}
+          service={evaluationAssignmentService}
+        />
+
         <section
           aria-label={tr.dashboard.metricsSectionLabel}
           className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
@@ -239,6 +236,31 @@ export function DashboardPage({
       </main>
     </div>
   );
+}
+
+function createMetricCards(summary: AssignmentInboxSummary | null) {
+  return [
+    {
+      label: tr.dashboard.metrics.activeCycles.label,
+      value: summary ? String(summary.activeCycleCount) : "...",
+      detail: tr.dashboard.metrics.activeCycles.detail
+    },
+    {
+      label: tr.dashboard.metrics.pendingAssignments.label,
+      value: summary ? String(summary.pendingAssignmentCount) : "...",
+      detail: tr.dashboard.metrics.pendingAssignments.detail
+    },
+    {
+      label: tr.dashboard.metrics.threshold.label,
+      value: "4",
+      detail: tr.dashboard.metrics.threshold.detail
+    },
+    {
+      label: tr.dashboard.metrics.secureStorage.label,
+      value: tr.dashboard.metrics.secureStorage.value,
+      detail: tr.dashboard.metrics.secureStorage.detail
+    }
+  ] as const;
 }
 
 function WorkspaceContextSection({

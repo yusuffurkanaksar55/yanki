@@ -16,10 +16,13 @@
     "deployment:config": "docker compose --env-file deploy/compose.env.example config --quiet",
     "fixture:demo": "node scripts/create-demo-fixture.mjs",
     "smoke:hierarchy": "node scripts/smoke-hierarchy-administration.mjs",
+    "smoke:assignments": "node --env-file-if-exists=.env.local scripts/smoke-employee-assignment-access.mjs",
     "smoke:project-dates": "node scripts/smoke-project-date-administration.mjs",
     "supabase:migrations": "npx supabase migration list",
     "supabase:lint:linked": "npx supabase db lint --linked",
+    "supabase:lint:local": "npx supabase db lint --local",
     "supabase:push:dry-run": "npx supabase db push --dry-run",
+    "supabase:test:local": "npx supabase test db",
     "supabase:types": "npx supabase gen types typescript --linked > src/types/supabase.ts",
     "check": "npm run lint && npm run typecheck && npm test && npm run build && npm run memory:check"
   },

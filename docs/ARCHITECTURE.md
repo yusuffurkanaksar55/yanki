@@ -2,7 +2,7 @@
 
 ## Status
 
-Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has default-deny security, Supabase Auth-backed invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context, project/evaluation-cycle, and evaluation-assignment migrations. A typed Supabase Auth client, own-profile gate, own-workspace context panel, protected administration shell, user invitation management, trusted existing-user role/hierarchy management, trusted project/cycle/member/assignment administration, portable Docker/Nginx frontend, and multi-tenant integrity hardening migration are implemented.
+Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has default-deny security, Supabase Auth-backed invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context, employee assignment access, project/evaluation-cycle, and evaluation-assignment migrations. A typed Supabase Auth client, own-profile gate, own-workspace context panel, Turkish employee assignment inbox, protected administration shell, user invitation management, trusted existing-user role/hierarchy management, trusted project/cycle/member/assignment administration, portable Docker/Nginx frontend, and multi-tenant integrity hardening migration are implemented.
 
 ## Target System
 
@@ -13,7 +13,7 @@ The target system is a single-page web application with a trusted backend bounda
 - Database: Supabase PostgreSQL with Row Level Security enabled for all exposed tables.
 - Trusted server code: Supabase Edge Functions for sensitive validation, anonymous credential handling, encryption, decryption, aggregation, and reporting.
 - Runtime delivery: one Docker image serving the static SPA through Nginx, configured at container startup with public Supabase values.
-- Tests: Vitest and React Testing Library for the current frontend scaffold and documentation foundation checks. Playwright and Supabase database tests are planned for later workflow phases.
+- Tests: Vitest and React Testing Library for frontend and documentation checks, plus Docker-backed Supabase pgTAP tests for database authorization. Playwright is planned for later workflow phases.
 
 ## Deployment Topologies
 
@@ -94,6 +94,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Entry point: `src/main.tsx`
 - Root app: `src/app/App.tsx`
 - Dashboard feature: `src/features/dashboard/DashboardPage.tsx`
+- Employee assignment service and inbox: `src/features/evaluations/evaluationAssignmentService.ts`, `src/features/evaluations/AssignmentInbox.tsx`
 - Administration feature: `src/features/administration/AdministrationPage.tsx`
 - Administration project/cycle/member/assignment service and panel: `src/features/administration/projectCycleService.ts`, `src/features/administration/ProjectCycleManagementPanel.tsx`
 - Administration role/hierarchy service and panel: `src/features/administration/hierarchyAdministrationService.ts`, `src/features/administration/RoleHierarchyManagementPanel.tsx`
@@ -120,6 +121,8 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Workspace context RPC migration: `supabase/migrations/20260719181013_workspace_context_rpc.sql`
 - Project/evaluation-cycle migration: `supabase/migrations/20260719184052_project_evaluation_cycle_foundation.sql`
 - Evaluation assignment migration: `supabase/migrations/20260720223000_evaluation_assignment_foundation.sql`
+- Employee assignment access migration: `supabase/migrations/20260806233000_employee_assignment_access.sql`
+- Database authorization tests: `supabase/tests/database/employee_assignment_access.test.sql`
 - Invitation acceptance migration: `supabase/migrations/20260720232000_user_invitation_acceptance_flow.sql`
 - Invitation acceptance revalidation migration: `supabase/migrations/20260720234500_invitation_acceptance_context_revalidation.sql`
 - Organization administration migration: `supabase/migrations/20260722210000_hierarchy_administration_foundation.sql`
@@ -129,7 +132,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Demo fixture script: `scripts/create-demo-fixture.mjs`
 - Linked remote project ref: `daxaymcmtbmummrxdyjy`
 
-The initial migration creates `app_roles`, `scope_types`, `user_role_assignments`, and `audit_events`. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`, and adds `PLATFORM` as the global scope type. The workspace context migration creates `get_my_workspace_context()`. The project/evaluation-cycle migration creates `projects`, `project_memberships`, and `evaluation_cycles`. The evaluation assignment migration creates `evaluation_assignments` for identity-domain eligibility planning only. The invitation migrations add Auth-user and hierarchy context, service-role-only `accept_user_invitation()`, and acceptance-time active context revalidation. The delegated date migration adds service-role-only `admin_update_project_dates()` for atomic project/cycle configuration updates. RLS is enabled on all public tables. `user_profiles` has one narrow authenticated self-read policy. Invitation, hierarchy, project, evaluation-cycle, and evaluation-assignment administration tables have no client-facing policies and are reserved for trusted server-side flows.
+The initial migration creates `app_roles`, `scope_types`, `user_role_assignments`, and `audit_events`. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`, and adds `PLATFORM` as the global scope type. The workspace context migration creates `get_my_workspace_context()`. The project/evaluation-cycle migration creates `projects`, `project_memberships`, and `evaluation_cycles`. The evaluation assignment migration creates `evaluation_assignments` for identity-domain eligibility planning only. The employee access migration creates authenticated `get_my_evaluation_assignments()` without adding direct table policies. The invitation migrations add Auth-user and hierarchy context, service-role-only `accept_user_invitation()`, and acceptance-time active context revalidation. The delegated date migration adds service-role-only `admin_update_project_dates()` for atomic project/cycle configuration updates. RLS is enabled on all public tables. `user_profiles` has one narrow authenticated self-read policy. Invitation, hierarchy, project, evaluation-cycle, and evaluation-assignment administration tables have no client-facing policies and are reserved for trusted server-side flows.
 
 ## Current Authentication Scaffold
 

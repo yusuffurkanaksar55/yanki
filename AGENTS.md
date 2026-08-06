@@ -41,11 +41,13 @@ npm test
 npm run build
 npm run check
 npm run deployment:config
+npm run supabase:lint:local
 npm run supabase:lint:linked
 npm run supabase:push:dry-run
+npm run supabase:test:local
 ```
 
-When Supabase and end-to-end workflows are added, extend the command set with Supabase database linting, database tests, Edge Function checks, Playwright end-to-end tests, and security regression tests.
+When new Supabase and end-to-end workflows are added, extend the command set with relevant database tests, Edge Function checks, Playwright end-to-end tests, and security regression tests.
 
 ## Documentation Updates
 

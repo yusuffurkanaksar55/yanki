@@ -6,6 +6,10 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added authenticated employee own-assignment access through a narrowly granted `auth.uid()`-derived RPC while keeping identity tables default-deny.
+- Added a Turkish assignment inbox with server-derived availability states and live dashboard counts.
+- Added Docker-backed Supabase pgTAP authorization tests, local database lint scripts, and a reusable authenticated assignment smoke test.
+- Added ADR-0018 for the employee assignment access boundary.
 - Added one-image runtime public configuration for managed and self-hosted Supabase environments.
 - Added a multi-stage Dockerfile, Nginx SPA/health configuration, Compose example, and customer deployment guide.
 - Added explicit project-membership tenant scope and database tenant-identity validation for project, hierarchy, and evaluation relationships.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed profile/invitation onboarding, configurable organization hierarchy, authenticated own-workspace context RPC, project/evaluation-cycle configuration, and evaluation assignment planning. The complete anonymous submission data model is still conceptual and must be implemented in future reviewed phases.
+Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed profile/invitation onboarding, configurable organization hierarchy, authenticated own-workspace and own-assignment RPCs, project/evaluation-cycle configuration, and evaluation assignment planning. The complete anonymous submission data model is still conceptual and must be implemented in future reviewed phases.
 
 Generated TypeScript database types are stored in `src/types/supabase.ts` and should be regenerated after schema changes.
 
@@ -53,6 +53,7 @@ Implemented foundation tables:
 Implemented foundation functions:
 
 - `get_my_workspace_context()`
+- `get_my_evaluation_assignments()`
 - `accept_user_invitation()`
 - `require_active_system_admin()`
 - `admin_upsert_organization_unit()`
@@ -88,6 +89,8 @@ The service-role-only organization-administration functions mutate units, primar
 `admin_update_project_dates()` atomically updates `projects.completes_on`, `evaluation_cycles.project_completed_on`, and `evaluation_cycles.closes_at` after verifying record scope, editable status, date ordering, and current system-administrator or exact assigned-project-manager authority. It is executable only by `service_role`.
 
 `evaluation_assignments` stores identity-domain evaluator-to-subject eligibility for a cycle, with assignment kind and completion status. It prevents self assignments, validates organization and project scope consistency, remains default-deny to frontend clients, and does not store scores, comments, lessons learned text, anonymous credentials, encrypted payloads, or response content.
+
+`get_my_evaluation_assignments()` returns a JSON list containing only the authenticated active user's own non-cancelled assignment display metadata for non-draft cycles. It revalidates active evaluator and subject organization membership and computes availability from the database clock. It does not return `evaluator_user_id` or any submission-domain field.
 
 Project managers, project members, manager relationships, evaluators, and evaluation subjects must have active profiles and active memberships in the matching organization. Direct-manager uniqueness is scoped per organization so one global Auth identity can participate in multiple tenants.
 

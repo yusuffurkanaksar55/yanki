@@ -1,5 +1,13 @@
 # Release Notes
 
+## 2026-08-06 - Employee Assignment Access Foundation
+
+This is not a product release. Authenticated employees can now see only evaluation assignments addressed to them in a Turkish dashboard inbox. The database derives ownership from `auth.uid()`, revalidates active evaluator and subject organization membership, excludes cancelled assignments and draft cycles, and computes availability using the server clock.
+
+Assignment and related identity tables remain default-deny to browser clients. The RPC returns no evaluator identity field, evaluation response, score, comment, anonymous credential, or encrypted payload. Docker-backed pgTAP tests passed 8 authorization cases, linked and local schema lint are clean, and a live synthetic employee received three closed assignments while an anonymous call was denied.
+
+Submission is not implemented. Immutable template binding, anonymous credential issuance, encryption, completion mutation, and reporting remain release blockers.
+
 ## 2026-08-06 - Portable Deployment And Tenant Integrity Foundation
 
 This is not a product release. The application now has a multi-stage Docker/Nginx frontend package whose public Supabase configuration is written at container startup. The same reviewed image can target vendor-managed or customer-managed Supabase without embedding customer-specific server secrets.

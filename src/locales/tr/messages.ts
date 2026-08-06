@@ -11,11 +11,44 @@ export const tr = {
     reports: "Raporlar",
     administration: "Yönetim"
   },
+  assignments: {
+    sectionLabel: "Değerlendirme görevleri",
+    title: "Değerlendirme görevlerim",
+    description: "Size atanmış değerlendirmeler ve son teslim tarihleri.",
+    loading: "Değerlendirme görevleri yükleniyor...",
+    count: "{count} görev",
+    labels: {
+      subject: "Değerlendirilecek kişi",
+      project: "Proje",
+      opensAt: "Başlangıç",
+      closesAt: "Son teslim"
+    },
+    status: {
+      available: "Değerlendirmeye açık",
+      upcoming: "Yakında açılacak",
+      closed: "Süresi doldu",
+      completed: "Tamamlandı"
+    },
+    values: {
+      noProject: "Genel değerlendirme",
+      unknownDate: "Tarih bilgisi yok"
+    },
+    empty: {
+      title: "Atanmış değerlendirme bulunmuyor",
+      description: "Yeni bir görev atandığında burada görüntülenecek."
+    },
+    actions: {
+      retry: "Yeniden dene"
+    },
+    feedback: {
+      readFailed: "Değerlendirme görevleri şu anda yüklenemedi."
+    }
+  },
   dashboard: {
     eyebrow: "Hazırlık görünümü",
     title: "Değerlendirme kontrol paneli",
     summary:
-      "Organizasyon, proje ve anonim değerlendirme süreçleri için güvenli temel iskelet hazırlandı.",
+      "Organizasyon, proje ve değerlendirme görevleri güvenli yetkilendirme sınırlarıyla yönetilir.",
     actions: {
       newCycle: "Yeni süreç",
       manageTemplates: "Şablonları yönet"
@@ -24,11 +57,11 @@ export const tr = {
     metrics: {
       activeCycles: {
         label: "Açık süreç",
-        detail: "Henüz üretim değerlendirme süreci oluşturulmadı."
+        detail: "Size görev atanmış ve değerlendirmeye açık süreçler."
       },
       pendingAssignments: {
         label: "Bekleyen atama",
-        detail: "Atama akışı sonraki fazda kurulacak."
+        detail: "Açık veya yakında başlayacak değerlendirme görevleri."
       },
       threshold: {
         label: "Anonimlik eşiği",

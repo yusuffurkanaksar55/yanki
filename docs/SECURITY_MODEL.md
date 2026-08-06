@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the intended security model. The repository currently contains Supabase default-deny RLS foundation tables, a typed Supabase Auth client foundation, Supabase Auth-backed invitation onboarding, organization hierarchy foundation, authenticated workspace context RPC, project/evaluation-cycle configuration foundation, evaluation assignment planning foundation, protected administration shell, and trusted user/project administration Edge Functions, but no production evaluation submission, encryption, reporting, employee assignment inbox, or scoped evaluation authorization runtime.
+This document describes the intended security model. The repository currently contains Supabase default-deny RLS foundation tables, a typed Supabase Auth client foundation, Supabase Auth-backed invitation onboarding, organization hierarchy foundation, authenticated workspace and employee assignment RPCs, project/evaluation-cycle configuration, evaluation assignment planning, a protected administration shell, and trusted user/project administration Edge Functions. Production evaluation submission, encryption, anonymous credentials, and reporting are not implemented.
 
 ## Security Objectives
 
@@ -85,6 +85,8 @@ Delegated project-date updates use the same Edge Function and service-role-only 
 
 `evaluation_assignments` is an identity-domain eligibility table, not a submission-content table. It may store evaluator and subject identifiers so the system can later issue eligibility proofs, but it must never store scores, comments, lessons learned text, encrypted payloads, anonymous credential secrets, or evaluator-to-response mappings. It remains default-deny to frontend clients. The current assignment generation action is admin-only, project-backed, prevents self assignments, and returns aggregate assignment counts rather than response content.
 
+`get_my_evaluation_assignments()` is the only employee assignment-read boundary. It accepts no user or organization id, derives ownership from `auth.uid()`, requires active evaluator and subject tenant membership, excludes cancelled assignments and draft cycles, and returns only display metadata with a server-clock availability state. Its execute grant is limited to `authenticated`. It does not authorize submission or return response content, anonymous credentials, or evaluator identity fields.
+
 ## Anonymity Threshold
 
 The default minimum result threshold is 4 submissions per reportable group. The threshold must be configurable per evaluation cycle, but lowering it below the documented security minimum requires an explicit administrative warning and recorded decision.
@@ -114,7 +116,6 @@ In customer-managed installations, the customer controls the host, database, app
 ## Remaining Security Work
 
 - Complete live invitation email delivery and acceptance verification with an approved test mailbox.
-- Implement employee-facing assignment access only after scoped RLS and server-side authorization rules are designed.
 - Add narrowly scoped Supabase RLS policies only after server-side authorization flows are designed.
 - Implement Edge Functions for anonymous credential issuance, redemption, encryption, and reporting.
 - Implement key management and key rotation procedures.

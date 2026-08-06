@@ -8,6 +8,10 @@ import type {
   ProjectCycleService
 } from "../features/administration/projectCycleService";
 import type { AuthService } from "../features/authentication/authService";
+import type {
+  EvaluationAssignment,
+  EvaluationAssignmentService
+} from "../features/evaluations/evaluationAssignmentService";
 import type { Session } from "@supabase/supabase-js";
 import type {
   ProfileService,
@@ -33,6 +37,7 @@ describe("App", () => {
     render(
       <App
         authService={createAuthServiceStub(createSessionStub())}
+        evaluationAssignmentService={createEvaluationAssignmentServiceStub()}
         profileService={profileService}
         workspaceContextService={createWorkspaceContextServiceStub(
           createWorkspaceContextStub()
@@ -56,6 +61,9 @@ describe("App", () => {
     expect(screen.getByText(tr.dashboard.workspace.title)).toBeInTheDocument();
     expect(screen.getByText(/Product Team/)).toBeInTheDocument();
     expect(screen.getByText("Demo CEO")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Proje Değerlendirmesi" })
+    ).toBeInTheDocument();
     const administrationLink = screen.getByRole("link", {
       name: tr.navigation.administration
     });
@@ -151,6 +159,33 @@ function createWorkspaceContextServiceStub(
 ): WorkspaceContextService {
   return {
     getMyWorkspaceContext: vi.fn(async () => workspaceContext)
+  };
+}
+
+function createEvaluationAssignmentServiceStub(): EvaluationAssignmentService {
+  return {
+    listMyAssignments: vi.fn(async () => [createEvaluationAssignmentStub()])
+  };
+}
+
+function createEvaluationAssignmentStub(): EvaluationAssignment {
+  return {
+    assignmentKind: "PROJECT_PEER",
+    assignmentStatus: "PENDING",
+    availabilityStatus: "AVAILABLE",
+    closesAt: "2026-08-30T14:00:00.000Z",
+    cycleStatus: "OPEN",
+    evaluationCycleId: "cycle-id",
+    evaluationCycleName: "Proje Değerlendirmesi",
+    id: "assignment-id",
+    opensAt: "2026-08-01T09:00:00.000Z",
+    organizationId: "organization-id",
+    organizationName: "Yanki Demo Organization",
+    projectCode: "YNK-1",
+    projectId: "project-id",
+    projectName: "Yanki Projesi",
+    subjectDisplayName: "Çalışan Bir",
+    subjectEmail: "employee@example.com"
   };
 }
 

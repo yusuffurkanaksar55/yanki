@@ -8,7 +8,7 @@ High
 
 ### Description
 
-The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, profile/invitation onboarding, trusted existing-user role/hierarchy administration, authenticated own-workspace context RPC, protected administration shell, default-deny project/evaluation-cycle configuration, default-deny evaluation assignment planning, and trusted project administration. Scoped employee assignment access, evaluation authorization policies, anonymous credentials, encrypted submissions, and reporting are not implemented yet.
+The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, profile/invitation onboarding, trusted existing-user role/hierarchy administration, authenticated own-workspace and employee-assignment RPCs, a Turkish assignment inbox, protected administration shell, default-deny project/evaluation-cycle configuration, default-deny evaluation assignment planning, and trusted project administration. Immutable evaluation templates, anonymous credentials, encrypted submissions, completion mutation, and reporting are not implemented yet.
 
 ### Impact
 
@@ -20,11 +20,11 @@ Use the application scaffold only for frontend and trusted-administration founda
 
 ### Planned resolution
 
-Authenticated project/cycle/member/assignment management, delegated date management, invitation administration listing, and existing-user role/hierarchy administration are smoke-tested. Next complete invitation email delivery/acceptance verification when an approved mailbox is available, then employee assignment access, scoped authorization, explicit evaluation RLS policies, versioned templates, anonymous credentials, and encrypted submission flows in separate reviewable phases.
+Authenticated project/cycle/member/assignment management, delegated date management, invitation administration listing, existing-user role/hierarchy administration, and employee own-assignment access are smoke-tested. Next implement immutable versioned templates, then anonymous credentials and encrypted submission flows in separate reviewable phases. Complete invitation email delivery/acceptance verification when an approved mailbox becomes available.
 
 ### Related tests
 
-`tests/project-memory.test.mjs`, `src/app/App.test.tsx`, `src/features/workspace/WorkspaceContextGate.test.tsx`
+`tests/project-memory.test.mjs`, `tests/employee-assignment-access.test.mjs`, `supabase/tests/database/employee_assignment_access.test.sql`, `src/features/evaluations/AssignmentInbox.test.tsx`
 
 ## ISSUE-005 - Remaining delegated administration actions are not implemented
 
@@ -38,7 +38,7 @@ The product requires multiple administrators, CEOs/C-Level users, project manage
 
 ### Impact
 
-Resolved for the delegated date requirement. System administrators and exact assigned project managers can update project completion and evaluation close dates. Employee-facing assignment workflows remain tracked by ISSUE-001.
+Resolved for the delegated date requirement. System administrators and exact assigned project managers can update project completion and evaluation close dates. Employee own-assignment reads are also implemented; sensitive submission remains tracked by ISSUE-001.
 
 ### Workaround
 
@@ -137,27 +137,29 @@ None.
 
 ### Severity
 
-Medium
+Resolved
 
 ### Description
 
-Docker CLI 29.6.1 is installed and available on PATH, but Docker Engine was not running during the 2026-08-06 deployment verification. Reading the user Docker config also emitted a workspace permission warning.
+Docker Desktop is running with the Linux engine. The local Supabase stack, clean migration reset, local database lint, pgTAP authorization tests, frontend image build, runtime configuration, and Nginx health endpoint have now been verified.
 
 ### Impact
 
-Container image build, local `supabase db reset`, local database linting, and local Studio workflows have not been verified yet.
+Resolved. Docker-backed database and frontend delivery checks are available for continued development.
 
 ### Workaround
 
-Use static deployment tests and linked remote database checks for now. Start Docker Desktop before local container verification.
+Keep Docker Desktop running when executing local Supabase and image tests.
 
 ### Planned resolution
 
-Start Docker Desktop, build the application image, run its health check, then run `npx supabase start`, `npx supabase db reset`, and `npx supabase db lint --local`.
+Completed on 2026-08-06. The frontend image reported `healthy`, `/healthz` returned `ok`, all migrations applied to a clean local database, local schema lint found no errors, and 8 pgTAP authorization tests passed.
 
 ### Related tests
 
-- `npx supabase db lint --linked`
+- `npm run supabase:lint:local`
+- `npm run supabase:test:local`
+- `docker build --tag yanki-frontend:local .`
 
 ## ISSUE-007 - Production dedicated-install automation is incomplete
 

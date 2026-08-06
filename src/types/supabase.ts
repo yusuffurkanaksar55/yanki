@@ -814,6 +814,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_my_evaluation_assignments: { Args: never; Returns: Json }
       get_my_workspace_context: { Args: never; Returns: Json }
       require_active_organization_identity: {
         Args: { checked_organization_id: string; checked_user_id: string }

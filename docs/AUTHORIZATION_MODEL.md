@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and has a default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, own-workspace context RPC, Supabase Auth-backed invitation onboarding, default-deny project/evaluation-cycle and evaluation-assignment foundations, and trusted user/project administration Edge Functions. Runtime employee assignment access, evaluation submission, and reporting policies are not implemented yet.
+Authorization is documented and has a default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, own-workspace and own-assignment RPCs, Supabase Auth-backed invitation onboarding, default-deny project/evaluation-cycle and evaluation-assignment foundations, and trusted user/project administration Edge Functions. Employee assignment reads are implemented; evaluation submission and reporting authorization are not implemented yet.
 
 ## Principles
 
@@ -23,7 +23,7 @@ Dedicated customer installations retain the same checks. Physical infrastructure
 
 The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`. The project/evaluation-cycle migration creates `projects`, `project_memberships`, and `evaluation_cycles`. The evaluation assignment migration creates `evaluation_assignments`.
 
-RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `get_my_workspace_context()` allows authenticated users to read only their own non-sensitive role, unit, and manager context. `user_invitations`, roles, role assignments, audit events, organization hierarchy tables, project tables, evaluation-cycle tables, and evaluation assignment tables remain default-deny to frontend clients.
+RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `get_my_workspace_context()` allows authenticated users to read only their own non-sensitive role, unit, and manager context. `user_invitations`, roles, role assignments, audit events, organization hierarchy tables, project tables, evaluation-cycle tables, and evaluation assignment tables remain default-deny to frontend clients. `get_my_evaluation_assignments()` derives the caller from `auth.uid()`, requires an active profile and tenant membership, revalidates the subject's active matching membership, and returns only the caller's non-cancelled assignment display metadata from non-draft cycles.
 
 `PLATFORM` is the only null-id global scope. `ORGANIZATION`, `DEPARTMENT`, `UNIT`, `TEAM`, `PROJECT`, and `EVALUATION_CYCLE` scopes must carry an explicit `scope_id`.
 
@@ -45,7 +45,7 @@ Can manage scoped user invitations, hierarchy, projects, project memberships, te
 
 ### `EMPLOYEE`
 
-Can view pending assignments, submit assigned evaluations, and see completion status. Cannot view submitted answers, evaluations about themselves, evaluations about others, scores, comments, or evaluator identities.
+Can view only assignments addressed to their authenticated identity, including safe subject/project/cycle metadata, availability windows, and completion state. Assignment access disappears when active organization membership ends. Submission is not yet implemented. Employees cannot view submitted answers, evaluations about themselves, evaluations about others, scores, comments, or evaluator identities.
 
 ### `TEAM_LEADER`
 

@@ -1,5 +1,60 @@
 # Development Log
 
+## 2026-08-06 - Authenticated Employee Assignment Access
+
+### Objective
+
+Allow employees to see only evaluation assignments addressed to their authenticated identity while preserving default-deny table access, tenant isolation, and separation from future anonymous submission content.
+
+### Changes
+
+- Added authenticated `get_my_evaluation_assignments()` with `auth.uid()` ownership, active-profile and active-tenant membership revalidation, draft/cancelled filtering, and server-clock availability states.
+- Kept evaluation, profile, organization, project, and cycle tables inaccessible to browser clients.
+- Added a typed assignment service, Turkish assignment inbox, live dashboard counts, loading/empty/error/retry states, and assignment date/status presentation.
+- Added source-boundary tests, component tests, Docker-backed pgTAP authorization tests, local database lint/test scripts, and a live synthetic employee smoke test.
+- Added ADR-0018 and updated project context, architecture, security, authorization, data model, requirements, known issues, README, changelog, and release notes.
+- Refreshed generated Supabase types and patched vulnerable development-only transitive dependencies.
+
+### Files affected
+
+- `supabase/migrations/20260806233000_employee_assignment_access.sql`
+- `supabase/tests/database/employee_assignment_access.test.sql`
+- `src/features/evaluations/*`
+- `src/features/dashboard/DashboardPage.tsx`, `src/app/App.tsx`
+- `src/locales/tr/messages.ts`, `src/types/supabase.ts`
+- `scripts/smoke-employee-assignment-access.mjs`
+- `tests/employee-assignment-access.test.mjs`
+- `package.json`, `package-lock.json`
+- `docs/*`, `README.md`, `CHANGELOG.md`
+
+### Database changes
+
+Applied `20260806233000_employee_assignment_access.sql` to Supabase project `daxaymcmtbmummrxdyjy`. It adds one authenticated metadata RPC and no table, column, direct table policy, evaluation content, or credential record. Local reset applied all migrations successfully and remote dry-run reports the database is up to date.
+
+### Security impact
+
+Positive. The caller cannot select a user or organization id; assignment ownership comes from `auth.uid()`. Evaluator and subject tenant membership is revalidated at read time. The response omits evaluator identity fields, scores, comments, payloads, and credentials. Production dependency audit reports zero vulnerabilities.
+
+### Tests performed
+
+- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `npm run check`.
+- `npm run supabase:test:local` and `npm run supabase:lint:local`.
+- Linked migration dry-run, push, type generation, post-push lint, and final dry-run.
+- `npm run smoke:assignments` with a synthetic employee and anonymous denial.
+- Docker frontend image build, runtime configuration check, and `/healthz` check.
+- Production and full `npm audit` checks.
+
+### Result
+
+Vitest passes 20 files and 89 tests. pgTAP passes 8 database authorization cases. Local and linked schema lint report no errors. The live employee received three own assignments, all correctly closed by the server clock, while anonymous access was denied. The frontend image built and ran healthy, `/healthz` returned `ok`, and runtime public configuration was generated. In-app visual verification could not run because the Codex browser runtime could not create its kernel assets.
+
+### Remaining work
+
+- Implement immutable versioned evaluation templates and bind assignments to template versions.
+- Implement anonymous credentials and encrypted submission before completion mutation or reporting.
+- Complete invitation email delivery when an approved provider and mailbox are available.
+- Add Playwright visual/end-to-end coverage when browser automation is available.
+
 ## 2026-08-06 - Portable Deployment And Multi-Tenant Hardening
 
 ### Objective
@@ -252,57 +307,3 @@ Invitation onboarding foundation was implemented and deployed. The linked databa
 - Implement existing-user role changes and general hierarchy/membership/manager administration.
 - Implement delegated project-manager date updates.
 - Implement employee assignment access, anonymous credentials, encrypted submissions, and reporting in later security-reviewed phases.
-
-## 2026-07-20 - Authenticated Administration Smoke Verification
-
-### Objective
-
-Verify the deployed Supabase Auth and `admin-project-cycles` authorization boundary end to end with synthetic users before starting the next administration feature.
-
-### Changes
-
-- Authenticated the synthetic HR administrator, team leader, CEO, and three employee accounts without persisting credentials in the repository.
-- Verified the HR administrator has an active organization-scoped `SYSTEM_ADMIN` role.
-- Created `Yanki Canli Test Projesi` and its time-bound evaluation cycle through the deployed Edge Function.
-- Assigned the team leader as project manager, the CEO as sponsor, and three employees as project members.
-- Generated 12 non-self assignment candidates across four evaluating project participants.
-- Verified the project manager can list the assigned project.
-- Verified an employee receives `ADMINISTRATION_SCOPE_DENIED` when requesting the organization member directory.
-- Updated project memory and test-fixture notes without recording credentials or access tokens.
-
-### Files affected
-
-- `docs/PROJECT_CONTEXT.md`
-- `docs/KNOWN_ISSUES.md`
-- `docs/TEST_FIXTURES.md`
-- `docs/DEVELOPMENT_LOG.md`
-- `docs/TEST_REPORT.md`
-- `docs/ERROR_LOG.md`
-
-### Database changes
-
-No schema changes. Synthetic project, evaluation-cycle, project-membership, scoped project-manager role, assignment, and safe audit records were created in linked Supabase project `daxaymcmtbmummrxdyjy` through the deployed administration Edge Function.
-
-### Security impact
-
-Positive verification impact. The smoke test confirmed server-side role recomputation, matching-organization administrator scope, project-manager project visibility, non-self assignment generation, and employee denial for an administration action. No evaluation response content, credentials, tokens, plaintext scores, comments, or encryption keys were stored in the repository or test documentation.
-
-### Tests performed
-
-- Authenticated Supabase password-grant requests for synthetic accounts.
-- Authenticated `get_my_workspace_context()` checks for active profile, role, and membership context.
-- Authenticated `admin-project-cycles` calls for project creation, member assignment, assignment generation, and scoped project listing.
-- Negative employee authorization check for `list_organization_members`.
-- `npx supabase functions list --project-ref daxaymcmtbmummrxdyjy`.
-- `npm run check`.
-
-### Result
-
-The authenticated administration smoke path passed. One project with five project memberships was created; four evaluating participants produced 12 non-self pending assignments; the team leader could see the assigned project; and the employee administration request was denied with `ADMINISTRATION_SCOPE_DENIED`. The final application check passed with 11 test files and 49 tests.
-
-### Remaining work
-
-- Implement invitation issuance, redemption, profile activation, scoped role assignment, and hierarchy administration actions.
-- Implement delegated project-manager date update actions.
-- Add employee assignment access only after scoped authorization policies are designed.
-- Add browser end-to-end coverage after stable authenticated browser automation is available.

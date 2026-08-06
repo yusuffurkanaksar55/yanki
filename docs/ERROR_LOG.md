@@ -1,5 +1,128 @@
 # Error Log
 
+## ERR-20260806-028 - Codex browser runtime could not initialize
+
+### Context
+
+The Turkish assignment inbox required desktop and mobile visual verification.
+
+### Symptoms
+
+The browser control runtime failed before navigation with `failed to write kernel assets` and a Windows path-not-found error.
+
+### Root cause
+
+The Codex browser runtime could not create its own kernel asset path. Windows `TEMP` and `TMP` existed, and the Vite server was healthy, so this was outside the application.
+
+### Correct solution
+
+Retain component, build, and Docker image verification now; rerun visual checks when the Codex browser runtime is available.
+
+### Prevention
+
+Keep visual verification as an explicit release check and do not treat component tests as a permanent replacement.
+
+### Related files
+
+- `src/features/evaluations/AssignmentInbox.tsx`
+
+### Related tests
+
+- `src/features/evaluations/AssignmentInbox.test.tsx`
+
+## ERR-20260806-027 - Assignment smoke setup used the wrong env filename and hit transient DNS
+
+### Context
+
+The live employee assignment RPC smoke test needed public Supabase configuration and synthetic credentials.
+
+### Symptoms
+
+The first command reported `.env: not found`; after switching to `.env.local`, the first network attempt returned `EAI_AGAIN` for the Supabase hostname.
+
+### Root cause
+
+The smoke script assumed the wrong ignored local env filename, followed by a transient Windows DNS failure.
+
+### Correct solution
+
+Use `.env.local`, keep credentials in process-only environment variables, confirm DNS resolution, and retry. The test then returned three assignments and denied anonymous access.
+
+### Prevention
+
+Keep the smoke package command aligned with the repository's documented local env convention and report network failures separately from authorization failures.
+
+### Related files
+
+- `package.json`
+- `scripts/smoke-employee-assignment-access.mjs`
+
+### Related tests
+
+- `npm run smoke:assignments`
+
+## ERR-20260806-026 - Remote migration catalog cache missed a temporary certificate
+
+### Context
+
+The employee assignment RPC migration was pushed to the linked Supabase project.
+
+### Symptoms
+
+The migration applied, but the experimental pg-delta catalog cache reported that `pgdelta-target-ca.crt` did not exist in the temporary workspace.
+
+### Root cause
+
+Supabase CLI 2.109.1 lost its temporary pg-delta certificate path after migration application.
+
+### Correct solution
+
+Regenerate linked types, run linked database lint, and run a second migration dry-run. All passed and the remote database reported up to date.
+
+### Prevention
+
+Treat catalog-cache warnings as unverified until linked lint and a final dry-run pass; update the CLI in a separate reviewed tooling change.
+
+### Related files
+
+- `supabase/migrations/20260806233000_employee_assignment_access.sql`
+
+### Related tests
+
+- `npx supabase db lint --linked`
+- `npx supabase db push --linked --include-all --dry-run`
+
+## ERR-20260806-025 - Docker Engine stopped during local Supabase bootstrap
+
+### Context
+
+The first Docker-backed local Supabase verification downloaded the complete service image set.
+
+### Symptoms
+
+The database started, then the Docker Desktop Linux Engine named pipe disappeared and the `docker-desktop` WSL distribution was stopped.
+
+### Root cause
+
+Docker Desktop stopped during the initial high-volume image bootstrap. The downloaded layers and local database volume remained available.
+
+### Correct solution
+
+Restart Docker Desktop, stop the partial Supabase stack, and start it cleanly. All services then started and local reset, lint, and pgTAP tests passed.
+
+### Prevention
+
+Verify Docker Engine health before local stack startup and recover partial Supabase starts with a clean stop/start sequence.
+
+### Related files
+
+- `supabase/config.toml`
+
+### Related tests
+
+- `npm run supabase:test:local`
+- `npm run supabase:lint:local`
+
 ## ERR-20260806-024 - Duplicate Windows Path keys blocked background Vite startup
 
 ### Context
@@ -182,132 +305,6 @@ Normalize or parse database timestamps in integration assertions when multiple v
 ### Related tests
 
 - `npm run smoke:project-dates`
-
-## ERR-20260722-018 - Project administration tests used page-global repeated selectors
-
-### Context
-
-The project date form introduced labels and headings that legitimately repeat elsewhere in the administration page.
-
-### Symptoms
-
-The first targeted test matched both project-completion fields, and the first full-page test matched both `Projects` headings.
-
-### Root cause
-
-Queries were not scoped to the project-creation form or project-management region.
-
-### Correct solution
-
-Resolve the semantic form/region first and query its controls or headings with `within(...)`.
-
-### Prevention
-
-Scope tests whenever independent workflows share domain-appropriate labels or headings.
-
-### Related files
-
-- `src/features/administration/ProjectCycleManagementPanel.test.tsx`
-- `src/features/administration/AdministrationPage.test.tsx`
-
-### Related tests
-
-- `npm run check`
-
-## ERR-20260722-017 - Smoke restoration used a throwing finally block
-
-### Context
-
-The reusable project-date smoke script must restore the original synthetic project date even when an assertion fails.
-
-### Symptoms
-
-ESLint reported `no-unsafe-finally` and `no-useless-assignment` during the first combined check.
-
-### Root cause
-
-The initial restoration implementation could throw from `finally` and initialized a state variable whose first value could never be observed.
-
-### Correct solution
-
-Capture the test failure, restore and validate the original state outside `finally`, then rethrow the captured failure.
-
-### Prevention
-
-Keep test cleanup unconditional without throwing from `finally`; separate cleanup verification from primary failure propagation.
-
-### Related files
-
-- `scripts/smoke-project-date-administration.mjs`
-
-### Related tests
-
-- `npm run check`
-
-## ERR-20260722-016 - Hierarchy smoke script retained an unused response assignment
-
-### Context
-
-The final combined application check linted the reusable hierarchy smoke script.
-
-### Symptoms
-
-ESLint reported `no-useless-assignment` for the idempotent hierarchy-update response.
-
-### Root cause
-
-The call was intentionally checked for success, but its refreshed data was not needed until a later independent mutation.
-
-### Correct solution
-
-Await the function call without assigning its response.
-
-### Prevention
-
-Keep smoke-script responses only when a subsequent assertion or mutation consumes them.
-
-### Related files
-
-- `scripts/smoke-hierarchy-administration.mjs`
-
-### Related tests
-
-- `npm run check`
-
-## ERR-20260722-014 - Supabase CLI telemetry write failed inside the workspace sandbox
-
-### Context
-
-Generated database types and linked database lint were run after deploying the organization-administration migration.
-
-### Symptoms
-
-The CLI completed remote work but then returned `EPERM` while writing a telemetry temporary file under the user profile. Shell redirection also left `src/types/supabase.ts` empty after the failed generation attempt.
-
-### Root cause
-
-The workspace sandbox allowed repository writes but not Supabase CLI telemetry writes under `C:\Users\Yusuf_Furkan\.supabase`.
-
-### Incorrect approach
-
-Running a command with output redirection before accounting for the CLI's additional profile-directory write requirement.
-
-### Correct solution
-
-Rerun type generation and linked lint with the narrowly required filesystem permission. The generated file was restored from the live schema and linked lint returned no errors.
-
-### Prevention
-
-Check generated-file size immediately after redirected CLI commands and use the approved Supabase command permission when the CLI must update its own profile metadata.
-
-### Related files
-
-- `src/types/supabase.ts`
-
-### Related tests
-
-- `npm run supabase:types`
-- `npm run supabase:lint:linked`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

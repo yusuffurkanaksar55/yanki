@@ -6,9 +6,9 @@ Secure company-internal web platform for anonymous employee, team, project, mana
 
 ## Current Status
 
-The repository is in application foundation phase. It contains persistent project memory, security architecture notes, authorization boundaries, data model documentation, ADRs, a React + TypeScript + Vite application shell, Supabase Auth-backed invitation/profile onboarding, configurable organization hierarchy, trusted existing-user role/hierarchy administration, authenticated own-workspace context, protected administration, project/evaluation-cycle configuration, atomic delegated project-date management, default-deny evaluation assignment planning, trusted user/project administration Edge Functions, a portable Docker/Nginx frontend package, explicit multi-tenant database integrity controls, Tailwind CSS styling, ESLint, TypeScript checking, Vitest, and React Testing Library tests.
+The repository is in application foundation phase. It contains persistent project memory, security architecture notes, authorization boundaries, data model documentation, ADRs, a React + TypeScript + Vite application shell, Supabase Auth-backed invitation/profile onboarding, configurable organization hierarchy, trusted existing-user role/hierarchy administration, authenticated own-workspace context, authenticated employee assignment access, a Turkish assignment inbox, protected administration, project/evaluation-cycle configuration, atomic delegated project-date management, default-deny evaluation assignment planning, trusted user/project administration Edge Functions, a portable Docker/Nginx frontend package, explicit multi-tenant database integrity controls, Tailwind CSS styling, ESLint, TypeScript checking, Vitest, React Testing Library, and Supabase pgTAP tests.
 
-Invitation delivery and acceptance still need an approved mailbox smoke test. Employee assignment inbox, evaluation authorization enforcement, versioned evaluation templates, anonymous credential flow, and encryption runtime have not been implemented yet.
+Invitation delivery and acceptance still need an approved mailbox smoke test. Versioned evaluation templates, anonymous credential issuance, encrypted submission, completion mutation, and reporting authorization have not been implemented yet.
 
 ## Target Stack
 
@@ -51,10 +51,13 @@ npm run memory:trim
 npm run memory:check
 npm run deployment:config
 npm run smoke:hierarchy
+npm run smoke:assignments
 npm run smoke:project-dates
 npm run supabase:migrations
+npm run supabase:lint:local
 npm run supabase:lint:linked
 npm run supabase:push:dry-run
+npm run supabase:test:local
 npm run supabase:types
 ```
 
@@ -64,7 +67,7 @@ These commands currently validate the React application scaffold, documentation 
 
 The remote Supabase project is linked to project ref `daxaymcmtbmummrxdyjy`. Public frontend environment examples are documented in `.env.example`; real local values belong in `.env.local`, which is ignored by Git.
 
-The applied migrations create a default-deny security foundation, Auth-backed user invitation/profile onboarding, configurable organization hierarchy tables, atomic organization-administration functions, project and time-bound evaluation-cycle configuration tables, atomic delegated project-date administration, an evaluation assignment planning table, a narrow authenticated own-workspace context RPC, and a service-role-only atomic invitation acceptance function. The latest multi-tenant hardening migration makes project membership tenant scope explicit and validates organization membership for identity-bearing relationships. The schema does not create evaluation submission tables or store sensitive evaluation content.
+The applied migrations create a default-deny security foundation, Auth-backed user invitation/profile onboarding, configurable organization hierarchy tables, atomic organization-administration functions, project and time-bound evaluation-cycle configuration tables, atomic delegated project-date administration, an evaluation assignment planning table, narrow authenticated own-workspace and own-assignment RPCs, and a service-role-only atomic invitation acceptance function. The multi-tenant hardening migration makes project membership tenant scope explicit and validates organization membership for identity-bearing relationships. The schema does not create evaluation submission tables or store sensitive evaluation content.
 
 ## Deployment
 
@@ -76,7 +79,7 @@ Synthetic CEO, HR admin, team leader, employee accounts, demo project, and demo 
 
 ## Authentication
 
-The frontend includes a typed Supabase Auth client foundation with email/password sign-in, password reset request, local-session sign-out, runtime public environment validation, React context-based session state, own-profile gating, own-workspace context display, a protected administration shell, user invitation management through `user-onboarding`, existing-user role/hierarchy management through `organization-administration`, and project/cycle/member/assignment/date management through `admin-project-cycles`.
+The frontend includes a typed Supabase Auth client foundation with email/password sign-in, password reset request, local-session sign-out, runtime public environment validation, React context-based session state, own-profile gating, own-workspace context display, employee own-assignment display through `get_my_evaluation_assignments()`, a protected administration shell, user invitation management through `user-onboarding`, existing-user role/hierarchy management through `organization-administration`, and project/cycle/member/assignment/date management through `admin-project-cycles`.
 
 Only public Supabase values are used in the browser. Service-role keys, database URLs, and encryption keys must stay out of frontend code and Git.
 

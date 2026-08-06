@@ -7,6 +7,9 @@ import { AuthGate } from "../features/authentication/AuthGate";
 import { AuthProvider } from "../features/authentication/AuthProvider";
 import type { AuthService } from "../features/authentication/authService";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
+import type {
+  EvaluationAssignmentService
+} from "../features/evaluations/evaluationAssignmentService";
 import { ProfileGate } from "../features/profiles/ProfileGate";
 import type { ProfileService } from "../features/profiles/profileService";
 import { WorkspaceContextGate } from "../features/workspace/WorkspaceContextGate";
@@ -14,6 +17,7 @@ import type { WorkspaceContextService } from "../features/workspace/workspaceCon
 
 type AppProps = {
   readonly authService?: AuthService;
+  readonly evaluationAssignmentService?: EvaluationAssignmentService;
   readonly hierarchyAdministrationService?: HierarchyAdministrationService;
   readonly profileService?: ProfileService;
   readonly projectCycleService?: ProjectCycleService;
@@ -25,6 +29,7 @@ type AppRoute = "dashboard" | "administration";
 
 export function App({
   authService,
+  evaluationAssignmentService,
   hierarchyAdministrationService,
   profileService,
   projectCycleService,
@@ -61,6 +66,7 @@ export function App({
                       />
                     ) : (
                       <DashboardPage
+                        evaluationAssignmentService={evaluationAssignmentService}
                         isSigningOut={isSigningOut}
                         onSignOut={onSignOut}
                         profileDisplayName={profile.display_name}

@@ -40,7 +40,8 @@ Create schema changes through version-controlled migrations:
 ```bash
 npx supabase migration new descriptive_name
 npx supabase db reset
-npx supabase db lint
+npm run supabase:lint:local
+npm run supabase:test:local
 npx supabase db push --dry-run
 npx supabase db push
 ```
@@ -49,7 +50,7 @@ Use `db push --dry-run` before remote changes. Never run destructive linked rese
 
 ## Security Baseline
 
-The applied migrations create foundational authorization tables, safe audit metadata tables, profile and invitation onboarding tables, organization hierarchy tables, project and time-bound evaluation-cycle configuration tables, default-deny evaluation assignment planning tables, and a narrow authenticated own-workspace context RPC. They intentionally do not create evaluation submission content tables yet.
+The applied migrations create foundational authorization tables, safe audit metadata tables, profile and invitation onboarding tables, organization hierarchy tables, project and time-bound evaluation-cycle configuration tables, default-deny evaluation assignment planning tables, and narrow authenticated own-workspace and own-assignment RPCs. They intentionally do not create evaluation submission content tables yet.
 
 The `admin-project-cycles` Edge Function is the first trusted administrative function. It uses `SUPABASE_SERVICE_ROLE_KEY` only in the Edge Function runtime and must not expose that value to frontend code. It supports project/cycle listing and creation, organization member lookup, project member assignment, project-backed evaluation assignment generation, and atomic delegated project-date updates through service-role-only `admin_update_project_dates()`.
 
@@ -78,6 +79,7 @@ Current baseline rules:
 - `user_profiles` has one self-read policy for authenticated users.
 - `user_invitations` has no client-facing policies and stores only hashed invitation secrets.
 - Organization hierarchy tables have no client-facing policies.
+- Evaluation assignment tables have no client-facing policies; employees read only their own safe assignment metadata through `get_my_evaluation_assignments()`.
 - Project and evaluation-cycle configuration tables have no client-facing policies.
 - Evaluation assignment planning tables have no client-facing policies and store identity-domain eligibility only.
 - `get_my_workspace_context()` is executable only by authenticated users and returns only the caller's own non-sensitive profile, role, membership, and manager context.

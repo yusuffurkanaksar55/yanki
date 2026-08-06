@@ -8,6 +8,7 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 
 - Administrators define organizational hierarchy.
 - Employees may have a team leader or manager.
+- Authenticated employees can view only evaluation assignments addressed to them and their availability windows.
 - Teams may have different evaluation questions.
 - Evaluation questions support 1-to-5 and 1-to-10 scoring.
 - Evaluations may contain written comments.
