@@ -64,7 +64,7 @@ These commands currently validate the React application scaffold, documentation 
 
 The remote Supabase project is linked to project ref `daxaymcmtbmummrxdyjy`. Public frontend environment examples are documented in `.env.example`; real local values belong in `.env.local`, which is ignored by Git.
 
-The applied migrations create a default-deny security foundation, Auth-backed user invitation/profile onboarding, configurable organization hierarchy tables, atomic organization-administration functions, project and time-bound evaluation-cycle configuration tables, atomic delegated project-date administration, an evaluation assignment planning table, a narrow authenticated own-workspace context RPC, and a service-role-only atomic invitation acceptance function. The pending multi-tenant hardening migration makes project membership tenant scope explicit and validates organization membership for identity-bearing relationships. The schema does not create evaluation submission tables or store sensitive evaluation content.
+The applied migrations create a default-deny security foundation, Auth-backed user invitation/profile onboarding, configurable organization hierarchy tables, atomic organization-administration functions, project and time-bound evaluation-cycle configuration tables, atomic delegated project-date administration, an evaluation assignment planning table, a narrow authenticated own-workspace context RPC, and a service-role-only atomic invitation acceptance function. The latest multi-tenant hardening migration makes project membership tenant scope explicit and validates organization membership for identity-bearing relationships. The schema does not create evaluation submission tables or store sensitive evaluation content.
 
 ## Deployment
 
