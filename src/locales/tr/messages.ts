@@ -20,6 +20,7 @@ export const tr = {
     labels: {
       subject: "Değerlendirilecek kişi",
       project: "Proje",
+      template: "Değerlendirme şablonu",
       opensAt: "Başlangıç",
       closesAt: "Son teslim"
     },
@@ -331,6 +332,69 @@ export const tr = {
         genericError: "Beklenmeyen bir rol ve hiyerarşi hatası oluştu."
       }
     },
+    templates: {
+      sectionLabel: "Değerlendirme şablonu yönetimi",
+      eyebrow: "Sürüm kontrollü yapı",
+      title: "Değerlendirme şablonları",
+      description:
+        "Soruları taslakta düzenleyin. Yayınlanan sürüm değiştirilemez ve değerlendirme dönemine olduğu haliyle bağlanır.",
+      loading: "Şablonlar yükleniyor.",
+      empty: "Henüz değerlendirme şablonu oluşturulmadı.",
+      form: {
+        newTitle: "Yeni şablon",
+        editTitle: "Taslak sürümü düzenle",
+        organizationId: "Organizasyon ID",
+        name: "Şablon adı",
+        description: "Açıklama",
+        questionsTitle: "Sorular",
+        addQuestion: "Soru ekle",
+        removeQuestion: "Soruyu kaldır",
+        prompt: "Soru metni",
+        questionType: "Soru türü",
+        required: "Yanıt zorunlu",
+        options: "Seçenekler",
+        optionsHint: "Her satıra bir seçenek yazın.",
+        save: "Taslağı kaydet",
+        saving: "Kaydediliyor",
+        cancel: "Yeni şablona dön"
+      },
+      list: {
+        title: "Şablon sürümleri",
+        version: "Sürüm {version}",
+        questionCount: "{count} soru",
+        published: "Yayınlandı",
+        draft: "Taslak",
+        editDraft: "Taslağı düzenle",
+        publish: "Sürümü yayınla",
+        publishing: "Yayınlanıyor",
+        createVersion: "Yeni sürüm oluştur",
+        cloning: "Oluşturuluyor",
+        immutable: "Yayınlanan içerik değiştirilemez.",
+        noDescription: "Açıklama yok"
+      },
+      questionTypes: {
+        RATING_1_TO_5: "1-5 puan",
+        RATING_1_TO_10: "1-10 puan",
+        YES_NO: "Evet / Hayır",
+        SINGLE_SELECT: "Tek seçim",
+        MULTI_SELECT: "Çoklu seçim",
+        SHORT_TEXT: "Kısa metin",
+        LONG_TEXT: "Uzun metin",
+        TAG_SELECTION: "Etiket seçimi"
+      },
+      feedback: {
+        saved: "Şablon taslağı kaydedildi.",
+        published: "Şablon sürümü yayınlandı ve artık değiştirilemez.",
+        cloned: "Yeni düzenlenebilir sürüm oluşturuldu.",
+        EVALUATION_TEMPLATE_SESSION_REQUIRED:
+          "Oturum doğrulanamadı. Lütfen tekrar giriş yap.",
+        EVALUATION_TEMPLATE_LIST_FAILED: "Şablonlar okunamadı.",
+        EVALUATION_TEMPLATE_SAVE_FAILED: "Şablon taslağı kaydedilemedi.",
+        EVALUATION_TEMPLATE_PUBLISH_FAILED: "Şablon sürümü yayınlanamadı.",
+        EVALUATION_TEMPLATE_CLONE_FAILED: "Yeni şablon sürümü oluşturulamadı.",
+        genericError: "Beklenmeyen bir şablon yönetimi hatası oluştu."
+      }
+    },
     projects: {
       sectionLabel: "Proje ve değerlendirme süreci yönetimi",
       form: {
@@ -340,6 +404,9 @@ export const tr = {
         projectCode: "Proje kodu",
         projectCompletedOn: "Proje bitiş tarihi",
         evaluationName: "Değerlendirme adı",
+        templateVersion: "Yayınlanmış şablon sürümü",
+        templateVersionPlaceholder: "Şablon sürümü seç",
+        noPublishedTemplate: "Bu organizasyon için yayınlanmış şablon yok",
         projectManagerUserId: "Proje müdürü kullanıcı ID",
         opensAt: "Açılış zamanı",
         closesAt: "Kapanış zamanı",
@@ -352,6 +419,8 @@ export const tr = {
         empty: "Henüz görüntülenebilir proje yok.",
         projectCompletedOn: "Proje bitişi",
         evaluationClose: "Değerlendirme kapanışı",
+        templateVersion: "Şablon sürümü",
+        noTemplateVersion: "Şablon bilgisi yok",
         noDate: "Tarih yok"
       },
       dates: {

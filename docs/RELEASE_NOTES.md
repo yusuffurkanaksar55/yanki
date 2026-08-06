@@ -1,12 +1,20 @@
 # Release Notes
 
+## 2026-08-06 - Immutable Versioned Evaluation Templates
+
+This is not a product release. Organization-scoped system administrators can now create evaluation-template drafts, edit ordered typed questions, publish a version, and create a new draft by cloning a published snapshot. Database triggers reject all updates and deletes against published version metadata and questions, including attempts to move a question from a published version into a draft; browser clients have no direct template-table access.
+
+Every evaluation cycle now requires an exact published template version, and every assignment copies that same identifier. Existing cycles were backfilled to archived compatibility versions. The Turkish administration UI selects published versions during project creation, while project and employee views display the bound version.
+
+Local pgTAP passed 26 authorization and lifecycle cases across both database suites; Vitest passed 21 files and 91 tests. Local `public` schema lint and linked schema lint are clean. Live synthetic verification created the reusable four-question “Genel Proje Değerlendirmesi” v1, confirmed anonymous denial and legacy-cycle metadata, then passed idempotently without creating another record. Anonymous credentials, encrypted submission, completion mutation, and reporting remain release blockers.
+
 ## 2026-08-06 - Employee Assignment Access Foundation
 
 This is not a product release. Authenticated employees can now see only evaluation assignments addressed to them in a Turkish dashboard inbox. The database derives ownership from `auth.uid()`, revalidates active evaluator and subject organization membership, excludes cancelled assignments and draft cycles, and computes availability using the server clock.
 
 Assignment and related identity tables remain default-deny to browser clients. The RPC returns no evaluator identity field, evaluation response, score, comment, anonymous credential, or encrypted payload. Docker-backed pgTAP tests passed 8 authorization cases, linked and local schema lint are clean, and a live synthetic employee received three closed assignments while an anonymous call was denied.
 
-Submission is not implemented. Immutable template binding, anonymous credential issuance, encryption, completion mutation, and reporting remain release blockers.
+Submission is not implemented. Immutable template binding is now implemented under ADR-0019; anonymous credential issuance, encryption, completion mutation, and reporting remain release blockers.
 
 ## 2026-08-06 - Portable Deployment And Tenant Integrity Foundation
 

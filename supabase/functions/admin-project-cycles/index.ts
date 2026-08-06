@@ -8,6 +8,7 @@ type AppRole = {
 
 type CreateProjectCycleRequest = {
   readonly organizationId: string;
+  readonly templateVersionId: string;
   readonly projectName: string;
   readonly projectCode?: string | null;
   readonly projectCompletedOn?: string | null;
@@ -110,6 +111,9 @@ type ManagedEvaluationCycle = {
   readonly closesAt: string;
   readonly projectCompletedOn: string | null;
   readonly anonymityThreshold: number;
+  readonly templateVersionId: string;
+  readonly templateName: string;
+  readonly templateVersionNumber: number;
   readonly assignmentSummary: EvaluationAssignmentSummary;
 };
 
@@ -338,7 +342,7 @@ async function listProjectCycles(
   let query = serviceClient
     .from("projects")
     .select(
-      "id,organization_id,name,code,status,starts_on,completes_on,project_manager_user_id,evaluation_cycles(id,name,status,opens_at,closes_at,project_completed_on,anonymity_threshold)"
+      "id,organization_id,name,code,status,starts_on,completes_on,project_manager_user_id,evaluation_cycles(id,name,status,opens_at,closes_at,project_completed_on,anonymity_threshold,template_version_id,template_version:evaluation_template_versions!evaluation_cycles_template_version_tenant_fk(id,name,version_number))"
     )
     .order("created_at", { ascending: false })
     .limit(50);
@@ -414,6 +418,12 @@ async function createProjectCycle(
   actorUserId: string,
   input: CreateProjectCycleRequest
 ): Promise<ManagedProject> {
+  await requirePublishedTemplateVersion(
+    serviceClient,
+    input.organizationId,
+    input.templateVersionId
+  );
+
   const { data: project, error: projectError } = await serviceClient
     .from("projects")
     .insert({
@@ -455,10 +465,11 @@ async function createProjectCycle(
       organization_id: input.organizationId,
       project_completed_on: input.projectCompletedOn,
       project_id: project.id,
-      status: "OPEN"
+      status: "OPEN",
+      template_version_id: input.templateVersionId
     })
     .select(
-      "id,name,status,opens_at,closes_at,project_completed_on,anonymity_threshold"
+      "id,name,status,opens_at,closes_at,project_completed_on,anonymity_threshold,template_version_id,template_version:evaluation_template_versions!evaluation_cycles_template_version_tenant_fk(id,name,version_number)"
     )
     .single();
 
@@ -479,6 +490,44 @@ async function createProjectCycle(
   }
 
   return managedProject;
+}
+
+async function requirePublishedTemplateVersion(
+  serviceClient: ReturnType<typeof createClient>,
+  organizationId: string,
+  templateVersionId: string
+): Promise<void> {
+  const { data: version, error: versionError } = await serviceClient
+    .from("evaluation_template_versions")
+    .select("id,template_id")
+    .eq("id", templateVersionId)
+    .eq("organization_id", organizationId)
+    .eq("status", "PUBLISHED")
+    .maybeSingle();
+
+  if (versionError) {
+    throw versionError;
+  }
+
+  if (!version) {
+    throw new RequestValidationError("PUBLISHED_TEMPLATE_VERSION_REQUIRED");
+  }
+
+  const { data: template, error: templateError } = await serviceClient
+    .from("evaluation_templates")
+    .select("id")
+    .eq("id", version.template_id)
+    .eq("organization_id", organizationId)
+    .eq("status", "ACTIVE")
+    .maybeSingle();
+
+  if (templateError) {
+    throw templateError;
+  }
+
+  if (!template) {
+    throw new RequestValidationError("PUBLISHED_TEMPLATE_VERSION_REQUIRED");
+  }
 }
 
 async function addProjectMember(
@@ -672,10 +721,11 @@ async function readEvaluationCycleRecord(
   organization_id: string;
   project_id: string | null;
   status: string;
+  template_version_id: string;
 }> {
   const { data, error } = await serviceClient
     .from("evaluation_cycles")
-    .select("id,organization_id,project_id,status")
+    .select("id,organization_id,project_id,status,template_version_id")
     .eq("id", evaluationCycleId)
     .single();
 
@@ -762,6 +812,7 @@ function createProjectAssignmentCandidates({
     readonly id: string;
     readonly organization_id: string;
     readonly project_id: string | null;
+    readonly template_version_id: string;
   };
   readonly participants: readonly ProjectParticipant[];
 }): Array<Record<string, string>> {
@@ -785,7 +836,8 @@ function createProjectAssignmentCandidates({
         organization_id: cycle.organization_id,
         project_id: cycle.project_id,
         status: "PENDING",
-        subject_user_id: subject.userId
+        subject_user_id: subject.userId,
+        template_version_id: cycle.template_version_id
       });
     }
   }
@@ -1043,7 +1095,7 @@ async function readManagedProject(
   const { data, error } = await serviceClient
     .from("projects")
     .select(
-      "id,organization_id,name,code,status,starts_on,completes_on,project_manager_user_id,evaluation_cycles(id,name,status,opens_at,closes_at,project_completed_on,anonymity_threshold)"
+      "id,organization_id,name,code,status,starts_on,completes_on,project_manager_user_id,evaluation_cycles(id,name,status,opens_at,closes_at,project_completed_on,anonymity_threshold,template_version_id,template_version:evaluation_template_versions!evaluation_cycles_template_version_tenant_fk(id,name,version_number))"
     )
     .eq("id", projectId)
     .single();
@@ -1250,7 +1302,11 @@ function parseCreateProjectCycleRequest(
     projectCode: readOptionalString(value.projectCode),
     projectCompletedOn,
     projectManagerUserId: readOptionalUuid(value.projectManagerUserId),
-    projectName
+    projectName,
+    templateVersionId: readRequiredUuid(
+      value.templateVersionId,
+      "TEMPLATE_VERSION_ID_REQUIRED"
+    )
   };
 }
 
@@ -1334,6 +1390,9 @@ function toManagedProject(record: Record<string, unknown>): ManagedProject {
 
 function toManagedCycle(record: unknown): ManagedEvaluationCycle {
   const value = isRecord(record) ? record : {};
+  const templateVersion = isRecord(value.template_version)
+    ? value.template_version
+    : {};
 
   return {
     anonymityThreshold: readNumber(value.anonymity_threshold),
@@ -1343,6 +1402,15 @@ function toManagedCycle(record: unknown): ManagedEvaluationCycle {
     opensAt: readRequiredString(value.opens_at, "CYCLE_OPEN_MISSING"),
     projectCompletedOn: readOptionalString(value.project_completed_on),
     status: readRequiredString(value.status, "CYCLE_STATUS_MISSING"),
+    templateName: readRequiredString(
+      templateVersion.name,
+      "TEMPLATE_NAME_MISSING"
+    ),
+    templateVersionId: readRequiredString(
+      value.template_version_id,
+      "TEMPLATE_VERSION_ID_MISSING"
+    ),
+    templateVersionNumber: readNumber(templateVersion.version_number),
     assignmentSummary: createEmptyAssignmentSummary()
   };
 }

@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and has a default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, own-workspace and own-assignment RPCs, Supabase Auth-backed invitation onboarding, default-deny project/evaluation-cycle and evaluation-assignment foundations, and trusted user/project administration Edge Functions. Employee assignment reads are implemented; evaluation submission and reporting authorization are not implemented yet.
+Authorization is documented and has a default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, own-workspace and own-assignment RPCs, Supabase Auth-backed invitation onboarding, immutable versioned template administration, default-deny project/evaluation-cycle and evaluation-assignment foundations, and trusted administration Edge Functions. Employee assignment reads are implemented; evaluation submission and reporting authorization are not implemented yet.
 
 ## Principles
 
@@ -36,6 +36,8 @@ Project date updates are available to platform/matching-organization system admi
 `user-onboarding` requires a platform or matching-organization `SYSTEM_ADMIN` role for invitation listing, creation, and revocation. Invitation acceptance is available only to the exact Supabase Auth user created for the invitation, after verified-email, expiration, terminal-state, organization, unit, and optional manager checks. The acceptance database function is executable only by `service_role`.
 
 `organization-administration` requires an active profile and a platform or matching-organization `SYSTEM_ADMIN` role. The Edge Function recomputes authorization from `user_role_assignments`; service-role-only database functions revalidate the actor within each mutation transaction. Unit changes, primary membership/direct-manager updates, and manageable existing-user role assignments remain organization-scoped. Direct-manager cycles, cross-organization membership, invalid unit-scoped roles, unsafe unit archival, and removal of the final organization-scoped system administrator are denied. `PROJECT_MANAGER` remains owned by the project administration boundary.
+
+`evaluation-templates` requires an active profile and platform or matching-organization `SYSTEM_ADMIN` scope. Browser clients have no direct template-table privileges. Service-role-only functions atomically save drafts, publish valid versions, and clone published versions into the next draft. Database triggers enforce published-version immutability even if trusted application code regresses. `admin-project-cycles` additionally verifies that a selected version is published, active, and in the same organization before creating a cycle.
 
 ## Roles
 

@@ -110,6 +110,7 @@ export type Database = {
           project_id: string | null
           status: string
           subject_user_id: string
+          template_version_id: string
           updated_at: string
         }
         Insert: {
@@ -123,6 +124,7 @@ export type Database = {
           project_id?: string | null
           status?: string
           subject_user_id: string
+          template_version_id: string
           updated_at?: string
         }
         Update: {
@@ -136,6 +138,7 @@ export type Database = {
           project_id?: string | null
           status?: string
           subject_user_id?: string
+          template_version_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -160,6 +163,13 @@ export type Database = {
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "evaluation_assignments_template_version_tenant_fk"
+            columns: ["organization_id", "template_version_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_template_versions"
+            referencedColumns: ["organization_id", "id"]
+          },
         ]
       }
       evaluation_cycles: {
@@ -176,6 +186,7 @@ export type Database = {
           project_completed_on: string | null
           project_id: string | null
           status: string
+          template_version_id: string
           updated_at: string
         }
         Insert: {
@@ -191,6 +202,7 @@ export type Database = {
           project_completed_on?: string | null
           project_id?: string | null
           status?: string
+          template_version_id: string
           updated_at?: string
         }
         Update: {
@@ -206,6 +218,7 @@ export type Database = {
           project_completed_on?: string | null
           project_id?: string | null
           status?: string
+          template_version_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -221,6 +234,168 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_cycles_template_version_tenant_fk"
+            columns: ["organization_id", "template_version_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_template_versions"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      evaluation_template_questions: {
+        Row: {
+          created_at: string
+          id: string
+          is_required: boolean
+          options: Json
+          organization_id: string
+          position: number
+          prompt: string
+          question_type: string
+          template_version_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          options?: Json
+          organization_id: string
+          position: number
+          prompt: string
+          question_type: string
+          template_version_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          options?: Json
+          organization_id?: string
+          position?: number
+          prompt?: string
+          question_type?: string
+          template_version_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_template_questions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_template_questions_version_tenant_fk"
+            columns: ["organization_id", "template_version_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_template_versions"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      evaluation_template_versions: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          description: string | null
+          id: string
+          name: string
+          organization_id: string
+          published_at: string | null
+          published_by_user_id: string | null
+          status: string
+          template_id: string
+          updated_at: string
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          published_at?: string | null
+          published_by_user_id?: string | null
+          status?: string
+          template_id: string
+          updated_at?: string
+          version_number: number
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          published_at?: string | null
+          published_by_user_id?: string | null
+          status?: string
+          template_id?: string
+          updated_at?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_template_versions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_template_versions_template_tenant_fk"
+            columns: ["organization_id", "template_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_templates"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      evaluation_templates: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          description: string | null
+          id: string
+          name: string
+          organization_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -740,6 +915,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_clone_evaluation_template_version: {
+        Args: { actor_user_id: string; source_template_version_id: string }
+        Returns: Json
+      }
       admin_end_user_role: {
         Args: {
           actor_user_id: string
@@ -763,6 +942,22 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      admin_publish_evaluation_template_version: {
+        Args: { actor_user_id: string; managed_template_version_id: string }
+        Returns: Json
+      }
+      admin_save_evaluation_template_draft: {
+        Args: {
+          actor_user_id: string
+          managed_organization_id: string
+          managed_template_id: string
+          managed_template_version_id: string
+          template_description: string
+          template_name: string
+          template_questions: Json
+        }
+        Returns: Json
       }
       admin_set_user_hierarchy_context: {
         Args: {

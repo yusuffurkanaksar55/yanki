@@ -185,7 +185,10 @@ function createEvaluationAssignmentStub(): EvaluationAssignment {
     projectId: "project-id",
     projectName: "Yanki Projesi",
     subjectDisplayName: "Çalışan Bir",
-    subjectEmail: "employee@example.com"
+    subjectEmail: "employee@example.com",
+    templateName: "Proje Geri Bildirimi",
+    templateVersionId: "template-version-id",
+    templateVersionNumber: 1
   };
 }
 
@@ -200,7 +203,8 @@ function createProjectCycleServiceStub(): ProjectCycleService {
         projectCode: null,
         projectCompletedOn: null,
         projectManagerUserId: null,
-        projectName: "Project"
+        projectName: "Project",
+        templateVersionId: "template-version-id"
       })
     ),
     createProjectCycle: vi.fn(async (draft: ProjectCycleDraft) =>
@@ -244,7 +248,10 @@ function createManagedProjectStub(draft: ProjectCycleDraft): ManagedProject {
         name: draft.evaluationName,
         opensAt: draft.opensAt,
         projectCompletedOn: draft.projectCompletedOn,
-        status: "OPEN"
+        status: "OPEN",
+        templateName: "Project Feedback",
+        templateVersionId: draft.templateVersionId,
+        templateVersionNumber: 1
       }
     ],
     id: "project-id",

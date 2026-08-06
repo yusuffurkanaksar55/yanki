@@ -8,7 +8,7 @@ High
 
 ### Description
 
-The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, profile/invitation onboarding, trusted existing-user role/hierarchy administration, authenticated own-workspace and employee-assignment RPCs, a Turkish assignment inbox, protected administration shell, default-deny project/evaluation-cycle configuration, default-deny evaluation assignment planning, and trusted project administration. Immutable evaluation templates, anonymous credentials, encrypted submissions, completion mutation, and reporting are not implemented yet.
+The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, profile/invitation onboarding, trusted existing-user role/hierarchy administration, authenticated own-workspace and employee-assignment RPCs, a Turkish assignment inbox, immutable versioned evaluation templates, protected administration shell, default-deny project/evaluation-cycle configuration, default-deny evaluation assignment planning, and trusted project administration. Anonymous credentials, encrypted submissions, completion mutation, and reporting are not implemented yet.
 
 ### Impact
 
@@ -20,11 +20,11 @@ Use the application scaffold only for frontend and trusted-administration founda
 
 ### Planned resolution
 
-Authenticated project/cycle/member/assignment management, delegated date management, invitation administration listing, existing-user role/hierarchy administration, and employee own-assignment access are smoke-tested. Next implement immutable versioned templates, then anonymous credentials and encrypted submission flows in separate reviewable phases. Complete invitation email delivery/acceptance verification when an approved mailbox becomes available.
+Authenticated template, project/cycle/member/assignment management, delegated date management, invitation administration listing, existing-user role/hierarchy administration, and employee own-assignment access are smoke-tested. Next implement anonymous credentials and encrypted submission flows in separate reviewable phases. Complete invitation email delivery/acceptance verification when an approved mailbox becomes available.
 
 ### Related tests
 
-`tests/project-memory.test.mjs`, `tests/employee-assignment-access.test.mjs`, `supabase/tests/database/employee_assignment_access.test.sql`, `src/features/evaluations/AssignmentInbox.test.tsx`
+`tests/project-memory.test.mjs`, `tests/employee-assignment-access.test.mjs`, `supabase/tests/database/employee_assignment_access.test.sql`, `supabase/tests/database/versioned_evaluation_templates.test.sql`, `src/features/evaluations/AssignmentInbox.test.tsx`
 
 ## ISSUE-005 - Remaining delegated administration actions are not implemented
 

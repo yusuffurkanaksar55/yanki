@@ -7,6 +7,8 @@ import {
   canAccessAdministration,
   getAdministrationRoles
 } from "../workspace/workspaceAuthorization";
+import { EvaluationTemplateManagementPanel } from "./EvaluationTemplateManagementPanel";
+import type { EvaluationTemplateService } from "./evaluationTemplateService";
 import type { HierarchyAdministrationService } from "./hierarchyAdministrationService";
 import { ProjectCycleManagementPanel } from "./ProjectCycleManagementPanel";
 import type { ProjectCycleService } from "./projectCycleService";
@@ -15,6 +17,7 @@ import { UserInvitationManagementPanel } from "./UserInvitationManagementPanel";
 import type { UserAdministrationService } from "./userAdministrationService";
 
 type AdministrationPageProps = {
+  readonly evaluationTemplateService?: EvaluationTemplateService;
   readonly hierarchyAdministrationService?: HierarchyAdministrationService;
   readonly isSigningOut?: boolean;
   readonly onSignOut?: () => Promise<void>;
@@ -26,6 +29,7 @@ type AdministrationPageProps = {
 };
 
 export function AdministrationPage({
+  evaluationTemplateService,
   hierarchyAdministrationService,
   isSigningOut = false,
   onSignOut,
@@ -40,6 +44,9 @@ export function AdministrationPage({
   }
 
   const administrationRoles = getAdministrationRoles(workspaceContext);
+  const canManageTemplates = workspaceContext.roles.some(
+    (role) => role.roleCode === "SYSTEM_ADMIN"
+  );
 
   return (
     <div className="min-h-screen bg-mist text-ink">
@@ -153,7 +160,15 @@ export function AdministrationPage({
           workspaceContext={workspaceContext}
         />
 
+        {canManageTemplates ? (
+          <EvaluationTemplateManagementPanel
+            service={evaluationTemplateService}
+            workspaceContext={workspaceContext}
+          />
+        ) : null}
+
         <ProjectCycleManagementPanel
+          evaluationTemplateService={evaluationTemplateService}
           service={projectCycleService}
           workspaceContext={workspaceContext}
         />

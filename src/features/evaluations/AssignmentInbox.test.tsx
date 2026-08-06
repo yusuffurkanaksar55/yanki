@@ -86,6 +86,9 @@ function createAssignment(): EvaluationAssignment {
     projectId: "project-id",
     projectName: "Yanki Projesi",
     subjectDisplayName: "Çalışan Bir",
-    subjectEmail: "employee@example.com"
+    subjectEmail: "employee@example.com",
+    templateName: "Proje Geri Bildirimi",
+    templateVersionId: "template-version-id",
+    templateVersionNumber: 1
   };
 }

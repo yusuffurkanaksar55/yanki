@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AdministrationPage } from "../features/administration/AdministrationPage";
+import type { EvaluationTemplateService } from "../features/administration/evaluationTemplateService";
 import type { HierarchyAdministrationService } from "../features/administration/hierarchyAdministrationService";
 import type { ProjectCycleService } from "../features/administration/projectCycleService";
 import type { UserAdministrationService } from "../features/administration/userAdministrationService";
@@ -18,6 +19,7 @@ import type { WorkspaceContextService } from "../features/workspace/workspaceCon
 type AppProps = {
   readonly authService?: AuthService;
   readonly evaluationAssignmentService?: EvaluationAssignmentService;
+  readonly evaluationTemplateService?: EvaluationTemplateService;
   readonly hierarchyAdministrationService?: HierarchyAdministrationService;
   readonly profileService?: ProfileService;
   readonly projectCycleService?: ProjectCycleService;
@@ -30,6 +32,7 @@ type AppRoute = "dashboard" | "administration";
 export function App({
   authService,
   evaluationAssignmentService,
+  evaluationTemplateService,
   hierarchyAdministrationService,
   profileService,
   projectCycleService,
@@ -55,6 +58,7 @@ export function App({
                   <>
                     {route === "administration" ? (
                       <AdministrationPage
+                        evaluationTemplateService={evaluationTemplateService}
                         hierarchyAdministrationService={hierarchyAdministrationService}
                         isSigningOut={isSigningOut}
                         onSignOut={onSignOut}

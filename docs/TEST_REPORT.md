@@ -1,5 +1,52 @@
 # Test Report
 
+## 2026-08-06 - Immutable Versioned Evaluation Templates
+
+### Environment
+
+- Workspace: `D:\Projects\anonim_degerlendirme`
+- Runtime: Node.js v24.14.0
+- Supabase CLI: 2.109.1
+- Docker Desktop: local Supabase PostgreSQL stack
+- Linked Supabase project: `daxaymcmtbmummrxdyjy`
+
+### Commands executed
+
+- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run check`
+- `npx supabase start`, `npx supabase db reset --local`, `npx supabase test db`, `npx supabase db lint --local`
+- Linked migration dry-run, push, list, type generation, and linked lint
+- Sequential deploys for `admin-project-cycles` and `evaluation-templates`
+- `npm run smoke:templates` twice
+
+### Passed
+
+- Vitest passed 21 files and 91 tests; TypeScript, ESLint, production build, and memory checks passed.
+- Clean local reset applied every migration through `20260807001500_template_immutability_hardening.sql`.
+- pgTAP passed 26 cases across employee assignment access and template lifecycle suites.
+- Template tests cover default-deny privileges, service-role grants, non-empty publication, published metadata/question immutability, rejection of moving a published question into a draft, cloning, draft-cycle rejection, exact cycle binding, assignment copy, drift rejection, and audit events.
+- Local `public` schema lint and linked database lint reported no schema errors; local and remote migration versions match.
+- Both Edge Functions compiled and deployed. Live synthetic verification published four questions, returned exact version metadata for the existing cycle, denied anonymous administration, and passed idempotently on the second run.
+
+### Failed
+
+- The first pgTAP run exposed a missing early return in the version insert trigger and an old test fixture without the newly required version id; both were corrected without weakening the production constraint.
+- Parallel Edge Function deploy commands reported success, but only one function remained registered. Sequential redeployment corrected the remote state.
+- Migration push repeated the known non-fatal Supabase CLI pg-delta temporary certificate warning. Migration listing and linked lint confirmed the applied state.
+- Local Docker verification temporarily stopped when the full system drive mounted Docker's WSL data disk read-only. Temporary completed installers and crash dumps were removed, the ext4 volume was repaired with the documented WSL `e2fsck` workflow, and a clean reset plus all 26 database tests then passed.
+- Codex browser control again failed before navigation with the known kernel-assets path error.
+
+### Security checks
+
+- Verified published metadata and question rows are database-immutable.
+- Verified authenticated browsers have no direct template-table access and anonymous Edge Function calls are denied.
+- Verified tenant scope and active publication before cycle creation, plus exact template-version inheritance and drift rejection for assignments.
+- Verified no employee response, evaluator-to-response mapping, credential, encryption key, or service-role credential was introduced.
+
+### Remaining risks
+
+- Template selection does not authorize submission; anonymous credentials and encrypted payload persistence remain production blockers.
+- Automated visual and full browser end-to-end coverage remain incomplete.
+
 ## 2026-08-06 - Authenticated Employee Assignment Access
 
 ### Environment
@@ -262,86 +309,3 @@
 
 - Delegated project-manager date updates and employee assignment access are not implemented.
 - Sensitive evaluation submission, anonymous credential, encryption, thresholded reporting, and self-access prevention runtimes remain unimplemented.
-
-## 2026-07-20 - Supabase Auth-Backed Invitation Onboarding
-
-### Environment
-
-- Workspace: `D:\Projects\anonim_degerlendirme`
-- Runtime: Node.js v24.14.0
-- npm: 11.9.0
-- Supabase CLI: 2.109.1
-- Linked Supabase project: `daxaymcmtbmummrxdyjy`
-- Deployed Edge Functions: `user-onboarding`, version `3`; `admin-project-cycles`, version `5`
-
-### Commands executed
-
-- `npm run lint`
-- `npm run typecheck`
-- `npm test`
-- `npm run build`
-- `npm run check`
-- `npx supabase db push --dry-run`
-- `npx supabase db lint --linked`
-- `npx supabase db push --linked --include-all --yes`
-- `npx supabase migration list`
-- `npx supabase gen types typescript --linked`
-- `npx supabase functions deploy user-onboarding --no-verify-jwt`
-- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
-- `npx supabase functions list --project-ref daxaymcmtbmummrxdyjy`
-- Authenticated and negative live HTTP smoke tests for `user-onboarding`.
-- `git diff --check`
-
-### Passed
-
-- Final `npm run check` passed lint, typecheck, Vitest with 13 test files and 59 tests, and production build.
-- Migration dry-runs showed only `20260720232000_user_invitation_acceptance_flow.sql` and then only follow-up `20260720234500_invitation_acceptance_context_revalidation.sql` before their respective deployments.
-- Linked database lint found no schema errors before and after migration deployment.
-- Both invitation migrations applied to the linked project and appear in local and remote migration history.
-- Post-deployment dry-run reported the remote database is up to date.
-- Generated TypeScript database types include invitation context columns and `accept_user_invitation()`.
-- `user-onboarding` deployed as `ACTIVE`, version `3`, and `admin-project-cycles` deployed as `ACTIVE`, version `5`, with browser-compatible CORS preflight headers.
-- Authenticated system-admin listing returned one manageable organization, three active units, six active organization members, and no existing invitations.
-- A synthetic employee administration request returned HTTP 403 with `ADMINISTRATION_SCOPE_DENIED`.
-- An unauthenticated request returned HTTP 401 with `AUTHENTICATION_REQUIRED`.
-- An authenticated system-admin revocation request for a nonexistent invitation returned HTTP 400 with `INVITATION_NOT_FOUND` without changing persisted data.
-- Authenticated browser verification loaded the invitation form, one organization, three units, six manager candidates, the existing project, five project members, and 12 assignment summaries.
-- Desktop and 390-pixel mobile viewport checks found no horizontal document overflow or out-of-bounds elements.
-- Component tests cover invitation creation, revocation, system-admin visibility, and invited-profile acceptance.
-- Boundary tests verify no browser service directly queries `user_invitations` and no raw custom invitation token is returned.
-
-### Failed
-
-- The first new component test read the form before asynchronous option loading completed; it was changed to await the labeled control.
-- The first migration content test treated SQL `comment on` metadata as a sensitive comment column; it was narrowed to actual `add column` declarations.
-- The first remote dry-run attempt received a transient Supabase login-role HTTP 503 connection timeout; the retry succeeded.
-- Both migration deployments succeeded but emitted the known Docker migration-catalog cache warning.
-- Function deployment succeeded but emitted `WARNING: Docker is not running`.
-- The first authenticated browser check exposed missing CORS permission for the Supabase SDK `apikey` header; both administration functions were corrected, redeployed, and reverified.
-
-### Skipped
-
-- Real invitation email delivery was not tested because no approved test mailbox was provided and arbitrary/invalid-address delivery should not be triggered.
-- Invited-user link handling and final acceptance were not live-tested for the same reason.
-- A reusable Playwright end-to-end suite remains unimplemented; this change received a targeted authenticated browser smoke test instead.
-
-### Manual tests
-
-- Verified the administration service uses only the `user-onboarding` Edge Function boundary.
-- Verified the profile service uses the same boundary for invitation acceptance.
-- Verified generated database types contain the new migration shape.
-
-### Security checks
-
-- Verified invitation management requires system-admin scope and active profile state.
-- Verified acceptance binds the exact Auth user id and normalized email.
-- Verified acceptance rechecks expiration, terminal state, active organization/unit, and optional active manager.
-- Verified `accept_user_invitation()` execute permission is granted only to `service_role`.
-- Verified activation writes profile, role, unit membership, manager relationship, invitation state, and safe audit metadata atomically.
-- Verified no evaluation content, service-role credential, access token, raw invitation secret, score, comment, or submission payload was added.
-
-### Remaining risks
-
-- SMTP delivery and invited-user acceptance require an approved mailbox smoke test.
-- Existing-user role edits and general hierarchy administration remain incomplete.
-- Sensitive evaluation submission, anonymous credentials, encryption, and reporting remain unimplemented.

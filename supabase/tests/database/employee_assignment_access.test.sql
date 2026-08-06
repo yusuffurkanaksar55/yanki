@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(8);
+select plan(9);
 
 select has_function(
   'public',
@@ -127,9 +127,67 @@ values
     now() - interval '2 days'
   );
 
+insert into public.evaluation_templates (
+  id,
+  organization_id,
+  name,
+  status,
+  created_by_user_id
+)
+values (
+  'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  'Assignment Test Template',
+  'ACTIVE',
+  '11111111-1111-4111-8111-111111111111'
+);
+
+insert into public.evaluation_template_versions (
+  id,
+  organization_id,
+  template_id,
+  version_number,
+  name,
+  status,
+  created_by_user_id
+)
+values (
+  'ffffffff-ffff-4fff-8fff-ffffffffffff',
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+  1,
+  'Assignment Test Template',
+  'DRAFT',
+  '11111111-1111-4111-8111-111111111111'
+);
+
+insert into public.evaluation_template_questions (
+  organization_id,
+  template_version_id,
+  position,
+  prompt,
+  question_type,
+  is_required
+)
+values (
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  'ffffffff-ffff-4fff-8fff-ffffffffffff',
+  1,
+  'Assignment test prompt',
+  'LONG_TEXT',
+  true
+);
+
+update public.evaluation_template_versions
+set status = 'PUBLISHED',
+    published_at = now(),
+    published_by_user_id = '11111111-1111-4111-8111-111111111111'
+where id = 'ffffffff-ffff-4fff-8fff-ffffffffffff';
+
 insert into public.evaluation_cycles (
   id,
   organization_id,
+  template_version_id,
   name,
   cycle_type,
   status,
@@ -140,6 +198,7 @@ values
   (
     'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
     'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    'ffffffff-ffff-4fff-8fff-ffffffffffff',
     'Open Assignment Test Cycle',
     'CUSTOM',
     'OPEN',
@@ -149,6 +208,7 @@ values
   (
     'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
     'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    'ffffffff-ffff-4fff-8fff-ffffffffffff',
     'Draft Assignment Test Cycle',
     'CUSTOM',
     'DRAFT',
@@ -216,6 +276,15 @@ select is(
     ->> 'availability_status',
   'AVAILABLE',
   'Open assignment is marked available by the server clock'
+);
+
+select is(
+  public.get_my_evaluation_assignments()
+    -> 'assignments'
+    -> 0
+    ->> 'template_version_id',
+  'ffffffff-ffff-4fff-8fff-ffffffffffff',
+  'Employee assignment metadata exposes the exact immutable template version'
 );
 
 select ok(

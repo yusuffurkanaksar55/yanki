@@ -10,6 +10,9 @@ export type ManagedEvaluationCycle = {
   readonly closesAt: string;
   readonly projectCompletedOn: string | null;
   readonly anonymityThreshold: number;
+  readonly templateVersionId: string;
+  readonly templateName: string;
+  readonly templateVersionNumber: number;
   readonly assignmentSummary: EvaluationAssignmentSummary;
 };
 
@@ -75,6 +78,7 @@ export type ProjectCycleDraft = {
   readonly opensAt: string;
   readonly closesAt: string;
   readonly projectManagerUserId: string | null;
+  readonly templateVersionId: string;
 };
 
 export type ProjectMemberDraft = {
@@ -332,6 +336,9 @@ function toManagedEvaluationCycle(value: unknown): ManagedEvaluationCycle {
     opensAt: readString(record.opensAt),
     projectCompletedOn: readNullableString(record.projectCompletedOn),
     status: readString(record.status),
+    templateName: readString(record.templateName),
+    templateVersionId: readString(record.templateVersionId),
+    templateVersionNumber: readNumber(record.templateVersionNumber),
     assignmentSummary: toEvaluationAssignmentSummary(record.assignmentSummary)
   };
 }

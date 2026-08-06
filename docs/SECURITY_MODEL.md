@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the intended security model. The repository currently contains Supabase default-deny RLS foundation tables, a typed Supabase Auth client foundation, Supabase Auth-backed invitation onboarding, organization hierarchy foundation, authenticated workspace and employee assignment RPCs, project/evaluation-cycle configuration, evaluation assignment planning, a protected administration shell, and trusted user/project administration Edge Functions. Production evaluation submission, encryption, anonymous credentials, and reporting are not implemented.
+This document describes the intended security model. The repository currently contains Supabase default-deny RLS foundation tables, a typed Supabase Auth client foundation, Supabase Auth-backed invitation onboarding, organization hierarchy foundation, authenticated workspace and employee assignment RPCs, immutable versioned evaluation templates, project/evaluation-cycle configuration, evaluation assignment planning, a protected administration shell, and trusted administration Edge Functions. Production evaluation submission, encryption, anonymous credentials, and reporting are not implemented.
 
 ## Security Objectives
 
@@ -86,6 +86,8 @@ Delegated project-date updates use the same Edge Function and service-role-only 
 `evaluation_assignments` is an identity-domain eligibility table, not a submission-content table. It may store evaluator and subject identifiers so the system can later issue eligibility proofs, but it must never store scores, comments, lessons learned text, encrypted payloads, anonymous credential secrets, or evaluator-to-response mappings. It remains default-deny to frontend clients. The current assignment generation action is admin-only, project-backed, prevents self assignments, and returns aggregate assignment counts rather than response content.
 
 `get_my_evaluation_assignments()` is the only employee assignment-read boundary. It accepts no user or organization id, derives ownership from `auth.uid()`, requires active evaluator and subject tenant membership, excludes cancelled assignments and draft cycles, and returns only display metadata with a server-clock availability state. Its execute grant is limited to `authenticated`. It does not authorize submission or return response content, anonymous credentials, or evaluator identity fields.
+
+Evaluation templates are configuration-domain records. `evaluation-templates` authenticates the actor, recomputes active `SYSTEM_ADMIN` scope, and delegates mutations to service-role-only atomic functions that repeat organization authorization. Draft metadata and questions may change; publication requires at least one valid question. Database triggers reject every later update or delete of a published version or any of its questions. Cycles can bind only a published version from the same tenant, and assignments must copy the exact version from their cycle. Template prompts and options are configuration, not employee response content.
 
 ## Anonymity Threshold
 

@@ -89,7 +89,7 @@ docker compose --env-file .env.deploy up -d --build --wait
 
 ## Production Release Gate
 
-This repository now has a portable deployment foundation, but it is not approved for live evaluation content. Employee assignment access, versioned templates, anonymous credentials, encrypted submission storage, scoped aggregate reporting, key rotation, production bootstrap, backup automation, and end-to-end security regression coverage must be completed before production use.
+This repository now has a portable deployment foundation, but it is not approved for live evaluation content. Anonymous credentials, encrypted submission storage, scoped aggregate reporting, key rotation, production bootstrap, backup automation, and end-to-end security regression coverage must be completed before production use.
 
 ## Customer Handover
 

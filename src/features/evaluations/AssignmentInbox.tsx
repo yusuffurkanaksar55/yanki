@@ -166,6 +166,10 @@ function AssignmentCard({
           value={formatProject(assignment)}
         />
         <AssignmentDetail
+          label={tr.assignments.labels.template}
+          value={`${assignment.templateName} - v${assignment.templateVersionNumber}`}
+        />
+        <AssignmentDetail
           label={tr.assignments.labels.opensAt}
           value={formatDateTime(assignment.opensAt)}
         />

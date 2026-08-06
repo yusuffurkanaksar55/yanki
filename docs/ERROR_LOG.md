@@ -1,5 +1,97 @@
 # Error Log
 
+## ERR-20260806-031 - Full system drive mounted Docker data read-only
+
+### Context
+
+The local Supabase stack was restarted to verify the template immutability hardening migration from a clean database.
+
+### Symptoms
+
+Docker Desktop stopped, WSL reported that its virtual disk was already attached, and Docker logs showed that the distribution disk had been mounted read-only.
+
+### Root cause
+
+The Windows system drive had no free space, which interrupted Docker's WSL filesystem journal and forced a read-only fallback mount.
+
+### Correct solution
+
+Stop Docker and WSL, remove only completed temporary installers and crash dumps, mount the Docker data VHD in bare mode, repair its ext4 filesystem with `e2fsck`, unmount it, and restart Docker. A clean Supabase reset and all database tests then passed.
+
+### Prevention
+
+Keep several gigabytes free on the system drive and check host disk capacity before image-heavy Docker or local Supabase operations.
+
+### Related files
+
+- `supabase/config.toml`
+
+### Related tests
+
+- `npx supabase db reset --local`
+- `npx supabase test db`
+
+## ERR-20260806-030 - Parallel Edge Function deploy lost one registration
+
+### Context
+
+The updated project function and new template function were deployed concurrently after the migration.
+
+### Symptoms
+
+Both commands reported success, but the live template endpoint returned 404 and `supabase functions list` contained only the updated project function.
+
+### Root cause
+
+Concurrent project-level function deployments raced while updating remote function registration state.
+
+### Correct solution
+
+Redeploy `evaluation-templates` sequentially, confirm it appears in the remote list, and rerun the authenticated smoke test.
+
+### Prevention
+
+Deploy Supabase Edge Functions sequentially for the same project and verify the remote function list before smoke testing.
+
+### Related files
+
+- `supabase/functions/evaluation-templates/index.ts`
+- `supabase/functions/admin-project-cycles/index.ts`
+
+### Related tests
+
+- `npm run smoke:templates`
+
+## ERR-20260806-029 - Template version insert trigger fell through to update checks
+
+### Context
+
+The first Docker-backed pgTAP run exercised creation of a new draft version.
+
+### Symptoms
+
+`admin_save_evaluation_template_draft()` raised `TEMPLATE_VERSION_IDENTITY_IMMUTABLE` during the initial insert.
+
+### Root cause
+
+The trigger validated that inserted versions start as drafts but did not return immediately, so it continued into update-only identity comparisons against `OLD`.
+
+### Correct solution
+
+Return `NEW` immediately after successful insert validation and rerun a clean local database reset and all pgTAP suites.
+
+### Prevention
+
+Keep explicit operation branches in multi-operation triggers and retain executable create, update, publish, clone, and immutability tests.
+
+### Related files
+
+- `supabase/migrations/20260806234500_versioned_evaluation_templates.sql`
+
+### Related tests
+
+- `supabase/tests/database/versioned_evaluation_templates.test.sql`
+
 ## ERR-20260806-028 - Codex browser runtime could not initialize
 
 ### Context
@@ -214,97 +306,6 @@ Treat linked Supabase CLI commands as requiring their approved user-profile acce
 ### Related tests
 
 - `npm run supabase:push:dry-run`
-
-## ERR-20260806-021 - Public runtime configuration stub lacked an ESLint browser declaration
-
-### Context
-
-Vite copies `public/app-config.js` directly while ESLint scans the repository source.
-
-### Symptoms
-
-The first lint run reported `window is not defined` for the runtime configuration stub.
-
-### Root cause
-
-The copied plain JavaScript file did not declare its browser global environment.
-
-### Correct solution
-
-Add a file-scoped `/* global window */` declaration. The container-generated replacement remains plain browser JavaScript.
-
-### Prevention
-
-Keep public copied scripts covered by the full lint command and declare their runtime globals explicitly.
-
-### Related files
-
-- `public/app-config.js`
-
-### Related tests
-
-- `npm run lint`
-
-## ERR-20260806-020 - Frontend environment example included a server credential placeholder
-
-### Context
-
-The deployment change initially documented `SUPABASE_SERVICE_ROLE_KEY` in the root frontend environment example.
-
-### Symptoms
-
-The fixture security test rejected the environment file because the frontend configuration contract forbids service-role material.
-
-### Root cause
-
-Server-only setup documentation was mixed into the browser-oriented `.env.example` file.
-
-### Correct solution
-
-Remove the server credential placeholder. Document server secrets only in trusted deployment and Functions configuration guidance.
-
-### Prevention
-
-Retain the regression test that rejects service-role names from the frontend environment example.
-
-### Related files
-
-- `.env.example`
-- `docs/DEPLOYMENT.md`
-
-### Related tests
-
-- `tests/demo-fixture-foundation.test.mjs`
-
-## ERR-20260722-019 - Live smoke test compared equivalent timestamps as text
-
-### Context
-
-The delegated project-date live smoke test updated and restored an existing synthetic project's evaluation close date.
-
-### Symptoms
-
-The update succeeded, but the first assertion rejected the returned value because PostgreSQL serialized UTC with `+00:00` while the request used `Z`.
-
-### Root cause
-
-The smoke script compared timestamp strings rather than instants.
-
-### Correct solution
-
-Compare parsed epoch values and always restore the original date before propagating a smoke-test failure.
-
-### Prevention
-
-Normalize or parse database timestamps in integration assertions when multiple valid ISO 8601 encodings are possible.
-
-### Related files
-
-- `scripts/smoke-project-date-administration.mjs`
-
-### Related tests
-
-- `npm run smoke:project-dates`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

@@ -31,4 +31,4 @@ Expose assignment metadata through `get_my_evaluation_assignments()`, a narrowly
 
 Positive. Employees can see only their own current assignment metadata without any direct table policy. Tenant membership and profile state are rechecked on every call, and assignment availability uses the database clock.
 
-The RPC does not authorize submission. Anonymous credential issuance, immutable template binding, encrypted submission, completion mutation, and reporting remain separate future boundaries.
+The RPC does not authorize submission. Immutable template binding was subsequently implemented under ADR-0019. Anonymous credential issuance, encrypted submission, completion mutation, and reporting remain separate boundaries.

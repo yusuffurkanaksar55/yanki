@@ -18,8 +18,15 @@ import {
   type ProjectMemberDraft,
   type ProjectMembershipKind
 } from "./projectCycleService";
+import {
+  browserEvaluationTemplateService,
+  type EvaluationTemplate,
+  type EvaluationTemplateService,
+  type EvaluationTemplateVersion
+} from "./evaluationTemplateService";
 
 type ProjectCycleManagementPanelProps = {
+  readonly evaluationTemplateService?: EvaluationTemplateService;
   readonly service?: ProjectCycleService;
   readonly workspaceContext: WorkspaceContext;
 };
@@ -33,6 +40,7 @@ type FormState = {
   readonly opensAt: string;
   readonly closesAt: string;
   readonly projectManagerUserId: string;
+  readonly templateVersionId: string;
 };
 
 type MemberFormState = {
@@ -64,7 +72,8 @@ const initialFormState: FormState = {
   projectCode: "",
   projectCompletedOn: "",
   projectManagerUserId: "",
-  projectName: ""
+  projectName: "",
+  templateVersionId: ""
 };
 
 const initialMemberFormState: MemberFormState = {
@@ -80,6 +89,7 @@ const membershipKindOptions: readonly ProjectMembershipKind[] = [
 ];
 
 export function ProjectCycleManagementPanel({
+  evaluationTemplateService = browserEvaluationTemplateService,
   service = browserProjectCycleService,
   workspaceContext
 }: ProjectCycleManagementPanelProps) {
@@ -99,6 +109,7 @@ export function ProjectCycleManagementPanel({
   const [loadState, setLoadState] = useState<LoadState>({
     status: "loading"
   });
+  const [templates, setTemplates] = useState<readonly EvaluationTemplate[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [memberFormStates, setMemberFormStates] = useState<
     Record<string, MemberFormState>
@@ -119,6 +130,16 @@ export function ProjectCycleManagementPanel({
     loadState.status === "ready"
       ? loadState.organizationMembersById[formState.organizationId] ?? []
       : [];
+  const publishedTemplateVersions = useMemo(
+    () => templates.flatMap((template) =>
+      template.organizationId === formState.organizationId
+        ? template.versions
+          .filter((version) => version.status === "PUBLISHED")
+          .map((version) => ({ template, version }))
+        : []
+    ),
+    [formState.organizationId, templates]
+  );
 
   useEffect(() => {
     let isActive = true;
@@ -127,7 +148,12 @@ export function ProjectCycleManagementPanel({
       setLoadState({ status: "loading" });
 
       try {
-        const projects = await service.listProjectCycles();
+        const [projects, managedTemplates] = await Promise.all([
+          service.listProjectCycles(),
+          canCreateProjectCycles
+            ? evaluationTemplateService.listTemplates()
+            : Promise.resolve([])
+        ]);
         const organizationIds = uniqueStrings([
           defaultOrganizationId,
           ...projects.map((project) => project.organizationId)
@@ -145,6 +171,7 @@ export function ProjectCycleManagementPanel({
           projects,
           status: "ready"
         });
+        setTemplates(managedTemplates);
       } catch (error) {
         if (!isActive) {
           return;
@@ -162,7 +189,13 @@ export function ProjectCycleManagementPanel({
     return () => {
       isActive = false;
     };
-  }, [canLoadOrganizationMembers, defaultOrganizationId, service]);
+  }, [
+    canCreateProjectCycles,
+    canLoadOrganizationMembers,
+    defaultOrganizationId,
+    evaluationTemplateService,
+    service
+  ]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -346,6 +379,11 @@ export function ProjectCycleManagementPanel({
             type="text"
             value={formState.evaluationName}
           />
+          <TemplateVersionSelectField
+            onChange={setFormState}
+            options={publishedTemplateVersions}
+            value={formState.templateVersionId}
+          />
           {organizationMembers.length > 0 ? (
             <UserSelectField
               label={tr.administration.projects.form.projectManagerUserId}
@@ -385,7 +423,7 @@ export function ProjectCycleManagementPanel({
         </div>
         <button
           className="mt-5 rounded-md bg-pine px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-400"
-          disabled={isSubmitting}
+          disabled={isSubmitting || publishedTemplateVersions.length === 0}
           type="submit"
         >
           {isSubmitting
@@ -515,6 +553,48 @@ function UserSelectField({
   );
 }
 
+function TemplateVersionSelectField({
+  onChange,
+  options,
+  value
+}: {
+  readonly onChange: (
+    updater: (current: FormState) => FormState
+  ) => void;
+  readonly options: readonly {
+    readonly template: EvaluationTemplate;
+    readonly version: EvaluationTemplateVersion;
+  }[];
+  readonly value: string;
+}) {
+  return (
+    <label className="block text-sm font-semibold text-slate-800">
+      {tr.administration.projects.form.templateVersion}
+      <select
+        className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900 shadow-sm focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20 disabled:bg-slate-100"
+        disabled={options.length === 0}
+        onChange={(event) => {
+          const templateVersionId = event.currentTarget.value;
+          onChange((current) => ({ ...current, templateVersionId }));
+        }}
+        required
+        value={value}
+      >
+        <option value="">
+          {options.length > 0
+            ? tr.administration.projects.form.templateVersionPlaceholder
+            : tr.administration.projects.form.noPublishedTemplate}
+        </option>
+        {options.map(({ template, version }) => (
+          <option key={version.id} value={version.id}>
+            {template.name} - v{version.versionNumber}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 function ProjectList({
   canAdministerProject,
   canUpdateProjectDates,
@@ -605,6 +685,12 @@ function ProjectList({
             <ProjectDate
               label={tr.administration.projects.list.evaluationClose}
               value={project.cycles[0]?.closesAt ?? null}
+            />
+            <ProjectDate
+              label={tr.administration.projects.list.templateVersion}
+              value={project.cycles[0]
+                ? `${project.cycles[0].templateName} - v${project.cycles[0].templateVersionNumber}`
+                : tr.administration.projects.list.noTemplateVersion}
             />
           </dl>
           {canUpdateProjectDates(project) ? (
@@ -1053,7 +1139,8 @@ function toDraft(formState: FormState): ProjectCycleDraft {
     projectCode: normalizeOptionalValue(formState.projectCode),
     projectCompletedOn: normalizeOptionalValue(formState.projectCompletedOn),
     projectManagerUserId: normalizeOptionalValue(formState.projectManagerUserId),
-    projectName: formState.projectName
+    projectName: formState.projectName,
+    templateVersionId: formState.templateVersionId
   };
 }
 

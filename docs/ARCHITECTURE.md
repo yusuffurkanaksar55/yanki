@@ -2,7 +2,7 @@
 
 ## Status
 
-Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has default-deny security, Supabase Auth-backed invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context, employee assignment access, project/evaluation-cycle, and evaluation-assignment migrations. A typed Supabase Auth client, own-profile gate, own-workspace context panel, Turkish employee assignment inbox, protected administration shell, user invitation management, trusted existing-user role/hierarchy management, trusted project/cycle/member/assignment administration, portable Docker/Nginx frontend, and multi-tenant integrity hardening migration are implemented.
+Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has default-deny security, Supabase Auth-backed invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context, employee assignment access, immutable versioned evaluation templates, project/evaluation-cycle, and evaluation-assignment migrations.
 
 ## Target System
 
@@ -97,6 +97,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Employee assignment service and inbox: `src/features/evaluations/evaluationAssignmentService.ts`, `src/features/evaluations/AssignmentInbox.tsx`
 - Administration feature: `src/features/administration/AdministrationPage.tsx`
 - Administration project/cycle/member/assignment service and panel: `src/features/administration/projectCycleService.ts`, `src/features/administration/ProjectCycleManagementPanel.tsx`
+- Administration evaluation-template service and panel: `src/features/administration/evaluationTemplateService.ts`, `src/features/administration/EvaluationTemplateManagementPanel.tsx`
 - Administration role/hierarchy service and panel: `src/features/administration/hierarchyAdministrationService.ts`, `src/features/administration/RoleHierarchyManagementPanel.tsx`
 - Turkish messages: `src/locales/tr/messages.ts`
 - Authentication context and UI: `src/features/authentication/`
@@ -113,6 +114,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - CLI config: `supabase/config.toml`
 - Seed file: `supabase/seed.sql`
 - Admin project/cycle/member Edge Function: `supabase/functions/admin-project-cycles/index.ts`
+- Evaluation-template Edge Function: `supabase/functions/evaluation-templates/index.ts`
 - User onboarding Edge Function: `supabase/functions/user-onboarding/index.ts`
 - Organization administration Edge Function: `supabase/functions/organization-administration/index.ts`
 - Initial migration: `supabase/migrations/20260719132911_initial_security_foundation.sql`
@@ -122,6 +124,8 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Project/evaluation-cycle migration: `supabase/migrations/20260719184052_project_evaluation_cycle_foundation.sql`
 - Evaluation assignment migration: `supabase/migrations/20260720223000_evaluation_assignment_foundation.sql`
 - Employee assignment access migration: `supabase/migrations/20260806233000_employee_assignment_access.sql`
+- Versioned template migration: `supabase/migrations/20260806234500_versioned_evaluation_templates.sql`
+- Template immutability hardening migration: `supabase/migrations/20260807001500_template_immutability_hardening.sql`
 - Database authorization tests: `supabase/tests/database/employee_assignment_access.test.sql`
 - Invitation acceptance migration: `supabase/migrations/20260720232000_user_invitation_acceptance_flow.sql`
 - Invitation acceptance revalidation migration: `supabase/migrations/20260720234500_invitation_acceptance_context_revalidation.sql`
@@ -132,7 +136,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Demo fixture script: `scripts/create-demo-fixture.mjs`
 - Linked remote project ref: `daxaymcmtbmummrxdyjy`
 
-The initial migration creates `app_roles`, `scope_types`, `user_role_assignments`, and `audit_events`. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`, and adds `PLATFORM` as the global scope type. The workspace context migration creates `get_my_workspace_context()`. The project/evaluation-cycle migration creates `projects`, `project_memberships`, and `evaluation_cycles`. The evaluation assignment migration creates `evaluation_assignments` for identity-domain eligibility planning only. The employee access migration creates authenticated `get_my_evaluation_assignments()` without adding direct table policies. The invitation migrations add Auth-user and hierarchy context, service-role-only `accept_user_invitation()`, and acceptance-time active context revalidation. The delegated date migration adds service-role-only `admin_update_project_dates()` for atomic project/cycle configuration updates. RLS is enabled on all public tables. `user_profiles` has one narrow authenticated self-read policy. Invitation, hierarchy, project, evaluation-cycle, and evaluation-assignment administration tables have no client-facing policies and are reserved for trusted server-side flows.
+The versioned-template migrations add logical template roots, immutable version snapshots, ordered typed questions, service-role-only lifecycle functions, and exact template-version foreign keys on cycles and assignments. Question mutation guards validate both the source and destination parent so a published question cannot be moved into a draft. Existing cycles are backfilled to archived compatibility versions; new cycles require a published active template through the trusted project boundary. Template tables have RLS enabled and no client-facing policies.
 
 ## Current Authentication Scaffold
 

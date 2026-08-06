@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { tr } from "../../locales/tr/messages";
 import type { WorkspaceContext } from "../workspace/workspaceContextService";
 import { ProjectCycleManagementPanel } from "./ProjectCycleManagementPanel";
+import type { EvaluationTemplateService } from "./evaluationTemplateService";
 import type {
   ManagedProject,
   ProjectCycleDraft,
@@ -17,6 +18,7 @@ describe("ProjectCycleManagementPanel", () => {
 
     render(
       <ProjectCycleManagementPanel
+        evaluationTemplateService={createEvaluationTemplateServiceStub()}
         service={service}
         workspaceContext={createWorkspaceContext()}
       />
@@ -59,6 +61,12 @@ describe("ProjectCycleManagementPanel", () => {
     );
     await user.selectOptions(
       creationFormRegion.getByLabelText(
+        tr.administration.projects.form.templateVersion
+      ),
+      "published-template-version-id"
+    );
+    await user.selectOptions(
+      creationFormRegion.getByLabelText(
         tr.administration.projects.form.projectManagerUserId
       ),
       "manager-user-id"
@@ -84,7 +92,8 @@ describe("ProjectCycleManagementPanel", () => {
         projectCode: "NEW",
         projectCompletedOn: "2026-07-19",
         projectManagerUserId: "manager-user-id",
-        projectName: "New Project"
+        projectName: "New Project",
+        templateVersionId: "published-template-version-id"
       })
     );
     expect(
@@ -99,6 +108,7 @@ describe("ProjectCycleManagementPanel", () => {
 
     render(
       <ProjectCycleManagementPanel
+        evaluationTemplateService={createEvaluationTemplateServiceStub()}
         service={service}
         workspaceContext={createWorkspaceContext()}
       />
@@ -147,6 +157,7 @@ describe("ProjectCycleManagementPanel", () => {
 
     render(
       <ProjectCycleManagementPanel
+        evaluationTemplateService={createEvaluationTemplateServiceStub()}
         service={service}
         workspaceContext={createWorkspaceContext()}
       />
@@ -176,6 +187,7 @@ describe("ProjectCycleManagementPanel", () => {
 
     render(
       <ProjectCycleManagementPanel
+        evaluationTemplateService={createEvaluationTemplateServiceStub()}
         service={service}
         workspaceContext={createProjectManagerWorkspaceContext()}
       />
@@ -316,7 +328,10 @@ function createManagedProject(
         name: draft.evaluationName ?? "Existing Evaluation",
         opensAt: draft.opensAt ?? "2026-07-19T06:00:00.000Z",
         projectCompletedOn: draft.projectCompletedOn ?? "2026-07-19",
-        status: "OPEN"
+        status: "OPEN",
+        templateName: "Project Feedback",
+        templateVersionId: draft.templateVersionId ?? "published-template-version-id",
+        templateVersionNumber: 1
       }
     ],
     id,
@@ -326,6 +341,34 @@ function createManagedProject(
     projectManagerUserId: draft.projectManagerUserId ?? null,
     startsOn: null,
     status: "ACTIVE"
+  };
+}
+
+function createEvaluationTemplateServiceStub(): EvaluationTemplateService {
+  return {
+    cloneVersion: vi.fn(),
+    listTemplates: vi.fn(async () => [
+      {
+        description: "Project feedback template",
+        id: "template-id",
+        name: "Project Feedback",
+        organizationId: "organization-id",
+        status: "ACTIVE" as const,
+        versions: [
+          {
+            description: "Project feedback template",
+            id: "published-template-version-id",
+            name: "Project Feedback",
+            publishedAt: "2026-07-18T09:00:00.000Z",
+            questions: [],
+            status: "PUBLISHED" as const,
+            versionNumber: 1
+          }
+        ]
+      }
+    ]),
+    publishVersion: vi.fn(),
+    saveDraft: vi.fn()
   };
 }
 

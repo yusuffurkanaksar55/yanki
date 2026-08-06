@@ -17,6 +17,7 @@
     "fixture:demo": "node scripts/create-demo-fixture.mjs",
     "smoke:hierarchy": "node scripts/smoke-hierarchy-administration.mjs",
     "smoke:assignments": "node --env-file-if-exists=.env.local scripts/smoke-employee-assignment-access.mjs",
+    "smoke:templates": "node --env-file-if-exists=.env.local scripts/smoke-versioned-evaluation-templates.mjs",
     "smoke:project-dates": "node scripts/smoke-project-date-administration.mjs",
     "supabase:migrations": "npx supabase migration list",
     "supabase:lint:linked": "npx supabase db lint --linked",

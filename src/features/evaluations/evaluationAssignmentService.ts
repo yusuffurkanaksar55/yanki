@@ -20,6 +20,9 @@ export type EvaluationAssignment = {
   readonly projectId: string | null;
   readonly projectName: string | null;
   readonly projectCode: string | null;
+  readonly templateVersionId: string;
+  readonly templateName: string;
+  readonly templateVersionNumber: number;
   readonly subjectDisplayName: string | null;
   readonly subjectEmail: string;
   readonly assignmentKind: string;
@@ -100,6 +103,9 @@ function toEvaluationAssignment(value: unknown): EvaluationAssignment {
     projectCode: readNullableString(record.project_code),
     projectId: readNullableString(record.project_id),
     projectName: readNullableString(record.project_name),
+    templateName: readString(record.template_name),
+    templateVersionId: readString(record.template_version_id),
+    templateVersionNumber: readNumber(record.template_version_number),
     subjectDisplayName: readNullableString(record.subject_display_name),
     subjectEmail: readString(record.subject_email)
   };
@@ -128,6 +134,10 @@ function readString(value: unknown): string {
 
 function readNullableString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function readNumber(value: unknown): number {
+  return typeof value === "number" ? value : 0;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

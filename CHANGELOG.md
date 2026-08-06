@@ -6,6 +6,13 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added tenant-scoped evaluation-template roots, editable drafts, immutable published versions, and ordered support for all documented question types.
+- Added service-role-only atomic draft-save, publish, and clone functions with safe audit events and database mutation guards.
+- Added the `evaluation-templates` trusted Edge Function, typed frontend service, and Turkish system-administrator template management panel.
+- Required every evaluation cycle and assignment to preserve the exact published template version; migrated legacy cycles to archived compatibility versions.
+- Added a published-template selector to project creation and template metadata to project and employee assignment views.
+- Added 17 template lifecycle pgTAP cases, including published-question move protection, focused component tests, and an idempotent live template smoke test.
+- Added ADR-0019 for immutable template-version binding.
 - Added authenticated employee own-assignment access through a narrowly granted `auth.uid()`-derived RPC while keeping identity tables default-deny.
 - Added a Turkish assignment inbox with server-derived availability states and live dashboard counts.
 - Added Docker-backed Supabase pgTAP authorization tests, local database lint scripts, and a reusable authenticated assignment smoke test.

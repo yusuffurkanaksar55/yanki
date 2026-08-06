@@ -2,7 +2,7 @@
 
 ## Status
 
-Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed profile/invitation onboarding, configurable organization hierarchy, authenticated own-workspace and own-assignment RPCs, project/evaluation-cycle configuration, and evaluation assignment planning. The complete anonymous submission data model is still conceptual and must be implemented in future reviewed phases.
+Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed profile/invitation onboarding, configurable organization hierarchy, authenticated own-workspace and own-assignment RPCs, immutable versioned evaluation templates, project/evaluation-cycle configuration, and evaluation assignment planning. The complete anonymous submission data model is still conceptual and must be implemented in future reviewed phases.
 
 Generated TypeScript database types are stored in `src/types/supabase.ts` and should be regenerated after schema changes.
 
@@ -22,11 +22,14 @@ Planned tables:
 - `manager_assignments`
 - `projects`
 - `project_memberships`
-- `question_templates`
-- `questions`
-- `template_questions`
+- `evaluation_templates`
+- `evaluation_template_versions`
+- `evaluation_template_questions`
 - `evaluation_cycles`
 - `evaluation_assignments`
+- `evaluation_templates`
+- `evaluation_template_versions`
+- `evaluation_template_questions`
 - `anonymous_credentials`
 - `encrypted_submissions`
 - `result_access_scopes`
@@ -61,6 +64,9 @@ Implemented foundation functions:
 - `admin_assign_user_role()`
 - `admin_end_user_role()`
 - `admin_update_project_dates()`
+- `admin_save_evaluation_template_draft()`
+- `admin_publish_evaluation_template_version()`
+- `admin_clone_evaluation_template_version()`
 
 ## Identity Domain
 
@@ -84,11 +90,13 @@ The service-role-only organization-administration functions mutate units, primar
 
 `project_memberships` stores project participation and project-management membership metadata. It carries a required `organization_id` and a composite foreign key that must match the parent project tenant. Administrators can add active organization members to projects through `admin-project-cycles`; browser clients still do not read or write this table directly.
 
-`evaluation_cycles` stores time-bound evaluation configuration with open and close timestamps, optional project completion date, cycle type, status, and anonymity threshold. It does not require a fixed participant count to open a cycle.
+`evaluation_templates` is the tenant-scoped logical root. `evaluation_template_versions` stores snapshot metadata and lifecycle state. `evaluation_template_questions` stores ordered question prompts, required flags, supported question types, and selection options. Draft versions are editable; database triggers make a published version and every question beneath it permanently immutable. A new version is cloned from a published snapshot and begins as a draft.
+
+`evaluation_cycles` stores time-bound evaluation configuration with open and close timestamps, optional project completion date, cycle type, status, anonymity threshold, and a required exact published `template_version_id`. It does not require a fixed participant count to open a cycle.
 
 `admin_update_project_dates()` atomically updates `projects.completes_on`, `evaluation_cycles.project_completed_on`, and `evaluation_cycles.closes_at` after verifying record scope, editable status, date ordering, and current system-administrator or exact assigned-project-manager authority. It is executable only by `service_role`.
 
-`evaluation_assignments` stores identity-domain evaluator-to-subject eligibility for a cycle, with assignment kind and completion status. It prevents self assignments, validates organization and project scope consistency, remains default-deny to frontend clients, and does not store scores, comments, lessons learned text, anonymous credentials, encrypted payloads, or response content.
+`evaluation_assignments` stores identity-domain evaluator-to-subject eligibility for a cycle, with assignment kind, completion status, and the exact template version copied from its cycle. It prevents self assignments and template drift, validates organization and project scope consistency, remains default-deny to frontend clients, and does not store scores, comments, lessons learned text, anonymous credentials, encrypted payloads, or response content.
 
 `get_my_evaluation_assignments()` returns a JSON list containing only the authenticated active user's own non-cancelled assignment display metadata for non-draft cycles. It revalidates active evaluator and subject organization membership and computes availability from the database clock. It does not return `evaluator_user_id` or any submission-domain field.
 
