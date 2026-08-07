@@ -1,6 +1,6 @@
 # Known Issues
 
-## ISSUE-001 - Runtime sensitive evaluation flows are not implemented
+## ISSUE-001 - Reporting and production security flows are incomplete
 
 ### Severity
 
@@ -8,23 +8,23 @@ High
 
 ### Description
 
-The repository now contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, React Testing Library scaffold, typed Supabase Auth client foundation, default-deny Supabase schema foundation, profile/invitation onboarding, trusted existing-user role/hierarchy administration, authenticated own-workspace and employee-assignment RPCs, a Turkish assignment inbox, immutable versioned evaluation templates, protected administration shell, default-deny project/evaluation-cycle configuration, default-deny evaluation assignment planning, and trusted project administration. Anonymous credentials, encrypted submissions, completion mutation, and reporting are not implemented yet.
+One-time anonymous credential preparation, AES-256-GCM encrypted submission storage, atomic assignment completion, and replay denial are implemented and live-smoke-tested. Trusted decryption, anonymity-thresholded aggregate reporting, reviewer scope/self-access enforcement, production key rotation, retention, and anonymous-endpoint abuse controls are not implemented yet.
 
 ### Impact
 
-No production sensitive evaluation submission, authorization, encryption, anonymity, or reporting workflow is available yet.
+Synthetic encrypted submissions are supported, but the product must not accept live employee content or expose results until reporting and production key operations pass their security gates.
 
 ### Workaround
 
-Use the application scaffold only for frontend and trusted-administration foundation work. Do not treat the project as deployable for sensitive evaluation content.
+Continue development and synthetic acceptance testing only. Do not use the linked development encryption key for live employee data and do not query ciphertext manually as a reporting workaround.
 
 ### Planned resolution
 
-Authenticated template, project/cycle/member/assignment management, delegated date management, invitation administration listing, existing-user role/hierarchy administration, and employee own-assignment access are smoke-tested. Next implement anonymous credentials and encrypted submission flows in separate reviewable phases. Complete invitation email delivery/acceptance verification when an approved mailbox becomes available.
+Implement trusted thresholded reporting and self-access denial next. Then replace/rotate the development key, add key recovery, endpoint rate limits, retention, production bootstrap, backup/restore acceptance, and approved invitation-mail verification.
 
 ### Related tests
 
-`tests/project-memory.test.mjs`, `tests/employee-assignment-access.test.mjs`, `supabase/tests/database/employee_assignment_access.test.sql`, `supabase/tests/database/versioned_evaluation_templates.test.sql`, `src/features/evaluations/AssignmentInbox.test.tsx`
+`tests/anonymous-submission-boundary.test.mjs`, `supabase/tests/database/anonymous_encrypted_submission.test.sql`, `src/features/evaluations/evaluationAssignmentService.test.ts`, `src/features/evaluations/AssignmentInbox.test.tsx`, `npm run smoke:submissions`
 
 ## ISSUE-005 - Remaining delegated administration actions are not implemented
 

@@ -1,5 +1,58 @@
 # Test Report
 
+## 2026-08-07 - Anonymous Encrypted Evaluation Submission
+
+### Environment
+
+- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
+- Docker Desktop local Supabase stack.
+- Linked Supabase project `daxaymcmtbmummrxdyjy` with synthetic users only.
+
+### Commands executed
+
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run build`
+- `npm run supabase:test:local`
+- `npm run supabase:lint:local`
+- `npm run supabase:lint:linked`
+- `npm run supabase:push:dry-run`
+- `npm run smoke:submissions`
+
+### Passed
+
+- Local Supabase applied every migration from an empty schema.
+- pgTAP passed 55 cases across employee access, template lifecycle, and anonymous encrypted submission suites.
+- The 29 new database cases cover table/RPC grants, forbidden linkage columns, credential replacement, context minimization, atomic redemption, replay denial, ciphertext storage, completion, and immutability.
+- Focused component, service, and boundary tests validate required answers, anonymous request headers, no browser credential persistence, and successful inbox refresh.
+- Both new Edge Functions bundled and are active remotely.
+- Live synthetic acceptance encrypted four answers, atomically completed the assignment, and rejected credential replay with 409.
+- Linked public schema lint is clean and final remote dry-run reports up to date.
+
+### Failed And Corrected
+
+- The first migration lacked a composite tenant key on evaluation cycles; it was added before remote deployment.
+- Legacy Windows PowerShell did not support static random `Fill`; the development key was replaced before any encryption.
+- PowerShell stripped JSON quotes from an inline keyring secret; a temporary env-file transfer corrected it and was immediately deleted.
+- Two static documentation/security assertions described the previous foundation state; both now inspect the exact current invariant.
+
+### Skipped
+
+- Visual browser verification could not start because the Codex browser runtime still cannot create its kernel asset path. Component, build, and live API verification passed.
+- Real invitation email remains deferred until an approved mailbox/provider is available.
+
+### Security checks
+
+- Verified no raw credential, answer, encryption key, service-role key, or evaluator-to-response mapping is stored in browser persistence or repository files.
+- Verified the anonymous browser request omits user Authorization and cookies.
+- Verified the content table has no evaluator, assignment, credential, digest, plaintext, or exact timestamp column.
+- Verified direct table access is denied and only narrow service-role RPCs can issue/contextualize/redeem credentials.
+
+### Remaining risks
+
+- Thresholded reporting, trusted decryption, reviewer scope/self-access enforcement, production key rotation/recovery, rate limiting, retention, and backup acceptance remain production blockers.
+
 ## 2026-08-06 - Immutable Versioned Evaluation Templates
 
 ### Environment
@@ -238,74 +291,3 @@
 
 - Employee assignment access and scoped evaluation authorization are not implemented.
 - Versioned templates, sensitive evaluation submission, anonymous credentials, encryption, thresholded reporting, and self-access prevention runtimes remain unimplemented.
-
-## 2026-07-22 - Existing-User Role And Hierarchy Administration
-
-### Environment
-
-- Workspace: `D:\Projects\anonim_degerlendirme`
-- Runtime: Node.js v24.14.0
-- Supabase CLI: 2.109.1
-- Linked Supabase project: `daxaymcmtbmummrxdyjy`
-- Deployed Edge Function: `organization-administration`, version `2`, `ACTIVE`, `verify_jwt=false`
-
-### Commands executed
-
-- `npm run lint`
-- `npm run typecheck`
-- `npm test`
-- `npm run build`
-- `npm run check`
-- `npx vitest run src/features/administration/RoleHierarchyManagementPanel.test.tsx tests/organization-administration-function.test.mjs`
-- `npx supabase db push --dry-run`
-- `npx supabase db push --linked --include-all --yes`
-- `npx supabase db lint --linked`
-- `npx supabase gen types typescript --linked`
-- `npx supabase functions deploy organization-administration --no-verify-jwt`
-- `npx supabase functions list --project-ref daxaymcmtbmummrxdyjy`
-- `npm run smoke:hierarchy`
-- Authenticated local browser verification at 1440-pixel and 390-pixel viewport widths.
-
-### Passed
-
-- Final application checks passed lint, typecheck, 15 Vitest files with 66 tests, and production build.
-- Initial migration dry-run showed only `20260722210000_hierarchy_administration_foundation.sql`.
-- The foundation and follow-up hierarchy-integrity migrations applied successfully; final dry-run reports the remote database is up to date.
-- Linked database lint reports no schema errors.
-- Generated TypeScript types contain all four administration mutation functions and actor-scope validation helper.
-- `organization-administration` deployed as `ACTIVE`, version `2`, with CORS-compatible internal bearer-token validation.
-- System-admin live listing returned one organization and six active members.
-- Temporary unit create/archive and temporary `BOARD_REVIEWER` assign/end paths succeeded.
-- Idempotent existing-user hierarchy update succeeded without changing the effective reporting relationship.
-- A manager-cycle attempt returned HTTP 400 with `MANAGER_ASSIGNMENT_CYCLE` and rolled back.
-- An employee request returned HTTP 403 with `ADMINISTRATION_SCOPE_DENIED`.
-- An unauthenticated request returned HTTP 401 with `AUTHENTICATION_REQUIRED`.
-- Desktop and mobile browser verification showed the role/hierarchy panel with no horizontal overflow and no browser console errors.
-- Boundary tests verify browser code uses only `organization-administration`, RPC execute grants are service-role-only, and no evaluation content fields were introduced.
-
-### Failed
-
-- The first final combined check found one unused smoke-script response assignment; the assignment was removed and the complete check passed.
-- The first panel test used a global label query for two deliberately separate `Çalışan` selectors; it was corrected to scope each query to its form.
-- The first sandboxed Supabase type-generation and linked-lint commands could not write the CLI telemetry file outside the workspace. They were rerun with the required filesystem permission and passed.
-- Remote migration and function deployment succeeded but repeated the known warning that the Docker Desktop engine was not running for local catalog inspection.
-
-### Skipped
-
-- Real invitation delivery and acceptance remain deferred because no approved mailbox/provider decision is available.
-- Local Supabase database reset/lint remains skipped because the Docker Desktop engine is not running in this shell.
-- Destructive final-administrator removal was not attempted live; static, database-function, and transaction-path coverage protect that rule without risking the synthetic admin account.
-
-### Security checks
-
-- Verified platform or matching-organization system-admin authorization in both Edge Function and database functions.
-- Verified manager cycles and cross-context role or membership mutations are rejected.
-- Verified unit archival is blocked while active dependent identity records exist.
-- Verified project-manager roles cannot be modified through the general hierarchy boundary.
-- Verified the browser contains no service-role key and performs no direct administrative table query.
-- Verified no score, comment, lessons learned, submission payload, anonymous credential, or encryption material was added.
-
-### Remaining risks
-
-- Delegated project-manager date updates and employee assignment access are not implemented.
-- Sensitive evaluation submission, anonymous credential, encryption, thresholded reporting, and self-access prevention runtimes remain unimplemented.

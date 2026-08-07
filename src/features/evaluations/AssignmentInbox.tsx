@@ -6,6 +6,7 @@ import {
   type EvaluationAssignmentAvailability,
   type EvaluationAssignmentService
 } from "./evaluationAssignmentService";
+import { EvaluationSubmissionForm } from "./EvaluationSubmissionForm";
 
 export type AssignmentInboxSummary = {
   readonly activeCycleCount: number;
@@ -33,6 +34,13 @@ export function AssignmentInbox({
   const [state, setState] = useState<AssignmentInboxState>({
     status: "loading"
   });
+  const [preparingAssignmentId, setPreparingAssignmentId] = useState<string | null>(
+    null
+  );
+  const [preparedSubmission, setPreparedSubmission] = useState<
+    Awaited<ReturnType<EvaluationAssignmentService["prepareSubmission"]>> | null
+  >(null);
+  const [submissionFeedback, setSubmissionFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     let isActive = true;
@@ -65,6 +73,25 @@ export function AssignmentInbox({
       isActive = false;
     };
   }, [onSummaryChange, reloadKey, service]);
+
+  async function prepareSubmission(assignmentId: string) {
+    setPreparingAssignmentId(assignmentId);
+    setSubmissionFeedback(null);
+
+    try {
+      setPreparedSubmission(await service.prepareSubmission(assignmentId));
+    } catch {
+      setSubmissionFeedback(tr.assignments.submission.feedback.prepareFailed);
+    } finally {
+      setPreparingAssignmentId(null);
+    }
+  }
+
+  function handleSubmitted() {
+    setPreparedSubmission(null);
+    setSubmissionFeedback(tr.assignments.submission.feedback.submitted);
+    setReloadKey((current) => current + 1);
+  }
 
   return (
     <section
@@ -121,18 +148,45 @@ export function AssignmentInbox({
       {state.status === "ready" && state.assignments.length > 0 ? (
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           {state.assignments.map((assignment) => (
-            <AssignmentCard assignment={assignment} key={assignment.id} />
+            <AssignmentCard
+              assignment={assignment}
+              isPreparing={preparingAssignmentId === assignment.id}
+              key={assignment.id}
+              onStart={() => void prepareSubmission(assignment.id)}
+            />
           ))}
         </div>
+      ) : null}
+
+      {submissionFeedback ? (
+        <p
+          className="mt-4 border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800"
+          role="status"
+        >
+          {submissionFeedback}
+        </p>
+      ) : null}
+
+      {preparedSubmission ? (
+        <EvaluationSubmissionForm
+          onCancel={() => setPreparedSubmission(null)}
+          onSubmitted={handleSubmitted}
+          service={service}
+          submission={preparedSubmission}
+        />
       ) : null}
     </section>
   );
 }
 
 function AssignmentCard({
-  assignment
+  assignment,
+  isPreparing,
+  onStart
 }: {
   readonly assignment: EvaluationAssignment;
+  readonly isPreparing: boolean;
+  readonly onStart: () => void;
 }) {
   const status = getAvailabilityPresentation(assignment.availabilityStatus);
   const subjectName =
@@ -178,6 +232,21 @@ function AssignmentCard({
           value={formatDateTime(assignment.closesAt)}
         />
       </dl>
+
+      {assignment.availabilityStatus === "AVAILABLE" ? (
+        <div className="mt-5 border-t border-slate-200 pt-4">
+          <button
+            className="rounded-md bg-pine px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-400"
+            disabled={isPreparing}
+            onClick={onStart}
+            type="button"
+          >
+            {isPreparing
+              ? tr.assignments.actions.preparing
+              : tr.assignments.actions.start}
+          </button>
+        </div>
+      ) : null}
     </article>
   );
 }

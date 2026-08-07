@@ -39,6 +39,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      anonymous_submission_credentials: {
+        Row: {
+          credential_digest: string
+          evaluation_assignment_id: string
+          expires_at: string
+          id: string
+          issued_at: string
+          organization_id: string
+          redeemed_on: string | null
+          status: string
+        }
+        Insert: {
+          credential_digest: string
+          evaluation_assignment_id: string
+          expires_at: string
+          id?: string
+          issued_at?: string
+          organization_id: string
+          redeemed_on?: string | null
+          status?: string
+        }
+        Update: {
+          credential_digest?: string
+          evaluation_assignment_id?: string
+          expires_at?: string
+          id?: string
+          issued_at?: string
+          organization_id?: string
+          redeemed_on?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anonymous_submission_credentials_evaluation_assignment_id_fkey"
+            columns: ["evaluation_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anonymous_submission_credentials_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_roles: {
         Row: {
           created_at: string
@@ -95,6 +143,86 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "scope_types"
             referencedColumns: ["scope_type"]
+          },
+        ]
+      }
+      encrypted_evaluation_submissions: {
+        Row: {
+          assignment_kind: string
+          encrypted_payload: string
+          encryption_algorithm: string
+          encryption_context_version: number
+          encryption_key_version: string
+          encryption_nonce: string
+          evaluation_cycle_id: string
+          id: string
+          organization_id: string
+          payload_schema_version: number
+          project_id: string | null
+          stored_on: string
+          subject_user_id: string
+          template_version_id: string
+        }
+        Insert: {
+          assignment_kind: string
+          encrypted_payload: string
+          encryption_algorithm: string
+          encryption_context_version: number
+          encryption_key_version: string
+          encryption_nonce: string
+          evaluation_cycle_id: string
+          id?: string
+          organization_id: string
+          payload_schema_version: number
+          project_id?: string | null
+          stored_on?: string
+          subject_user_id: string
+          template_version_id: string
+        }
+        Update: {
+          assignment_kind?: string
+          encrypted_payload?: string
+          encryption_algorithm?: string
+          encryption_context_version?: number
+          encryption_key_version?: string
+          encryption_nonce?: string
+          evaluation_cycle_id?: string
+          id?: string
+          organization_id?: string
+          payload_schema_version?: number
+          project_id?: string | null
+          stored_on?: string
+          subject_user_id?: string
+          template_version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "encrypted_evaluation_submissions_cycle_tenant_fk"
+            columns: ["organization_id", "evaluation_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_cycles"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "encrypted_evaluation_submissions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "encrypted_evaluation_submissions_project_tenant_fk"
+            columns: ["organization_id", "project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "encrypted_evaluation_submissions_template_tenant_fk"
+            columns: ["organization_id", "template_version_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_template_versions"
+            referencedColumns: ["organization_id", "id"]
           },
         ]
       }
@@ -1009,8 +1137,31 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_anonymous_submission_context: {
+        Args: { credential_digest_hex: string }
+        Returns: Json
+      }
       get_my_evaluation_assignments: { Args: never; Returns: Json }
       get_my_workspace_context: { Args: never; Returns: Json }
+      issue_anonymous_submission_credential: {
+        Args: {
+          actor_user_id: string
+          credential_digest_hex: string
+          managed_assignment_id: string
+        }
+        Returns: Json
+      }
+      redeem_anonymous_submission_credential: {
+        Args: {
+          credential_digest_hex: string
+          encrypted_payload_hex: string
+          encryption_nonce_hex: string
+          managed_encryption_context_version: number
+          managed_encryption_key_version: string
+          managed_payload_schema_version: number
+        }
+        Returns: Json
+      }
       require_active_organization_identity: {
         Args: { checked_organization_id: string; checked_user_id: string }
         Returns: undefined

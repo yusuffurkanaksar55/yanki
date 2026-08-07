@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the intended security model. The repository currently contains Supabase default-deny RLS foundation tables, a typed Supabase Auth client foundation, Supabase Auth-backed invitation onboarding, organization hierarchy foundation, authenticated workspace and employee assignment RPCs, immutable versioned evaluation templates, project/evaluation-cycle configuration, evaluation assignment planning, a protected administration shell, and trusted administration Edge Functions. Production evaluation submission, encryption, anonymous credentials, and reporting are not implemented.
+This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, server-side AES-256-GCM encryption, atomic assignment completion, and trusted administration boundaries. Thresholded reporting and production key operations remain unimplemented.
 
 ## Security Objectives
 
@@ -24,7 +24,7 @@ No submission record may contain both evaluator identity and evaluation content.
 
 ## Anonymous Credential Flow
 
-Minimum intended flow:
+Implemented flow:
 
 1. Authenticate the employee.
 2. Validate an active assignment and scope.
@@ -36,6 +36,8 @@ Minimum intended flow:
 8. Avoid a reversible assignment-to-submission mapping.
 
 This design provides application-level unlinkability. It is not claimed to provide cryptographic anonymity until a blind-signature or equivalent unlinkable credential mechanism is implemented and reviewed.
+
+The raw 256-bit credential exists only in Edge Function process memory and React component state. The database stores its SHA-256 digest only. The browser does not persist it to local storage, session storage, IndexedDB, URL state, analytics, or logs. Preparing a replacement credential revokes the previous pending digest.
 
 ## Encryption
 
@@ -49,6 +51,8 @@ Each encrypted payload must include:
 - Encryption algorithm
 
 Encryption keys must not be stored in frontend code, Git, migrations, public environment variables, browser storage, or documentation. Encryption and decryption happen only in trusted server-side code.
+
+The implemented keyring uses `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION` and `EVALUATION_ENCRYPTION_KEYRING`. Every key is exactly 32 random bytes encoded as base64. Encryption uses a fresh 12-byte nonce, a 128-bit authentication tag, and authenticated context containing tenant, cycle, optional project, subject, assignment kind, template version, and context version. The current linked environment key is development-only and must be rotated before production data.
 
 ## Decryption
 
@@ -89,6 +93,12 @@ Delegated project-date updates use the same Edge Function and service-role-only 
 
 Evaluation templates are configuration-domain records. `evaluation-templates` authenticates the actor, recomputes active `SYSTEM_ADMIN` scope, and delegates mutations to service-role-only atomic functions that repeat organization authorization. Draft metadata and questions may change; publication requires at least one valid question. Database triggers reject every later update or delete of a published version or any of its questions. Cycles can bind only a published version from the same tenant, and assignments must copy the exact version from their cycle. Template prompts and options are configuration, not employee response content.
 
+`evaluation-submission-credentials` requires a valid access token and active profile, generates the random credential in trusted code, and invokes a service-role-only database function that locks and revalidates the exact assignment. Its response contains the raw credential and form configuration, but never persists the raw value.
+
+`anonymous-evaluation-submissions` intentionally accepts no user Authorization header. It receives only the one-time credential and answers, validates required/type/range/option rules against identity-free immutable question context, encrypts the normalized payload, and calls an atomic redemption function. Safe operational configuration errors may return stable codes, but no answer, key, digest, credential, or decrypted value is logged.
+
+`anonymous_submission_credentials` remains in the identity domain and has no content or submission identifier. `encrypted_evaluation_submissions` remains in the content domain and has no evaluator, assignment, credential, digest, plaintext, or exact timestamp column. Both tables have RLS enabled and all direct table privileges are revoked from browser roles and `service_role`; trusted code can use only the narrow RPCs.
+
 ## Anonymity Threshold
 
 The default minimum result threshold is 4 submissions per reportable group. The threshold must be configurable per evaluation cycle, but lowering it below the documented security minimum requires an explicit administrative warning and recorded decision.
@@ -119,7 +129,7 @@ In customer-managed installations, the customer controls the host, database, app
 
 - Complete live invitation email delivery and acceptance verification with an approved test mailbox.
 - Add narrowly scoped Supabase RLS policies only after server-side authorization flows are designed.
-- Implement Edge Functions for anonymous credential issuance, redemption, encryption, and reporting.
-- Implement key management and key rotation procedures.
-- Add security regression tests for self-access, threshold enforcement, duplicate credential redemption, plaintext persistence, and authorization bypass attempts.
+- Implement trusted decryption, aggregate reporting, threshold enforcement, reviewer scope checks, and self-access prevention.
+- Replace the development key before production and implement key rotation, escrow, recovery, and ciphertext retention procedures.
+- Add production abuse controls for anonymous credential preparation/redemption, including gateway rate limits and alerting without sensitive request logging.
 - Add executable cross-tenant database tests against a running local or dedicated Supabase stack.

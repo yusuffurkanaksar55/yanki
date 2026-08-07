@@ -39,10 +39,42 @@ export const tr = {
       description: "Yeni bir görev atandığında burada görüntülenecek."
     },
     actions: {
-      retry: "Yeniden dene"
+      retry: "Yeniden dene",
+      start: "Değerlendir",
+      preparing: "Form hazırlanıyor..."
     },
     feedback: {
       readFailed: "Değerlendirme görevleri şu anda yüklenemedi."
+    },
+    submission: {
+      subject: "Değerlendirilen kişi: {subject}",
+      labels: {
+        required: "Zorunlu",
+        optional: "İsteğe bağlı",
+        credentialExpiry: "Form geçerlilik süresi"
+      },
+      values: {
+        yes: "Evet",
+        no: "Hayır",
+        select: "Bir seçenek belirleyin"
+      },
+      privacy: {
+        title: "Anonim değerlendirme",
+        description:
+          "Yanıtlarınız kimliğinizle birlikte saklanmaz. Yorumlarınıza adınızı veya sizi doğrudan tanımlayabilecek ayrıntıları yazmayın."
+      },
+      actions: {
+        close: "Formu kapat",
+        cancel: "Vazgeç",
+        submit: "Değerlendirmeyi gönder",
+        submitting: "Şifrelenip gönderiliyor..."
+      },
+      feedback: {
+        prepareFailed: "Değerlendirme formu hazırlanamadı. Görev hâlâ açıksa yeniden deneyin.",
+        requiredAnswers: "Lütfen tüm zorunlu soruları yanıtlayın.",
+        submitFailed: "Değerlendirme gönderilemedi. Formun süresi dolmuş olabilir; formu kapatıp yeniden açın.",
+        submitted: "Değerlendirmeniz şifrelenmiş olarak kaydedildi."
+      }
     }
   },
   dashboard: {
@@ -70,15 +102,15 @@ export const tr = {
       },
       secureStorage: {
         label: "Şifreli saklama",
-        value: "Planlandı",
-        detail: "Uygulama zamanı backend sınırında uygulanacak."
+        value: "Aktif",
+        detail: "Yanıtlar güvenilir backend sınırında şifrelenerek saklanır."
       }
     },
     workflow: {
       title: "Kurulum sırası",
       description:
         "Hassas değerlendirme akışları başlamadan önce temel güvenlik parçaları tamamlanacak.",
-      badge: "İskelet fazı",
+      badge: "Güvenli gönderim aktif",
       steps: [
         "Kimlik doğrulama ve davetli kayıt altyapısı",
         "Rol ve kapsam tabanlı yetkilendirme",
@@ -99,7 +131,8 @@ export const tr = {
     },
     status: {
       documented: "Belgelendi",
-      notStarted: "Başlamadı"
+      notStarted: "Başlamadı",
+      implemented: "Uygulandı"
     },
     session: {
       profile: "Profil",

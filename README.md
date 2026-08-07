@@ -6,9 +6,9 @@ Secure company-internal web platform for anonymous employee, team, project, mana
 
 ## Current Status
 
-The repository is in application foundation phase. It contains persistent project memory, security architecture notes, authorization boundaries, data model documentation, ADRs, a React + TypeScript + Vite application shell, Supabase Auth-backed invitation/profile onboarding, configurable organization hierarchy, trusted existing-user role/hierarchy administration, authenticated own-workspace context, authenticated employee assignment access, immutable versioned evaluation templates, a Turkish assignment inbox, protected administration, project/evaluation-cycle configuration, atomic delegated project-date management, default-deny evaluation assignment planning, trusted administration Edge Functions, a portable Docker/Nginx frontend package, explicit multi-tenant database integrity controls, Tailwind CSS styling, ESLint, TypeScript checking, Vitest, React Testing Library, and Supabase pgTAP tests.
+The repository is in application development phase. It contains persistent project memory, a React + TypeScript + Vite application, Supabase Auth onboarding, configurable hierarchy and scoped administration, immutable versioned evaluation templates, authenticated assignment access, a Turkish evaluation form, one-time anonymous credentials, AES-256-GCM encrypted submission persistence, atomic assignment completion, a portable Docker/Nginx frontend package, explicit multi-tenant integrity controls, and executable frontend/database/security tests.
 
-Invitation delivery and acceptance still need an approved mailbox smoke test. Anonymous credential issuance, encrypted submission, completion mutation, and reporting authorization have not been implemented yet.
+Invitation delivery still needs an approved mailbox smoke test. Trusted thresholded reporting, production key rotation/recovery, endpoint rate limiting, production bootstrap, and backup/restore acceptance have not been implemented yet.
 
 ## Target Stack
 
@@ -52,6 +52,7 @@ npm run memory:check
 npm run deployment:config
 npm run smoke:hierarchy
 npm run smoke:assignments
+npm run smoke:submissions
 npm run smoke:templates
 npm run smoke:project-dates
 npm run supabase:migrations
@@ -68,7 +69,7 @@ These commands currently validate the React application scaffold, documentation 
 
 The remote Supabase project is linked to project ref `daxaymcmtbmummrxdyjy`. Public frontend environment examples are documented in `.env.example`; real local values belong in `.env.local`, which is ignored by Git.
 
-The applied migrations create a default-deny security foundation, Auth-backed user invitation/profile onboarding, configurable organization hierarchy tables, atomic organization-administration functions, immutable versioned evaluation templates, project and time-bound evaluation-cycle configuration tables, atomic delegated project-date administration, an evaluation assignment planning table, narrow authenticated own-workspace and own-assignment RPCs, and a service-role-only atomic invitation acceptance function. Every cycle and assignment preserves an exact published template version. The schema does not create evaluation submission tables or store sensitive evaluation content.
+The applied migrations create default-deny onboarding, hierarchy, template, project, cycle, assignment, one-time credential, and encrypted content domains. Every cycle and assignment preserves an exact published template version. Evaluation answers are stored only as AES-256-GCM ciphertext; the content table has no evaluator, assignment, credential, plaintext answer, or exact submission timestamp column.
 
 ## Deployment
 
@@ -80,7 +81,7 @@ Synthetic CEO, HR admin, team leader, employee accounts, demo project, and demo 
 
 ## Authentication
 
-The frontend includes a typed Supabase Auth client foundation with email/password sign-in, password reset request, local-session sign-out, runtime public environment validation, React context-based session state, own-profile gating, own-workspace context display, employee own-assignment display through `get_my_evaluation_assignments()`, a protected administration shell, versioned template management through `evaluation-templates`, user invitation management through `user-onboarding`, existing-user role/hierarchy management through `organization-administration`, and project/cycle/member/assignment/date management through `admin-project-cycles`.
+The frontend includes email/password Auth, own-profile/workspace/assignment gates, a memory-only anonymous submission form, and protected administration. Submission preparation uses `evaluation-submission-credentials`; the browser then calls `anonymous-evaluation-submissions` without a user Authorization header or cookies. Administration remains behind the existing scoped Edge Functions.
 
 Only public Supabase values are used in the browser. Service-role keys, database URLs, and encryption keys must stay out of frontend code and Git.
 

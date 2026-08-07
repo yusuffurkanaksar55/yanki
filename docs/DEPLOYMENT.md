@@ -30,7 +30,7 @@ Supabase documents Docker Compose as the recommended self-hosting route and make
 | Supabase CLI | Apply versioned migrations and validate database state |
 | Nginx, Caddy, or customer load balancer | TLS termination, public routing, and certificate renewal |
 | PostgreSQL backup tooling | Scheduled backups, restore drills, and optional WAL archiving |
-| Customer secret manager | Store database, JWT, SMTP, service-role, and future encryption keys |
+| Customer secret manager | Store database, JWT, SMTP, service-role, and encryption keys |
 | Monitoring and log collection | Service health, capacity, audit metadata, and alerting without sensitive payloads |
 | SMTP relay | Production Auth invitation and password-reset delivery when email is enabled |
 
@@ -54,7 +54,7 @@ Vite variables are normally replaced at build time. This application loads `/app
 2. Provision at least the current official Supabase minimum for a small deployment: 2 CPU cores, 4 GB RAM, and 40 GB SSD. Prefer 4 cores, 8 GB or more RAM, and 80 GB or more SSD. Size from measured load before production approval.
 3. Obtain a reviewed, pinned Supabase self-host release from the official repository. Do not assemble independent latest image tags; Supabase tests the release image set together.
 4. Generate unique production secrets with the official Supabase scripts. Replace every sample password and key. Store secret files outside Git with least-privilege filesystem access.
-5. Configure `SUPABASE_PUBLIC_URL`, `API_EXTERNAL_URL`, `SITE_URL`, allowed redirect URLs, the proxy domain, JWT keys, database credentials, Studio credentials, and optional SMTP settings.
+5. Configure `SUPABASE_PUBLIC_URL`, `API_EXTERNAL_URL`, `SITE_URL`, allowed redirect URLs, the proxy domain, JWT keys, database credentials, Studio credentials, and optional SMTP settings. Generate an independent 32-byte random AES key and configure server-only `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION` plus `EVALUATION_ENCRYPTION_KEYRING`. Never reuse the linked development key.
 6. Put a TLS reverse proxy or customer load balancer in front of the Supabase gateway and application. Expose only required HTTPS endpoints. Keep Postgres, Studio, and internal service ports on restricted networks.
 7. Start Supabase with its official `run.sh start` workflow and wait for healthy services. Inspect failed service logs before continuing.
 8. Apply this repository's migrations to the dedicated database from a trusted release workspace:
@@ -89,7 +89,14 @@ docker compose --env-file .env.deploy up -d --build --wait
 
 ## Production Release Gate
 
-This repository now has a portable deployment foundation, but it is not approved for live evaluation content. Anonymous credentials, encrypted submission storage, scoped aggregate reporting, key rotation, production bootstrap, backup automation, and end-to-end security regression coverage must be completed before production use.
+This repository now has deployed anonymous encrypted submission storage, but it is not approved for live employee data. Scoped aggregate reporting, production encryption-key replacement and rotation, rate limiting, production bootstrap, backup/restore automation, retention policy, and broader end-to-end security regression coverage must be completed before production use.
+
+## Encryption Key Operations
+
+- Keep every still-referenced key version in the server-only JSON keyring until all ciphertext under that version has been re-encrypted or deleted under an approved retention policy.
+- Back up the keyring through the approved secret manager and test recovery separately from database restore. A database backup without its keys is unrecoverable; a key backup without access controls defeats database-at-rest confidentiality.
+- Rotate by adding a new random key version, switching the active version, verifying new submissions, and only then scheduling reviewed re-encryption or retirement work.
+- Never print keyring values in CI logs, shell history, support bundles, browser configuration, or customer handover documents.
 
 ## Customer Handover
 

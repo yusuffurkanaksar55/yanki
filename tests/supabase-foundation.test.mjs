@@ -46,6 +46,14 @@ function getCreatedPublicTables(migration) {
   );
 }
 
+function getCreatedPublicTableDefinition(migration, tableName) {
+  const match = migration.match(
+    new RegExp(`create table public\\.${tableName} \\(([\\s\\S]*?)\\n\\);`)
+  );
+
+  return match?.[1] ?? "";
+}
+
 describe("Supabase security foundation", () => {
   it("enables RLS on every public table created by migrations", () => {
     const migration = readAllMigrations();
@@ -60,11 +68,18 @@ describe("Supabase security foundation", () => {
 
   it("does not introduce evaluator-linked submission content columns", () => {
     const migration = readAllMigrations();
+    const submissionTable = getCreatedPublicTableDefinition(
+      migration,
+      "encrypted_evaluation_submissions"
+    );
 
-    expect(migration).not.toMatch(/\bevaluator_id\b/i);
-    expect(migration).not.toMatch(/\bcomment_text\b/i);
-    expect(migration).not.toMatch(/\bscore_value\b/i);
-    expect(migration).not.toMatch(/\bplaintext\b/i);
+    expect(submissionTable).not.toBe("");
+    expect(submissionTable).not.toMatch(/\bevaluator(_user)?_id\b/i);
+    expect(submissionTable).not.toMatch(/\bassignment_id\b/i);
+    expect(submissionTable).not.toMatch(/\bcredential(_id|_digest)?\b/i);
+    expect(submissionTable).not.toMatch(/\bcomment(_text)?\b/i);
+    expect(submissionTable).not.toMatch(/\bscore(_value)?\b/i);
+    expect(submissionTable).not.toMatch(/\bplaintext\b/i);
   });
 
   it("documents safe audit metadata constraints", () => {

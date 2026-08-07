@@ -1,5 +1,187 @@
 # Error Log
 
+## ERR-20260807-037 - User-scoped Docker installation was absent from PATH
+
+### Context
+
+The final deployment configuration check used `docker compose` through the npm quality command.
+
+### Symptoms
+
+The command reported that `docker` was not recognized even though Docker Desktop and the local Supabase stack were running.
+
+### Root cause
+
+Docker Desktop was installed under the current user's local application directory, and its CLI directory was not present in this PowerShell process PATH.
+
+### Correct solution
+
+Resolve the user-scoped and standard Windows Docker CLI locations in a Node validation wrapper, then invoke Compose without shell quoting.
+
+### Prevention
+
+Keep deployment checks independent of interactive shell PATH when Docker Desktop uses a supported non-default install location.
+
+### Related files
+
+- `package.json`
+- `scripts/validate-compose-config.mjs`
+
+### Related tests
+
+- `npm run deployment:config`
+
+## ERR-20260807-036 - Deployment contract test expected the previous production-gate wording
+
+### Context
+
+The deployment guide was updated after encrypted submission became implemented.
+
+### Symptoms
+
+The full Vitest run expected the exact phrase `not approved for live evaluation content` while the guide now says `not approved for live employee data`.
+
+### Root cause
+
+The static contract asserted prose from the previous foundation state instead of the current production safety invariant.
+
+### Correct solution
+
+Bind the test to the current explicit live-employee-data prohibition.
+
+### Prevention
+
+Keep documentation contract tests focused on durable security meaning and update them with reviewed lifecycle changes.
+
+### Related files
+
+- `docs/DEPLOYMENT.md`
+- `tests/deployment-foundation.test.mjs`
+
+### Related tests
+
+- `npm test`
+
+## ERR-20260807-035 - Migration security test scanned explanatory prose as schema
+
+### Context
+
+The encrypted submission migration documents that plaintext must never be persisted.
+
+### Symptoms
+
+The full Vitest run failed because the word `plaintext` appeared in comments even though no plaintext column existed.
+
+### Root cause
+
+The old test searched all migration text instead of the anonymous content table definition.
+
+### Correct solution
+
+Extract the `encrypted_evaluation_submissions` definition and reject evaluator, assignment, credential, score, comment, plaintext, and digest column names there.
+
+### Prevention
+
+Test parsed structural boundaries instead of forbidding security vocabulary in comments.
+
+### Related files
+
+- `tests/supabase-foundation.test.mjs`
+
+### Related tests
+
+- `npm test -- --run tests/supabase-foundation.test.mjs`
+
+## ERR-20260807-034 - Inline PowerShell secret transfer removed keyring JSON quotes
+
+### Context
+
+The anonymous encryption function required a versioned JSON keyring in Supabase Secrets.
+
+### Symptoms
+
+The first live submission returned `EVALUATION_ENCRYPTION_KEYRING_INVALID`.
+
+### Root cause
+
+PowerShell/CLI argument parsing removed the inner JSON quote characters from the inline value.
+
+### Correct solution
+
+Upload both values through a uniquely named temporary env file under the verified system temp directory and delete it immediately after success.
+
+### Prevention
+
+Use env-file secret transfer for structured values and retain safe configuration error codes that never reveal secret contents.
+
+### Related files
+
+- `supabase/functions/anonymous-evaluation-submissions/index.ts`
+
+### Related tests
+
+- `npm run smoke:submissions`
+
+## ERR-20260807-033 - Legacy PowerShell random Fill call failed before secret upload
+
+### Context
+
+A development-only 32-byte encryption key was generated for the linked synthetic environment.
+
+### Symptoms
+
+Windows PowerShell reported that `RandomNumberGenerator.Fill` was unavailable, but the remaining command still uploaded the initialized byte array.
+
+### Root cause
+
+The installed .NET runtime lacks the newer static `Fill` API and PowerShell did not stop the compound command on the method error.
+
+### Correct solution
+
+Replace the secret immediately with bytes produced by `RandomNumberGenerator.Create().GetBytes()` before function deployment or encryption.
+
+### Prevention
+
+Use runtime-compatible cryptographic APIs and make secret-generation commands fail closed before upload.
+
+### Related files
+
+- `docs/DEPLOYMENT.md`
+
+### Related tests
+
+- `npm run smoke:submissions`
+
+## ERR-20260807-032 - Evaluation cycle lacked a composite tenant key
+
+### Context
+
+The anonymous content table uses composite tenant foreign keys for every reporting dimension.
+
+### Symptoms
+
+Local Supabase startup rejected the encrypted submission table because `evaluation_cycles (organization_id, id)` was not unique.
+
+### Root cause
+
+Projects and template versions already had composite tenant keys, but evaluation cycles did not.
+
+### Correct solution
+
+Add `evaluation_cycles_organization_id_id_unique_idx` before creating the composite foreign key and rerun the full local migration chain.
+
+### Prevention
+
+Require executable empty-database migration verification for every new composite tenant relationship.
+
+### Related files
+
+- `supabase/migrations/20260807013000_anonymous_encrypted_evaluation_submissions.sql`
+
+### Related tests
+
+- `npm run supabase:test:local`
+
 ## ERR-20260806-031 - Full system drive mounted Docker data read-only
 
 ### Context
@@ -121,191 +303,6 @@ Keep visual verification as an explicit release check and do not treat component
 ### Related tests
 
 - `src/features/evaluations/AssignmentInbox.test.tsx`
-
-## ERR-20260806-027 - Assignment smoke setup used the wrong env filename and hit transient DNS
-
-### Context
-
-The live employee assignment RPC smoke test needed public Supabase configuration and synthetic credentials.
-
-### Symptoms
-
-The first command reported `.env: not found`; after switching to `.env.local`, the first network attempt returned `EAI_AGAIN` for the Supabase hostname.
-
-### Root cause
-
-The smoke script assumed the wrong ignored local env filename, followed by a transient Windows DNS failure.
-
-### Correct solution
-
-Use `.env.local`, keep credentials in process-only environment variables, confirm DNS resolution, and retry. The test then returned three assignments and denied anonymous access.
-
-### Prevention
-
-Keep the smoke package command aligned with the repository's documented local env convention and report network failures separately from authorization failures.
-
-### Related files
-
-- `package.json`
-- `scripts/smoke-employee-assignment-access.mjs`
-
-### Related tests
-
-- `npm run smoke:assignments`
-
-## ERR-20260806-026 - Remote migration catalog cache missed a temporary certificate
-
-### Context
-
-The employee assignment RPC migration was pushed to the linked Supabase project.
-
-### Symptoms
-
-The migration applied, but the experimental pg-delta catalog cache reported that `pgdelta-target-ca.crt` did not exist in the temporary workspace.
-
-### Root cause
-
-Supabase CLI 2.109.1 lost its temporary pg-delta certificate path after migration application.
-
-### Correct solution
-
-Regenerate linked types, run linked database lint, and run a second migration dry-run. All passed and the remote database reported up to date.
-
-### Prevention
-
-Treat catalog-cache warnings as unverified until linked lint and a final dry-run pass; update the CLI in a separate reviewed tooling change.
-
-### Related files
-
-- `supabase/migrations/20260806233000_employee_assignment_access.sql`
-
-### Related tests
-
-- `npx supabase db lint --linked`
-- `npx supabase db push --linked --include-all --dry-run`
-
-## ERR-20260806-025 - Docker Engine stopped during local Supabase bootstrap
-
-### Context
-
-The first Docker-backed local Supabase verification downloaded the complete service image set.
-
-### Symptoms
-
-The database started, then the Docker Desktop Linux Engine named pipe disappeared and the `docker-desktop` WSL distribution was stopped.
-
-### Root cause
-
-Docker Desktop stopped during the initial high-volume image bootstrap. The downloaded layers and local database volume remained available.
-
-### Correct solution
-
-Restart Docker Desktop, stop the partial Supabase stack, and start it cleanly. All services then started and local reset, lint, and pgTAP tests passed.
-
-### Prevention
-
-Verify Docker Engine health before local stack startup and recover partial Supabase starts with a clean stop/start sequence.
-
-### Related files
-
-- `supabase/config.toml`
-
-### Related tests
-
-- `npm run supabase:test:local`
-- `npm run supabase:lint:local`
-
-## ERR-20260806-024 - Duplicate Windows Path keys blocked background Vite startup
-
-### Context
-
-The final browser verification required a long-lived local Vite process.
-
-### Symptoms
-
-PowerShell `Start-Process` rejected the inherited environment because it contained both `Path` and `PATH`.
-
-### Root cause
-
-The Codex desktop process environment contains duplicate case variants that PowerShell cannot place in its child-process dictionary.
-
-### Correct solution
-
-Start the detached process with a normalized environment containing only one path key. The server then returned HTTP 200 and passed browser verification.
-
-### Prevention
-
-Normalize the environment before every background process start in this Windows workspace.
-
-### Related files
-
-- `vite.config.ts`
-
-### Related tests
-
-- Browser verification at `http://127.0.0.1:5173/`
-
-## ERR-20260806-023 - Docker Engine was unavailable for container verification
-
-### Context
-
-The new customer-managed deployment package required Docker image and health-check verification.
-
-### Symptoms
-
-The Docker client reported version 29.6.1, but could not connect to the Windows Docker Engine pipe. Supabase migration caching repeated the same engine warning.
-
-### Root cause
-
-Docker Desktop was installed but its engine was not running in the current session. The sandbox also could not read the user Docker config file.
-
-### Correct solution
-
-Keep static and Compose validation in CI now; start Docker Desktop before image build, health, and local Supabase verification.
-
-### Prevention
-
-Add a release check that verifies Docker Engine health before container tests and reports a clear skip outside Docker-capable environments.
-
-### Related files
-
-- `Dockerfile`
-- `compose.yaml`
-- `docs/DEPLOYMENT.md`
-
-### Related tests
-
-- `npm run deployment:config`
-
-## ERR-20260806-022 - Supabase CLI telemetry write was blocked in the sandbox
-
-### Context
-
-The pending multi-tenant migration was checked with the linked database dry-run command.
-
-### Symptoms
-
-The first command failed while writing `telemetry.json` under the user Supabase directory before connecting to the database.
-
-### Root cause
-
-The workspace sandbox allows repository writes but not the Supabase CLI user-profile telemetry path.
-
-### Correct solution
-
-Rerun only the required Supabase command with the existing narrow permission. The dry-run then completed successfully.
-
-### Prevention
-
-Treat linked Supabase CLI commands as requiring their approved user-profile access in this desktop environment.
-
-### Related files
-
-- `package.json`
-
-### Related tests
-
-- `npm run supabase:push:dry-run`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

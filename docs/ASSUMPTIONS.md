@@ -14,6 +14,8 @@
 - Encryption keys will be provided through secure server-side environment configuration outside Git.
 - The first anonymous submission model provides application-level unlinkability, not full cryptographic anonymity.
 - A stronger blind-signature or equivalent credential model may be introduced later.
+- Raw anonymous credentials live only in transient trusted-process and React component memory; browser persistence and request logging remain forbidden.
+- The linked Supabase encryption key is synthetic-development-only and must be replaced before any live employee content is accepted.
 
 ## Operations
 

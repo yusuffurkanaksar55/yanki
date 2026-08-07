@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-08-07
+
+### Added
+
+- Added tenant-scoped one-time anonymous submission credentials stored only as SHA-256 digests in the identity domain.
+- Added identity-free AES-256-GCM evaluation persistence with versioned keys, random nonces, authenticated context, and date-only content timestamps.
+- Added service-role-only issue, context, and atomic redemption RPCs while revoking direct sensitive-table access from every API role, including `service_role`.
+- Added authenticated credential-preparation and anonymous encrypted-submission Edge Functions.
+- Added a Turkish typed-question evaluation form connected to the employee assignment inbox.
+- Added 29 anonymous-submission pgTAP cases, browser-boundary tests, service/component tests, and live replay-denial smoke testing.
+- Added ADR-0020 for one-time digested credentials and encrypted anonymous persistence.
+
+### Fixed
+
+- Added the missing tenant composite key required by encrypted submission cycle references.
+- Replaced a text-wide migration assertion with an exact anonymous-content column boundary test.
+- Added safe operational encryption-configuration error codes without logging sensitive values.
+
 ## 2026-08-06
 
 ### Added

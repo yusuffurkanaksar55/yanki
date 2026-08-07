@@ -25,19 +25,19 @@ const baseNavigationItems = [
 const readinessItems = [
   {
     label: tr.dashboard.readiness.identitySeparation,
-    status: tr.dashboard.status.documented
+    status: tr.dashboard.status.implemented
   },
   {
     label: tr.dashboard.readiness.encryptionBoundary,
-    status: tr.dashboard.status.documented
+    status: tr.dashboard.status.implemented
   },
   {
     label: tr.dashboard.readiness.runtimeAuth,
-    status: tr.dashboard.status.notStarted
+    status: tr.dashboard.status.implemented
   },
   {
     label: tr.dashboard.readiness.databasePolicies,
-    status: tr.dashboard.status.notStarted
+    status: tr.dashboard.status.implemented
   }
 ] as const;
 

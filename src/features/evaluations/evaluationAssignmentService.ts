@@ -1,4 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  readPublicEnvironment,
+  type PublicEnvironment
+} from "../../config/environment";
 import { getBrowserSupabaseClient } from "../../lib/supabase/client";
 import type { Database } from "../../types/supabase";
 
@@ -30,12 +34,63 @@ export type EvaluationAssignment = {
   readonly availabilityStatus: EvaluationAssignmentAvailability;
 };
 
+export type EvaluationQuestionType =
+  | "RATING_1_TO_5"
+  | "RATING_1_TO_10"
+  | "YES_NO"
+  | "SINGLE_SELECT"
+  | "MULTI_SELECT"
+  | "SHORT_TEXT"
+  | "LONG_TEXT"
+  | "TAG_SELECTION";
+
+export type EvaluationSubmissionQuestion = {
+  readonly id: string;
+  readonly position: number;
+  readonly prompt: string;
+  readonly questionType: EvaluationQuestionType;
+  readonly isRequired: boolean;
+  readonly options: readonly string[];
+};
+
+export type PreparedEvaluationSubmission = {
+  readonly credential: string;
+  readonly expiresAt: string;
+  readonly organizationId: string;
+  readonly organizationName: string;
+  readonly evaluationCycleId: string;
+  readonly evaluationCycleName: string;
+  readonly projectId: string | null;
+  readonly projectName: string | null;
+  readonly projectCode: string | null;
+  readonly subjectDisplayName: string | null;
+  readonly subjectEmail: string;
+  readonly templateVersionId: string;
+  readonly templateName: string;
+  readonly templateVersionNumber: number;
+  readonly questions: readonly EvaluationSubmissionQuestion[];
+};
+
+export type EvaluationSubmissionAnswer = {
+  readonly questionId: string;
+  readonly value: unknown;
+};
+
 export type EvaluationAssignmentService = {
   readonly listMyAssignments: () => Promise<readonly EvaluationAssignment[]>;
+  readonly prepareSubmission: (
+    assignmentId: string
+  ) => Promise<PreparedEvaluationSubmission>;
+  readonly submitEvaluation: (
+    credential: string,
+    answers: readonly EvaluationSubmissionAnswer[]
+  ) => Promise<void>;
 };
 
 export type EvaluationAssignmentServiceErrorCode =
-  "EVALUATION_ASSIGNMENTS_READ_FAILED";
+  | "EVALUATION_ASSIGNMENTS_READ_FAILED"
+  | "EVALUATION_SUBMISSION_PREPARATION_FAILED"
+  | "EVALUATION_SUBMISSION_FAILED";
 
 export class EvaluationAssignmentServiceError extends Error {
   constructor(
@@ -50,11 +105,17 @@ export class EvaluationAssignmentServiceError extends Error {
 let cachedService: EvaluationAssignmentService | null = null;
 
 export const browserEvaluationAssignmentService: EvaluationAssignmentService = {
-  listMyAssignments: () => getDefaultService().listMyAssignments()
+  listMyAssignments: () => getDefaultService().listMyAssignments(),
+  prepareSubmission: (assignmentId) =>
+    getDefaultService().prepareSubmission(assignmentId),
+  submitEvaluation: (credential, answers) =>
+    getDefaultService().submitEvaluation(credential, answers)
 };
 
 export function createSupabaseEvaluationAssignmentService(
-  client: SupabaseClient<Database> = getBrowserSupabaseClient()
+  client: SupabaseClient<Database> = getBrowserSupabaseClient(),
+  publicEnvironment: PublicEnvironment = readPublicEnvironment(),
+  fetcher: typeof fetch = fetch
 ): EvaluationAssignmentService {
   return {
     async listMyAssignments() {
@@ -73,6 +134,56 @@ export function createSupabaseEvaluationAssignmentService(
       const record = isRecord(data) ? data : {};
 
       return readArray(record.assignments).map(toEvaluationAssignment);
+    },
+
+    async prepareSubmission(assignmentId) {
+      const { data, error } = await client.functions.invoke(
+        "evaluation-submission-credentials",
+        { body: { assignmentId } }
+      );
+
+      if (error) {
+        throw new EvaluationAssignmentServiceError(
+          "EVALUATION_SUBMISSION_PREPARATION_FAILED",
+          { message: error.message }
+        );
+      }
+
+      return toPreparedEvaluationSubmission(data);
+    },
+
+    async submitEvaluation(credential, answers) {
+      let response: Response;
+
+      try {
+        response = await fetcher(
+          `${publicEnvironment.supabaseUrl}/functions/v1/anonymous-evaluation-submissions`,
+          {
+            body: JSON.stringify({ answers, credential }),
+            credentials: "omit",
+            headers: {
+              apikey: publicEnvironment.supabaseAnonKey,
+              "Content-Type": "application/json"
+            },
+            method: "POST",
+            referrerPolicy: "no-referrer"
+          }
+        );
+      } catch (cause) {
+        throw new EvaluationAssignmentServiceError(
+          "EVALUATION_SUBMISSION_FAILED",
+          cause
+        );
+      }
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+
+        throw new EvaluationAssignmentServiceError(
+          "EVALUATION_SUBMISSION_FAILED",
+          isRecord(body) ? { error: readString(body.error) } : undefined
+        );
+      }
     }
   };
 }
@@ -109,6 +220,63 @@ function toEvaluationAssignment(value: unknown): EvaluationAssignment {
     subjectDisplayName: readNullableString(record.subject_display_name),
     subjectEmail: readString(record.subject_email)
   };
+}
+
+function toPreparedEvaluationSubmission(
+  value: unknown
+): PreparedEvaluationSubmission {
+  const record = isRecord(value) ? value : {};
+  const submission = isRecord(record.submission) ? record.submission : {};
+
+  return {
+    credential: readString(record.credential),
+    evaluationCycleId: readString(submission.evaluationCycleId),
+    evaluationCycleName: readString(submission.evaluationCycleName),
+    expiresAt: readString(submission.expiresAt),
+    organizationId: readString(submission.organizationId),
+    organizationName: readString(submission.organizationName),
+    projectCode: readNullableString(submission.projectCode),
+    projectId: readNullableString(submission.projectId),
+    projectName: readNullableString(submission.projectName),
+    questions: readArray(submission.questions).map(toEvaluationSubmissionQuestion),
+    subjectDisplayName: readNullableString(submission.subjectDisplayName),
+    subjectEmail: readString(submission.subjectEmail),
+    templateName: readString(submission.templateName),
+    templateVersionId: readString(submission.templateVersionId),
+    templateVersionNumber: readNumber(submission.templateVersionNumber)
+  };
+}
+
+function toEvaluationSubmissionQuestion(
+  value: unknown
+): EvaluationSubmissionQuestion {
+  const record = isRecord(value) ? value : {};
+
+  return {
+    id: readString(record.id),
+    isRequired: record.isRequired === true,
+    options: readArray(record.options).map((option) => String(option)),
+    position: readNumber(record.position),
+    prompt: readString(record.prompt),
+    questionType: toQuestionType(record.questionType)
+  };
+}
+
+function toQuestionType(value: unknown): EvaluationQuestionType {
+  if (
+    value === "RATING_1_TO_5"
+    || value === "RATING_1_TO_10"
+    || value === "YES_NO"
+    || value === "SINGLE_SELECT"
+    || value === "MULTI_SELECT"
+    || value === "SHORT_TEXT"
+    || value === "LONG_TEXT"
+    || value === "TAG_SELECTION"
+  ) {
+    return value;
+  }
+
+  return "SHORT_TEXT";
 }
 
 function toAvailability(value: unknown): EvaluationAssignmentAvailability {

@@ -50,6 +50,6 @@ describe("portable deployment foundation", () => {
     expect(guide).toMatch(/Vendor-Hosted Shared SaaS/);
     expect(guide).toMatch(/Customer-Managed Dedicated Installation/);
     expect(guide).toMatch(/organizations\.id/);
-    expect(guide).toMatch(/not approved for live evaluation content/);
+    expect(guide).toMatch(/not approved for live employee data/);
   });
 });

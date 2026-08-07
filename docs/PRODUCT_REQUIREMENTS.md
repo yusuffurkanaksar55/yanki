@@ -39,6 +39,9 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 - Company data is isolated by an explicit tenant boundary even when multiple companies share one database.
 - Deployment artifacts must not contain customer server secrets.
 - Durable decisions are preserved; operational history is retained within documented bounded limits.
+- Eligible employees receive a one-time submission capability only after server-side assignment and time-window validation.
+- Evaluation answers are encrypted in trusted server code before persistence and cannot be linked directly to the evaluator in the content domain.
+- A successful anonymous redemption completes the identity-domain assignment atomically and cannot be replayed.
 
 ## Roles
 
@@ -94,10 +97,9 @@ No role is a singleton. A tenant may have multiple users with the same role when
 - `RECOMMENDATION`
 - `LEARNING`
 
-## Non-Goals For The Foundation Phase
+## Remaining Production Scope
 
-- No complete application UI.
-- No production Supabase schema.
-- No encryption implementation.
-- No reporting implementation.
-- No end-to-end user journey.
+- Thresholded aggregate reporting and trusted decryption are not implemented.
+- Production key rotation, recovery, and retention automation are not complete.
+- Real invitation email delivery awaits an approved provider and mailbox.
+- The current one-time credential model provides application-level unlinkability; blind-signature cryptographic anonymity is not claimed.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The Supabase project is linked and has default-deny security, Supabase Auth-backed invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context, employee assignment access, immutable versioned evaluation templates, project/evaluation-cycle, and evaluation-assignment migrations.
+Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The linked Supabase project now includes default-deny identity/configuration data, immutable templates, one-time anonymous eligibility credentials, and encrypted evaluation content persistence.
 
 ## Target System
 
@@ -72,10 +72,10 @@ Sensitive workflows must cross a trusted server-side boundary:
 
 Assignments and submissions are separate domains.
 
-- Assignment domain can know who is eligible to evaluate whom.
-- Submission domain stores encrypted anonymous payloads without evaluator identity.
-- A one-time anonymous credential proves eligibility without storing evaluator identity with content.
-- Credential redemption must prevent duplicate submissions without creating a reversible assignment-to-submission mapping.
+- The authenticated `evaluation-submission-credentials` boundary validates the active evaluator, pending assignment, tenant memberships, cycle window, and immutable template. It generates a random 256-bit credential, stores only its SHA-256 digest in the identity domain, and returns the raw value only to browser memory.
+- The browser calls `anonymous-evaluation-submissions` without an Authorization header or cookies. The trusted function hashes the credential, loads identity-free context, validates every answer against the immutable questions, and encrypts the payload with AES-256-GCM plus deterministic authenticated context.
+- `redeem_anonymous_submission_credential()` atomically stores ciphertext, marks the credential redeemed, and completes the assignment. The content row contains no evaluator, assignment, credential, plaintext answer, or exact submission timestamp.
+- This is application-level unlinkability. Exact assignment completion time remains in the identity domain while only `stored_on` date exists in the content domain; sparse-group inference is handled later by thresholded reporting and operational policy.
 
 ## Reporting Architecture
 
@@ -115,6 +115,8 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Seed file: `supabase/seed.sql`
 - Admin project/cycle/member Edge Function: `supabase/functions/admin-project-cycles/index.ts`
 - Evaluation-template Edge Function: `supabase/functions/evaluation-templates/index.ts`
+- Authenticated submission preparation Edge Function: `supabase/functions/evaluation-submission-credentials/index.ts`
+- Anonymous encryption and redemption Edge Function: `supabase/functions/anonymous-evaluation-submissions/index.ts`
 - User onboarding Edge Function: `supabase/functions/user-onboarding/index.ts`
 - Organization administration Edge Function: `supabase/functions/organization-administration/index.ts`
 - Initial migration: `supabase/migrations/20260719132911_initial_security_foundation.sql`
@@ -126,7 +128,9 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Employee assignment access migration: `supabase/migrations/20260806233000_employee_assignment_access.sql`
 - Versioned template migration: `supabase/migrations/20260806234500_versioned_evaluation_templates.sql`
 - Template immutability hardening migration: `supabase/migrations/20260807001500_template_immutability_hardening.sql`
+- Anonymous encrypted submission migration: `supabase/migrations/20260807013000_anonymous_encrypted_evaluation_submissions.sql`
 - Database authorization tests: `supabase/tests/database/employee_assignment_access.test.sql`
+- Anonymous submission database tests: `supabase/tests/database/anonymous_encrypted_submission.test.sql`
 - Invitation acceptance migration: `supabase/migrations/20260720232000_user_invitation_acceptance_flow.sql`
 - Invitation acceptance revalidation migration: `supabase/migrations/20260720234500_invitation_acceptance_context_revalidation.sql`
 - Organization administration migration: `supabase/migrations/20260722210000_hierarchy_administration_foundation.sql`

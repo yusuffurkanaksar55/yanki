@@ -164,7 +164,9 @@ function createWorkspaceContextServiceStub(
 
 function createEvaluationAssignmentServiceStub(): EvaluationAssignmentService {
   return {
-    listMyAssignments: vi.fn(async () => [createEvaluationAssignmentStub()])
+    listMyAssignments: vi.fn(async () => [createEvaluationAssignmentStub()]),
+    prepareSubmission: vi.fn(),
+    submitEvaluation: vi.fn()
   };
 }
 

@@ -20,15 +20,15 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Evaluation assignment planning: default-deny assignment table and admin-only project assignment generation foundation implemented from active project memberships.
 - Employee assignment access: authenticated own-assignment RPC, typed frontend service, Turkish assignment inbox, server-derived availability states, and Docker-backed database authorization tests implemented.
 - Evaluation templates: tenant-scoped logical templates, editable drafts, database-immutable published versions, ordered typed questions, trusted system-admin management, and exact cycle/assignment version binding implemented.
+- Anonymous evaluation submission: authenticated one-time credential preparation, browser-memory-only raw credentials, identity-free anonymous redemption, atomic assignment completion, and a Turkish typed-question form implemented.
+- Evaluation encryption: answers are validated and encrypted with AES-256-GCM inside a trusted Edge Function; only ciphertext, nonce, key version, date-only storage metadata, subject/reporting scope, and immutable template context are persisted.
 - Delegated project date administration: system administrators and assigned project managers can atomically update project completion and evaluation close dates through a trusted boundary.
 - Deployment portability: one frontend image can receive public Supabase runtime configuration at container startup and run against managed or self-hosted Supabase.
 - Multi-tenant integrity: `organizations.id` is the company boundary; project memberships carry explicit organization scope and identity-bearing relationships require active matching organization membership.
 - Bounded repository memory: development and test logs retain 5 entries, error logs retain 10 entries, and durable decisions remain in ADRs and focused context documents.
 - Authenticated integration verification: synthetic admin, project-manager, and employee accounts have been exercised against the deployed Auth, project, onboarding, and organization-administration boundaries.
 - Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context RPC, project, evaluation-cycle, and evaluation-assignment migrations applied.
-- Edge Functions: `evaluation-templates` handles versioned template administration; `admin-project-cycles` handles project/cycle/member/assignment administration and published-template binding; `user-onboarding` handles scoped invitation options, creation, revocation, and authenticated acceptance; `organization-administration` handles existing-user roles and hierarchy.
-- Anonymous credential flow: documented, not implemented.
-- Encryption flow: documented, not implemented.
+- Edge Functions: `evaluation-submission-credentials` prepares one-time eligibility credentials for authenticated evaluators; `anonymous-evaluation-submissions` validates, encrypts, and atomically redeems identity-free submissions; existing functions retain template, project, onboarding, and hierarchy administration.
 - Quality checks: lint, typecheck, Vitest, React Testing Library, production build, and documentation foundation tests are implemented.
 
 ## Important Business Rules
@@ -57,28 +57,29 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 
 ## Current Database Structure
 
-The Supabase migrations additionally create `evaluation_templates`, `evaluation_template_versions`, and `evaluation_template_questions`, plus service-role-only draft-save, publish, and clone functions. Published versions and their questions are protected by database mutation triggers. Every evaluation cycle and assignment stores the exact published `template_version_id`. RLS is enabled on all public tables; template administration records remain default-deny to frontend clients.
+The Supabase migrations additionally create immutable versioned templates, identity-domain `anonymous_submission_credentials`, and content-domain `encrypted_evaluation_submissions`. Service-role-only RPCs issue digested one-time credentials, return identity-free encryption context, and atomically persist ciphertext while completing the assignment. The content table has no evaluator, assignment, credential, plaintext answer, or exact submission timestamp column. RLS is enabled on all public tables and direct table privileges remain default-deny, including to `service_role` for sensitive submission tables.
 
 ## Current Authentication Model
 
-The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, own-assignment display, trusted immutable-template and project/cycle administration, system-admin invitation creation/revocation, authenticated invitation acceptance, and trusted existing-user role/hierarchy administration. Real invitation email delivery and acceptance still require an approved mailbox smoke test. Microsoft Entra ID, anonymous credentials, encrypted submission, and reporting authorization are not implemented yet.
+The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, own-assignment display and encrypted anonymous submission, trusted immutable-template and project/cycle administration, system-admin invitation creation/revocation, authenticated invitation acceptance, and trusted existing-user role/hierarchy administration. Real invitation email delivery and acceptance still require an approved mailbox smoke test. Microsoft Entra ID and reporting authorization are not implemented yet.
 
 ## Current Authorization Model
 
-Own-assignment read authorization is implemented through an authenticated database RPC that derives the actor from `auth.uid()` and revalidates active tenant membership. Current trusted administration actions use server-side scoped role checks through Edge Functions. Sensitive evaluation submission, anonymous credentials, completion mutation, and reporting authorization remain future work. See `docs/AUTHORIZATION_MODEL.md`.
+Own-assignment read authorization derives the actor from `auth.uid()`. Submission preparation revalidates that same actor against a pending open assignment, while the separate anonymous endpoint can redeem only its one-time random credential. Credential replacement, redemption, ciphertext insertion, and completion transitions are database-atomic. Reporting authorization remains future work. See `docs/AUTHORIZATION_MODEL.md`.
 
 ## Known Limitations
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
-- Runtime authorization, encryption, anonymous credential, and reporting controls are not implemented.
+- Thresholded reporting, trusted decryption/aggregation, production key rotation, and reviewer self-access prevention are not implemented.
 - Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
-- No Microsoft Entra ID, encrypted submission flow, or anonymity credential flow exists yet.
+- Microsoft Entra ID is not implemented. The current anonymous credential model provides reviewed application-level unlinkability, not blind-signature cryptographic anonymity.
 - The Docker delivery foundation exists, but production organization bootstrap, backup automation, release automation, and customer acceptance automation are not implemented.
 - Docker Desktop is available and the local Supabase stack is verified; local migration reset, database lint, and pgTAP authorization tests pass.
 - Synthetic test users were created by running `npm run fixture:demo`. Authenticated administration, project-manager visibility, employee denial, project membership, and assignment-generation smoke checks have been verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
 
+- 2026-08-07: Added and deployed one-time anonymous credentials, AES-256-GCM encrypted evaluation persistence, atomic assignment completion, Turkish submission UI, and live replay-denial verification.
 - 2026-08-06: Added and deployed immutable versioned evaluation templates with trusted management UI and exact cycle/assignment binding.
 - 2026-08-06: Added authenticated employee assignment access, Turkish assignment inbox, database authorization tests, and live synthetic verification.
 - 2026-08-06: Added portable managed/self-hosted deployment foundation, organization tenant hardening, and bounded repository-memory automation.
@@ -89,6 +90,6 @@ Own-assignment read authorization is implemented through an authenticated databa
 
 ## Current Development Priorities
 
-1. Implement anonymous credentials and encrypted submissions before reporting or production deployment.
-2. Add production tenant bootstrap, broader database-backed cross-tenant tests, backup/restore automation, and customer deployment acceptance checks.
-3. Configure email delivery when a provider is approved, then implement scoped reporting and Playwright end-to-end coverage.
+1. Implement trusted decryption, anonymity-thresholded aggregate reporting, reviewer scope checks, and self-access prevention.
+2. Replace the development encryption key before production, add key rotation/recovery procedures, production tenant bootstrap, backup/restore automation, and customer deployment acceptance checks.
+3. Configure email delivery when a provider is approved, then add broader Playwright end-to-end and abuse/rate-limit coverage.

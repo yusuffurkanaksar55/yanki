@@ -1,5 +1,43 @@
 # Development Log
 
+## 2026-08-07 - Anonymous Encrypted Evaluation Submission
+
+### Objective
+
+Allow an eligible authenticated employee to submit an immutable evaluation exactly once without persisting evaluator identity beside content, while encrypting every answer before database persistence.
+
+### Changes
+
+- Added authenticated credential preparation and anonymous encrypted-submission Edge Functions.
+- Added a Turkish typed-question modal connected to available employee assignments.
+- Added memory-only raw credentials, anonymous no-cookie/no-Authorization fetch, answer validation, AES-256-GCM encryption, and stable operational error codes.
+- Added a reusable live acceptance command and updated generated Supabase types.
+
+### Database changes
+
+Applied `20260807013000_anonymous_encrypted_evaluation_submissions.sql` locally and to project `daxaymcmtbmummrxdyjy`. It adds identity-domain digested credentials, content-domain ciphertext, immutable lifecycle guards, tenant foreign keys, and three service-role-only RPCs. Sensitive tables have no direct privileges, including for `service_role`.
+
+### Security impact
+
+Positive. Content rows contain no evaluator, assignment, credential, digest, plaintext answer, or exact submission timestamp. Raw credentials are transient, replay is terminal, assignment completion is atomic, and key material remains only in Supabase Secrets. The implementation provides application-level unlinkability, not blind-signature cryptographic anonymity.
+
+### Tests performed
+
+- `npm run lint`, `npm run typecheck`, `npm test`, and production build checks.
+- `npm run supabase:test:local`: 55 pgTAP cases across three suites.
+- Local and linked public schema lint plus final remote migration dry-run.
+- `npm run smoke:submissions` with synthetic users: four encrypted answers accepted, assignment completed, replay denied.
+
+### Result
+
+The linked migration is current and both new Edge Functions are active. The live synthetic flow passes without creating additional fixture data. The linked schema lint reports no errors.
+
+### Remaining work
+
+- Implement trusted thresholded reporting, self-access denial, and scoped reviewer authorization.
+- Replace the development key before live use and add rotation, recovery, rate limiting, retention, and backup acceptance.
+- Complete visual browser verification when the Codex browser runtime path issue is resolved.
+
 ## 2026-08-06 - Immutable Versioned Evaluation Templates
 
 ### Objective
@@ -211,70 +249,3 @@ The migration is applied and the remote database is up to date. Linked schema li
 - Keep invitation email delivery/acceptance open until an approved mailbox and provider decision are available.
 - Implement employee-facing assignment access with scoped server-side authorization next.
 - Implement versioned evaluation templates, anonymous credentials, encrypted submissions, and reporting in later security-reviewed phases.
-
-## 2026-07-22 - Existing-User Role And Hierarchy Administration
-
-### Objective
-
-Provide trusted system-administrator workflows for existing-user roles, organization units, primary memberships, and direct-manager relationships while keeping identity tables default-deny and evaluation content outside the administration boundary.
-
-### Changes
-
-- Added service-role-only atomic database functions for unit create/update, user hierarchy context updates, role assignment, and role termination.
-- Added database-side active-system-admin scope revalidation, manager-cycle detection, active-membership checks, unsafe unit-archive prevention, and final organization-admin protection.
-- Added the `organization-administration` Edge Function for scoped hierarchy summaries and trusted mutations.
-- Added an injectable typed browser service that calls only the Edge Function.
-- Added a Turkish three-workflow administration panel for units, membership/manager context, and roles.
-- Added component tests, trusted-boundary regression tests, and a reusable authenticated live smoke script.
-- Added ADR-0014 and updated project memory, setup notes, release notes, and generated Supabase types.
-
-### Files affected
-
-- `supabase/migrations/20260722210000_hierarchy_administration_foundation.sql`
-- `supabase/migrations/20260722223000_hierarchy_context_integrity_hardening.sql`
-- `supabase/functions/organization-administration/index.ts`
-- `src/features/administration/*`
-- `src/app/App.tsx`
-- `src/locales/tr/messages.ts`
-- `src/types/supabase.ts`
-- `scripts/smoke-hierarchy-administration.mjs`
-- `tests/*`
-- `docs/*`
-- `README.md`
-- `CHANGELOG.md`
-- `package.json`
-
-### Database changes
-
-Applied `20260722210000_hierarchy_administration_foundation.sql` and follow-up `20260722223000_hierarchy_context_integrity_hardening.sql` to Supabase project `daxaymcmtbmummrxdyjy`. They add service-role-only identity-administration functions, strengthen direct-manager and parent-unit validation, expire stale unit roles after membership moves, and keep manager unit scope aligned. They create no evaluation-content table or column.
-
-### Security impact
-
-Positive foundation impact. The browser cannot read or write role, hierarchy, membership, manager, audit, or profile-directory tables directly. The Edge Function validates the authenticated active profile and database-backed system-admin scope. Database functions revalidate the actor transactionally and reject cross-organization context, manager cycles, invalid unit roles, unsafe archival, project-manager role mutation, and final organization-admin removal. Audit metadata contains identity/configuration references only.
-
-### Tests performed
-
-- `npm run lint`
-- `npm run typecheck`
-- `npm test`
-- `npm run build`
-- `npm run check`
-- `npx supabase db push --dry-run`
-- `npx supabase db push --linked --include-all --yes`
-- `npx supabase db lint --linked`
-- `npx supabase gen types typescript --linked`
-- `npx supabase functions deploy organization-administration --no-verify-jwt`
-- `npx supabase functions list --project-ref daxaymcmtbmummrxdyjy`
-- `npm run smoke:hierarchy` with synthetic HR administrator and employee accounts.
-- Authenticated desktop and 390-pixel mobile browser verification.
-- `git diff --check`
-
-### Result
-
-Both migrations are applied, linked schema lint reports no errors, and the remote database is up to date. `organization-administration` is `ACTIVE` as version `2` with gateway JWT verification disabled and internal token validation enabled. The live smoke test returned one organization and six members, archived its temporary unit, ended its temporary role, rejected a manager cycle, denied an employee, and denied an unauthenticated request. Desktop and mobile browser checks found no horizontal overflow or console errors. Application checks pass with 15 test files and 66 tests.
-
-### Remaining work
-
-- Keep invitation email delivery/acceptance open until an approved mailbox and provider decision are available.
-- Implement delegated project-manager project-completion and evaluation-close-date updates next.
-- Implement employee assignment access, anonymous credentials, encrypted submissions, and reporting in later security-reviewed phases.

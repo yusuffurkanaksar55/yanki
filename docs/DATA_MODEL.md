@@ -2,7 +2,7 @@
 
 ## Status
 
-Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed profile/invitation onboarding, configurable organization hierarchy, authenticated own-workspace and own-assignment RPCs, immutable versioned evaluation templates, project/evaluation-cycle configuration, and evaluation assignment planning. The complete anonymous submission data model is still conceptual and must be implemented in future reviewed phases.
+Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed onboarding, configurable hierarchy, own-context RPCs, immutable versioned templates, project/cycle/assignment planning, identity-domain one-time credentials, and content-domain encrypted evaluation submissions.
 
 Generated TypeScript database types are stored in `src/types/supabase.ts` and should be regenerated after schema changes.
 
@@ -30,8 +30,8 @@ Planned tables:
 - `evaluation_templates`
 - `evaluation_template_versions`
 - `evaluation_template_questions`
-- `anonymous_credentials`
-- `encrypted_submissions`
+- `anonymous_submission_credentials`
+- `encrypted_evaluation_submissions`
 - `result_access_scopes`
 - `lessons_learned_cycles`
 - `audit_events`
@@ -108,14 +108,18 @@ Project managers, project members, manager relationships, evaluators, and evalua
 
 Anonymous content-domain tables store encrypted submissions and non-sensitive metadata. They must not store evaluator identifiers, evaluator email addresses, employee numbers, IP addresses, device fingerprints, browser fingerprints, or other identifying metadata.
 
-No anonymous content-domain table has been implemented yet.
+`anonymous_submission_credentials` is an identity-domain table keyed to one assignment. It stores organization scope, assignment id, a unique SHA-256 credential digest, lifecycle state, issuance/expiry timestamps, and date-only redemption metadata. It stores no answer, ciphertext, submission id, or raw credential. Terminal credentials are immutable.
+
+`encrypted_evaluation_submissions` stores organization, cycle, optional project, evaluated subject, assignment kind, immutable template version, AES-256-GCM ciphertext and nonce, key/context/payload versions, and date-only `stored_on`. It deliberately has no evaluator, assignment, credential, digest, answer JSON, score, comment, or exact submission timestamp column. Update attempts are rejected.
+
+`issue_anonymous_submission_credential()`, `get_anonymous_submission_context()`, and `redeem_anonymous_submission_credential()` are executable only by `service_role`. Direct table privileges are revoked even from `service_role`, forcing trusted code through the reviewed lifecycle functions.
 
 ## Expected Constraints
 
 - Foreign keys for hierarchy, memberships, project membership, assignments, templates, cycles, and scopes.
 - Unique constraints for stable identifiers, template versions, assignment uniqueness, credential uniqueness, and duplicate prevention.
 - Check constraints for score ranges, project completion dates, evaluation close dates, active windows, and threshold minimums.
-- UTC timestamps for persistence.
+- UTC timestamps for identity/configuration persistence and date-only content storage where exact submission time would increase correlation risk.
 - Intentional indexes for authorization checks, scope lookups, assignment lookup, cycle filtering, and report aggregation.
 
 ## Project And Evaluation Cycle Data

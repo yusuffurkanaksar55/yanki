@@ -1,5 +1,13 @@
 # Release Notes
 
+## 2026-08-07 - Anonymous Encrypted Evaluation Submission
+
+This is not a product release. An authenticated employee can now open an available assignment, receive a one-time random submission credential, answer the immutable template in Turkish, and submit through a separate anonymous endpoint. The browser keeps the raw credential in component memory and sends the anonymous request without a user Authorization header or cookies.
+
+Trusted Edge Function code validates every answer and encrypts normalized content with AES-256-GCM. The database stores only ciphertext, nonce, versioned encryption context, reporting scope, subject, template version, and date-only storage metadata. It stores no evaluator, assignment, credential, digest, plaintext answer, or exact submission timestamp with content. Redemption and assignment completion are atomic, and replay is denied.
+
+Local pgTAP passes 55 database cases across three suites. The live synthetic acceptance test encrypted four answers, completed the assignment, and rejected a second use of the same credential. The linked database is migration-current and reports no schema lint errors. The current linked key is development-only; thresholded reporting, production key rotation/recovery, rate limiting, backup acceptance, and real invitation email remain release blockers.
+
 ## 2026-08-06 - Immutable Versioned Evaluation Templates
 
 This is not a product release. Organization-scoped system administrators can now create evaluation-template drafts, edit ordered typed questions, publish a version, and create a new draft by cloning a published snapshot. Database triggers reject all updates and deletes against published version metadata and questions, including attempts to move a question from a published version into a draft; browser clients have no direct template-table access.

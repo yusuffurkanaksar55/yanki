@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and has a default-deny Supabase foundation, a narrow own-profile read policy, record-backed organization hierarchy foundation, own-workspace and own-assignment RPCs, Supabase Auth-backed invitation onboarding, immutable versioned template administration, default-deny project/evaluation-cycle and evaluation-assignment foundations, and trusted administration Edge Functions. Employee assignment reads are implemented; evaluation submission and reporting authorization are not implemented yet.
+Authorization is documented and implemented through default-deny tables, narrow own-context RPCs, record-backed scoped administration, immutable templates, authenticated one-time submission preparation, and anonymous atomic redemption. Reporting authorization is not implemented yet.
 
 ## Principles
 
@@ -39,6 +39,10 @@ Project date updates are available to platform/matching-organization system admi
 
 `evaluation-templates` requires an active profile and platform or matching-organization `SYSTEM_ADMIN` scope. Browser clients have no direct template-table privileges. Service-role-only functions atomically save drafts, publish valid versions, and clone published versions into the next draft. Database triggers enforce published-version immutability even if trusted application code regresses. `admin-project-cycles` additionally verifies that a selected version is published, active, and in the same organization before creating a cycle.
 
+`evaluation-submission-credentials` accepts only an authenticated evaluator's assignment id. The database requires that the caller is the assignment evaluator, both evaluator and subject have active matching tenant membership, the assignment is pending, the cycle is open and within its server-clock window, and the bound template is active and published. A replacement preparation revokes the earlier pending credential.
+
+`anonymous-evaluation-submissions` has no authenticated user authority. Its sole capability is possession of a valid unexpired random credential. It cannot select an organization, subject, assignment, cycle, or template; those values are derived from the credential digest in trusted code. Atomic redemption permits one encrypted insert and one assignment completion, then makes replay terminal.
+
 ## Roles
 
 ### `SYSTEM_ADMIN`
@@ -47,7 +51,7 @@ Can manage scoped user invitations, hierarchy, projects, project memberships, te
 
 ### `EMPLOYEE`
 
-Can view only assignments addressed to their authenticated identity, including safe subject/project/cycle metadata, availability windows, and completion state. Assignment access disappears when active organization membership ends. Submission is not yet implemented. Employees cannot view submitted answers, evaluations about themselves, evaluations about others, scores, comments, or evaluator identities.
+Can view only assignments addressed to their authenticated identity, prepare a one-time credential for an available assignment, and submit validated answers through the anonymous encryption boundary. Assignment access disappears when active organization membership ends. Employees cannot read submitted answers, evaluations about themselves, evaluations about others, scores, comments, ciphertext, or evaluator identities.
 
 ### `TEAM_LEADER`
 
