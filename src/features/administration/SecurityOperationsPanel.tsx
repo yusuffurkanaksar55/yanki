@@ -3,6 +3,7 @@ import { tr } from "../../locales/tr/messages";
 import {
   browserSecurityOperationsService,
   SecurityOperationsServiceError,
+  type AbuseMonitoringSummary,
   type EncryptionKeyHealth,
   type SecurityOperationsService
 } from "./securityOperationsService";
@@ -15,17 +16,26 @@ export function SecurityOperationsPanel({
   service = browserSecurityOperationsService
 }: SecurityOperationsPanelProps) {
   const [health, setHealth] = useState<EncryptionKeyHealth | null>(null);
+  const [abuseSummary, setAbuseSummary] =
+    useState<AbuseMonitoringSummary | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadHealth = useCallback(async () => {
+  const loadOperations = useCallback(async () => {
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
-      setHealth(await service.getEncryptionKeyHealth());
+      const [nextHealth, nextAbuseSummary] = await Promise.all([
+        service.getEncryptionKeyHealth(),
+        service.getAbuseMonitoringSummary()
+      ]);
+
+      setHealth(nextHealth);
+      setAbuseSummary(nextAbuseSummary);
     } catch (error) {
       setHealth(null);
+      setAbuseSummary(null);
       setErrorMessage(readErrorMessage(error));
     } finally {
       setIsLoading(false);
@@ -35,10 +45,14 @@ export function SecurityOperationsPanel({
   useEffect(() => {
     let isCurrent = true;
 
-    void service.getEncryptionKeyHealth()
-      .then((nextHealth) => {
+    void Promise.all([
+      service.getEncryptionKeyHealth(),
+      service.getAbuseMonitoringSummary()
+    ])
+      .then(([nextHealth, nextAbuseSummary]) => {
         if (isCurrent) {
           setHealth(nextHealth);
+          setAbuseSummary(nextAbuseSummary);
         }
       })
       .catch((error: unknown) => {
@@ -74,7 +88,7 @@ export function SecurityOperationsPanel({
         <button
           className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:text-slate-400"
           disabled={isLoading}
-          onClick={() => void loadHealth()}
+          onClick={() => void loadOperations()}
           type="button"
         >
           {isLoading
@@ -115,7 +129,60 @@ export function SecurityOperationsPanel({
           </div>
         </div>
       ) : null}
+
+      {abuseSummary ? (
+        <div className="mt-6 border-t border-slate-200 pt-5">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+            <h3 className="text-base font-semibold text-slate-900">
+              {tr.administration.securityOperations.abuse.title}
+            </h3>
+            <p className="text-sm text-slate-500">
+              {tr.administration.securityOperations.abuse.retention.replace(
+                "{days}",
+                String(abuseSummary.counterRetentionDays)
+              )}
+            </p>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <AbuseMetric
+              last24Hours={abuseSummary.invalidCredentialAttemptsLast24Hours}
+              last60Minutes={abuseSummary.invalidCredentialAttemptsLast60Minutes}
+              label={tr.administration.securityOperations.abuse.invalidCredentials}
+            />
+            <AbuseMetric
+              last24Hours={abuseSummary.rateLimitedRequestsLast24Hours}
+              last60Minutes={abuseSummary.rateLimitedRequestsLast60Minutes}
+              label={tr.administration.securityOperations.abuse.rateLimited}
+            />
+          </div>
+        </div>
+      ) : null}
     </section>
+  );
+}
+
+function AbuseMetric({
+  label,
+  last24Hours,
+  last60Minutes
+}: {
+  readonly label: string;
+  readonly last24Hours: number;
+  readonly last60Minutes: number;
+}) {
+  return (
+    <div className="border-l-2 border-slate-200 px-3 py-2">
+      <p className="text-sm font-semibold text-slate-800">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-slate-950">
+        {last60Minutes}
+      </p>
+      <p className="text-sm text-slate-500">
+        {tr.administration.securityOperations.abuse.last24Hours.replace(
+          "{count}",
+          String(last24Hours)
+        )}
+      </p>
+    </div>
   );
 }
 

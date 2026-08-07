@@ -22,6 +22,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Evaluation templates: tenant-scoped logical templates, editable drafts, database-immutable published versions, ordered typed questions, trusted system-admin management, and exact cycle/assignment version binding implemented.
 - Anonymous evaluation submission: authenticated one-time credential preparation, browser-memory-only raw credentials, identity-free anonymous redemption, atomic assignment completion, and a Turkish typed-question form implemented.
 - Evaluation encryption: answers are validated and encrypted with AES-256-GCM inside a trusted Edge Function; only ciphertext, nonce, key version, date-only storage metadata, subject/reporting scope, and immutable template context are persisted.
+- Anonymous endpoint abuse protection: known credentials receive isolated 12-request/10-minute buckets, unknown credentials share a 120-request/minute invalid-only bucket, request bodies are bounded, and seven-day five-minute aggregate counters contain no identity, tenant, credential, request, or content data.
 - Aggregate reporting: authorized team leaders, C-Level reviewers, and board reviewers can request closed-cycle subject reports through a trusted Edge Function. Database functions enforce scope, system-admin denial, self-access denial, and the configured anonymity threshold before releasing an identity-free ciphertext batch for server-side decryption and aggregation.
 - Reporting UI: the Turkish dashboard lists authorized closed report targets without participation counts, shows a count-free withheld state below threshold, renders numeric/categorical aggregates above threshold, and never receives raw free-text responses.
 - Delegated project date administration: system administrators and assigned project managers can atomically update project completion and evaluation close dates through a trusted boundary.
@@ -30,7 +31,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Bounded repository memory: development and test logs retain 5 entries, error logs retain 10 entries, and durable decisions remain in ADRs and focused context documents.
 - Authenticated integration verification: synthetic admin, project-manager, and employee accounts have been exercised against the deployed Auth, project, onboarding, and organization-administration boundaries.
 - Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context RPC, project, evaluation-cycle, and evaluation-assignment migrations applied.
-- Edge Functions: `evaluation-submission-credentials` prepares one-time eligibility credentials for authenticated evaluators; `anonymous-evaluation-submissions` validates, encrypts, and atomically redeems identity-free submissions; existing functions retain template, project, onboarding, and hierarchy administration.
+- Edge Functions: `evaluation-submission-credentials` prepares one-time eligibility credentials for authenticated evaluators; `anonymous-evaluation-submissions` applies privacy-preserving quotas before context lookup, validates, encrypts, and atomically redeems identity-free submissions; `security-abuse-monitoring` returns aggregate counters only to active system administrators.
 - Quality checks: lint, typecheck, Vitest, React Testing Library, production build, and documentation foundation tests are implemented.
 
 ## Important Business Rules
@@ -59,7 +60,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 
 ## Current Database Structure
 
-The Supabase migrations additionally create immutable versioned templates, identity-domain `anonymous_submission_credentials`, and content-domain `encrypted_evaluation_submissions`. Service-role-only RPCs issue digested one-time credentials, return identity-free encryption context, atomically persist ciphertext, and release a report batch only after authorization, closure, and threshold checks. The content table has no evaluator, assignment, credential, plaintext answer, or exact submission timestamp column. RLS is enabled on all public tables and direct table privileges remain default-deny, including to `service_role` for sensitive submission tables.
+The Supabase migrations additionally create immutable versioned templates, identity-domain `anonymous_submission_credentials`, content-domain `encrypted_evaluation_submissions`, short-lived `security_rate_limit_buckets`, and aggregate `security_abuse_event_counters`. Service-role-only RPCs issue credentials, make quota decisions, atomically persist ciphertext, expose safe abuse summaries, and release report batches only after authorization, closure, and threshold checks. Abuse tables store no IP, device, user, tenant, assignment, credential digest, request body, or content. RLS is enabled and direct table privileges remain default-deny, including to `service_role` for sensitive and abuse-control tables.
 
 ## Current Authentication Model
 
@@ -72,7 +73,7 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 ## Known Limitations
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
-- Additive key rotation and content-free key-health checks are implemented and live-tested with synthetic ciphertext. Independent production key custody, escrow/recovery acceptance, endpoint rate limiting, retention automation, production bootstrap, and backup/restore acceptance remain incomplete.
+- Additive key rotation, content-free key health, application-level anonymous endpoint quotas, and aggregate abuse monitoring are implemented and live-tested. Independent production key custody, escrow/recovery acceptance, outer gateway/WAF limits and alert delivery, retention automation, production bootstrap, and backup/restore acceptance remain incomplete.
 - Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
 - Microsoft Entra ID is not implemented. The current anonymous credential model provides reviewed application-level unlinkability, not blind-signature cryptographic anonymity.
 - The Docker delivery foundation exists, but production organization bootstrap, backup automation, release automation, and customer acceptance automation are not implemented.
@@ -81,19 +82,14 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Recent Major Changes
 
+- 2026-08-07: Added and deployed privacy-preserving anonymous endpoint quotas, request-size limits, aggregate system-admin monitoring, Turkish feedback states, and live 413/429/authorization verification.
 - 2026-08-07: Added and deployed additive encryption-key rotation, content-free system-admin health checks, safe rotation tooling, and live old/new-key compatibility verification.
 - 2026-08-07: Added and deployed closed-cycle thresholded aggregate reporting, trusted AES-GCM decryption, reviewer scope checks, system-admin and self-access denial, Turkish reporting UI, and live synthetic verification.
 - 2026-08-07: Added and deployed one-time anonymous credentials, AES-256-GCM encrypted evaluation persistence, atomic assignment completion, Turkish submission UI, and live replay-denial verification.
 - 2026-08-06: Added and deployed immutable versioned evaluation templates with trusted management UI and exact cycle/assignment binding.
-- 2026-08-06: Added authenticated employee assignment access, Turkish assignment inbox, database authorization tests, and live synthetic verification.
-- 2026-08-06: Added portable managed/self-hosted deployment foundation, organization tenant hardening, and bounded repository-memory automation.
-- 2026-07-22: Added and deployed atomic project completion/evaluation close date updates for scoped system administrators and assigned project managers.
-- 2026-07-22: Added and deployed trusted existing-user role, organization-unit, primary-membership, and direct-manager administration.
-- 2026-07-20: Added Supabase Auth-backed invitation onboarding and atomic acceptance.
-- 2026-07-20: Added default-deny evaluation assignment planning and authenticated administration verification.
 
 ## Current Development Priorities
 
-1. Complete production key escrow/recovery acceptance, endpoint rate limits, retention, production tenant bootstrap, backup/restore automation, monitoring, and customer acceptance checks.
+1. Complete production key escrow/recovery acceptance, outer gateway/WAF limits and alert delivery, retention, production tenant bootstrap, backup/restore automation, and customer acceptance checks.
 2. Configure email delivery when a provider is approved and complete real invitation acceptance verification.
 3. Add broader Playwright workflows and design a separately reviewed disclosure-resistant approach if raw-text themes are ever required.

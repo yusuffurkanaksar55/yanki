@@ -65,17 +65,17 @@ npx supabase db push --db-url "$DATABASE_URL" --include-all --yes
 
 The database URL is a server secret and must be percent-encoded where required. Do not place it in frontend configuration or command logs retained by CI.
 
-9. Copy each reviewed directory from `supabase/functions/` to the self-hosted stack's `volumes/functions/`, configure server-only values in the Functions environment file, and recreate or restart the Functions service. Follow the official [self-hosted Functions guide](https://supabase.com/docs/guides/self-hosting/self-hosted-functions).
+9. Copy each reviewed directory from `supabase/functions/` to the self-hosted stack's `volumes/functions/`, configure server-only values in the Functions environment file, preserve `verify_jwt = false` for `anonymous-evaluation-submissions`, and recreate or restart the Functions service. The function performs credential authorization itself and must remain callable without a user session. Follow the official [self-hosted Functions guide](https://supabase.com/docs/guides/self-hosting/self-hosted-functions).
 10. Copy `deploy/compose.env.example` to an ignored deployment environment file, set the customer public URL/key, and start the application:
 
 ```bash
 docker compose --env-file .env.deploy up -d --build --wait
 ```
 
-11. Route the public application domain to the frontend container, verify `/healthz`, sign-in redirects, password reset, invitation delivery when enabled, and all role-denial scenarios. Run synthetic submission and report acceptance, including threshold, self, system-admin, employee, and anonymous denial checks.
+11. Route the public application domain to the frontend container, verify `/healthz`, sign-in redirects, password reset, invitation delivery when enabled, and all role-denial scenarios. Run synthetic submission and report acceptance, including 413/429 behavior, threshold, self, system-admin, employee, and anonymous denial checks.
 12. Create the initial organization and administrator through an approved bootstrap procedure. A production bootstrap command is not implemented yet; manual service-role writes are not an approved workaround.
 13. Schedule encrypted backups, define retention, and perform a restore drill before accepting live data. Document recovery time and recovery point objectives.
-14. Configure capacity, availability, certificate, backup, database, Auth, Functions, and application health alerts. Never collect scores, comments, decrypted payloads, credentials, tokens, or evaluator-to-response mappings in logs.
+14. Configure capacity, availability, certificate, backup, database, Auth, Functions, application health, and anonymous abuse-counter alerts. Apply reverse-proxy/WAF connection and request limits outside the application without collecting IP/device identifiers in the product database. Never collect scores, comments, decrypted payloads, credentials, tokens, or evaluator-to-response mappings in logs.
 15. Run the release acceptance checklist and obtain customer security/operations sign-off.
 
 ## Updates And Rollback
@@ -89,7 +89,17 @@ docker compose --env-file .env.deploy up -d --build --wait
 
 ## Production Release Gate
 
-This repository now has deployed anonymous encrypted submission storage, additive key rotation, key-health validation, and scoped thresholded aggregate reporting, but it is not approved for live employee data. An independent production key, approved key escrow and recovery drill, rate limiting, production bootstrap, backup/restore automation, retention policy, monitoring, and broader end-to-end security regression coverage must be completed before production use.
+This repository now has deployed anonymous encrypted submission storage, additive key rotation, key-health validation, application-level anonymous quotas, content-free aggregate abuse monitoring, and scoped thresholded reporting, but it is not approved for live employee data. An independent production key, approved key escrow and recovery drill, outer gateway/WAF limits and alert delivery, production bootstrap, backup/restore automation, retention policy, and broader end-to-end security regression coverage must be completed before production use.
+
+## Anonymous Abuse-Control Operations
+
+- The application baseline is 12 requests per recognized credential per 10 minutes, 120 unknown-credential requests per minute globally, a 256 KiB anonymous body limit, and a 16 KiB credential-preparation body limit.
+- Application rate buckets expire after one day. Five-minute aggregate invalid/rate-limited counters are retained for seven days.
+- `security-abuse-monitoring` is restricted to active system administrators and exposes only aggregate 60-minute/24-hour counts and policy constants.
+- Do not add IP addresses, device fingerprints, request bodies, credential digests, users, assignments, or content to product abuse tables or application logs.
+- Configure the public reverse proxy, CDN, or WAF with independently reviewed connection/request limits before production. External infrastructure logs have their own privacy and retention review and must never capture request bodies or credentials.
+- Alert on sustained aggregate invalid/rate-limited activity and endpoint availability. Alert delivery is not implemented by this repository and remains a release gate.
+- Run `npm run smoke:abuse` with synthetic users after every anonymous submission, shared request-body, gateway, or monitoring change.
 
 ## Encryption Key Operations
 
@@ -103,7 +113,7 @@ Managed Supabase rotation sequence:
 ```bash
 npm run encryption:key:prepare -- PROD_20260807_01
 npx supabase functions deploy evaluation-submission-credentials --project-ref "$PROJECT_REF"
-npx supabase functions deploy anonymous-evaluation-submissions --project-ref "$PROJECT_REF"
+npx supabase functions deploy anonymous-evaluation-submissions --no-verify-jwt --project-ref "$PROJECT_REF"
 npx supabase functions deploy evaluation-reports --project-ref "$PROJECT_REF"
 npx supabase functions deploy encryption-key-health --project-ref "$PROJECT_REF"
 npx supabase secrets set --project-ref "$PROJECT_REF" --env-file .secrets/encryption-key-rotation.env

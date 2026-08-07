@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, server-side AES-256-GCM encryption, additive key rotation, content-free key health checks, atomic assignment completion, trusted thresholded aggregate reporting, and trusted administration boundaries. Production key escrow and recovery acceptance remain incomplete.
+This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, privacy-preserving application quotas, server-side AES-256-GCM encryption, additive key rotation, content-free key health checks, atomic assignment completion, trusted thresholded aggregate reporting, and trusted administration boundaries. Production key escrow and recovery acceptance remain incomplete.
 
 ## Security Objectives
 
@@ -101,6 +101,10 @@ Evaluation templates are configuration-domain records. `evaluation-templates` au
 
 `anonymous-evaluation-submissions` intentionally accepts no user Authorization header. It receives only the one-time credential and answers, validates required/type/range/option rules against identity-free immutable question context, encrypts the normalized payload, and calls an atomic redemption function. Safe operational configuration errors may return stable codes, but no answer, key, digest, credential, or decrypted value is logged.
 
+Before identity-free context lookup or encryption, the endpoint enforces a 256 KiB body limit and consumes an application quota. Recognized credentials have isolated 12-request/10-minute buckets; unknown credentials share a 120-request/minute invalid-only bucket. The known bucket key is a one-way hash of an internal random credential row id, not the stored credential digest. Rate buckets expire after one day. Five-minute invalid/rate-limit counters are retained for seven days without IP, device, user, tenant, assignment, credential, request, or content data.
+
+`security-abuse-monitoring` is available only to authenticated active system administrators, with authorization repeated in the Edge Function and database. It exposes 60-minute and 24-hour aggregate counts and configured limits only. It cannot read credential or ciphertext tables. These controls reduce application-level abuse but do not replace reverse-proxy/WAF connection limits, capacity protection, and external alert delivery.
+
 `anonymous_submission_credentials` remains in the identity domain and has no content or submission identifier. `encrypted_evaluation_submissions` remains in the content domain and has no evaluator, assignment, credential, digest, plaintext, or exact timestamp column. Both tables have RLS enabled and all direct table privileges are revoked from browser roles and `service_role`; trusted code can use only the narrow RPCs.
 
 ## Anonymity Threshold
@@ -136,5 +140,5 @@ In customer-managed installations, the customer controls the host, database, app
 - Complete live invitation email delivery and acceptance verification with an approved test mailbox.
 - Add narrowly scoped Supabase RLS policies only after server-side authorization flows are designed.
 - Configure an independent production key, approved secret-manager escrow, a successful key-plus-database recovery drill, and ciphertext retention procedures before production.
-- Add production abuse controls for anonymous credential preparation/redemption, including gateway rate limits and alerting without sensitive request logging.
+- Add outer gateway/WAF limits for credential preparation and anonymous redemption, plus alert delivery without sensitive request logging.
 - Add executable cross-tenant database tests against a running local or dedicated Supabase stack.

@@ -8,6 +8,8 @@ import type {
   EvaluationAssignmentService,
   PreparedEvaluationSubmission
 } from "./evaluationAssignmentService";
+import { EvaluationAssignmentServiceError } from
+  "./evaluationAssignmentService";
 
 describe("AssignmentInbox", () => {
   it("shows only the assignments returned by the trusted service", async () => {
@@ -120,6 +122,33 @@ describe("AssignmentInbox", () => {
     );
     expect(
       await screen.findByText(tr.assignments.submission.feedback.submitted)
+    ).toBeInTheDocument();
+  });
+
+  it("shows a safe wait message when anonymous submissions are rate limited", async () => {
+    const user = userEvent.setup();
+    const service = createService([createAssignment()]);
+    vi.mocked(service.submitEvaluation).mockRejectedValue(
+      new EvaluationAssignmentServiceError(
+        "EVALUATION_SUBMISSION_RATE_LIMITED"
+      )
+    );
+
+    render(<AssignmentInbox service={service} />);
+
+    await user.click(
+      await screen.findByRole("button", { name: tr.assignments.actions.start })
+    );
+    await user.click(screen.getByRole("button", { name: "5" }));
+    await user.type(screen.getByRole("textbox"), "Yapıcı bir yorum");
+    await user.click(
+      screen.getByRole("button", {
+        name: tr.assignments.submission.actions.submit
+      })
+    );
+
+    expect(
+      await screen.findByText(tr.assignments.submission.feedback.rateLimited)
     ).toBeInTheDocument();
   });
 });

@@ -90,6 +90,8 @@ export type EvaluationAssignmentService = {
 export type EvaluationAssignmentServiceErrorCode =
   | "EVALUATION_ASSIGNMENTS_READ_FAILED"
   | "EVALUATION_SUBMISSION_PREPARATION_FAILED"
+  | "EVALUATION_SUBMISSION_RATE_LIMITED"
+  | "EVALUATION_SUBMISSION_TOO_LARGE"
   | "EVALUATION_SUBMISSION_FAILED";
 
 export class EvaluationAssignmentServiceError extends Error {
@@ -179,6 +181,22 @@ export function createSupabaseEvaluationAssignmentService(
       if (!response.ok) {
         const body = await response.json().catch(() => null);
 
+        if (response.status === 413) {
+          throw new EvaluationAssignmentServiceError(
+            "EVALUATION_SUBMISSION_TOO_LARGE"
+          );
+        }
+
+        if (response.status === 429) {
+          throw new EvaluationAssignmentServiceError(
+            "EVALUATION_SUBMISSION_RATE_LIMITED",
+            {
+              error: isRecord(body) ? readString(body.error) : null,
+              retryAfterSeconds: readRetryAfterSeconds(response.headers)
+            }
+          );
+        }
+
         throw new EvaluationAssignmentServiceError(
           "EVALUATION_SUBMISSION_FAILED",
           isRecord(body) ? { error: readString(body.error) } : undefined
@@ -186,6 +204,17 @@ export function createSupabaseEvaluationAssignmentService(
       }
     }
   };
+}
+
+function readRetryAfterSeconds(headers: Headers): number | null {
+  const value = headers.get("Retry-After");
+
+  if (!value) {
+    return null;
+  }
+
+  const seconds = Number(value);
+  return Number.isFinite(seconds) && seconds > 0 ? Math.ceil(seconds) : null;
 }
 
 function getDefaultService(): EvaluationAssignmentService {

@@ -1,5 +1,44 @@
 # Development Log
 
+## 2026-08-07 - Privacy-Preserving Anonymous Abuse Protection
+
+### Objective
+
+Bound anonymous submission abuse and oversized requests without storing source identifiers, credential digests, request-level evaluation metadata, or content, while giving system administrators safe aggregate operational visibility.
+
+### Changes
+
+- Added isolated known-credential and invalid-only global quotas before context lookup, validation, or encryption.
+- Added 256 KiB anonymous and 16 KiB authenticated preparation body limits, `413`/`429` responses, `Retry-After`, and centralized Turkish feedback.
+- Added five-minute aggregate abuse counters with seven-day retention, an authenticated system-admin monitoring Edge Function, and a Turkish administration panel.
+- Added request/boundary/service/component tests, 19 pgTAP abuse-control cases, live smoke coverage, and ADR-0023.
+
+### Database changes
+
+Applied `20260807170000_anonymous_endpoint_abuse_protection.sql` locally and to project `daxaymcmtbmummrxdyjy`. Abuse tables have RLS, no direct privileges including for `service_role`, and no IP, device, user, tenant, assignment, credential digest, request, or content columns.
+
+### Security impact
+
+Positive. Invalid traffic cannot consume recognized-credential application quotas. Operational visibility is aggregate-only, request bodies are bounded before parsing, and system administrators still cannot read evaluation content. External gateway/WAF capacity controls and alert delivery remain required for production.
+
+### Tests performed
+
+- `npm run lint`, `npm run typecheck`, Vitest, production build, and full `npm run check`.
+- Local migration-up, schema lint, and `npm run supabase:test:local`: 113 pgTAP cases across five suites.
+- Local self-host parity restart confirmed the anonymous no-session function configuration and controlled 413 response.
+- Remote dry-run/push/list, linked lint, type generation, and three Edge Function deployments.
+- Live `npm run smoke:abuse`: encrypted submission, replay denial, 256 KiB body rejection, isolated 429 quota with `Retry-After`, aggregate admin monitoring, and non-admin denial.
+
+### Result
+
+The migration and all three Edge Functions are active in the linked project. The live synthetic flow returned controlled `413` and `429` responses, preserved assignment completion and replay safety, exposed only aggregate counters to the HR system administrator, and denied the employee with `403`.
+
+### Remaining work
+
+- Establish production gateway/WAF limits and alert delivery without sensitive logging.
+- Complete independent production key escrow/recovery, retention, bootstrap, and backup/restore acceptance.
+- Complete approved invitation-email and visual browser verification.
+
 ## 2026-08-07 - Additive Encryption Key Rotation And Health
 
 ### Objective
@@ -154,58 +193,3 @@ Vitest passes 21 files and 91 tests. pgTAP passes 26 database cases. Local `publ
 - Implement anonymous credentials and encrypted submissions before completion mutation or reporting.
 - Complete invitation email delivery when an approved provider and mailbox are available.
 - Add visual and end-to-end browser coverage when the Codex browser runtime is available.
-
-## 2026-08-06 - Authenticated Employee Assignment Access
-
-### Objective
-
-Allow employees to see only evaluation assignments addressed to their authenticated identity while preserving default-deny table access, tenant isolation, and separation from future anonymous submission content.
-
-### Changes
-
-- Added authenticated `get_my_evaluation_assignments()` with `auth.uid()` ownership, active-profile and active-tenant membership revalidation, draft/cancelled filtering, and server-clock availability states.
-- Kept evaluation, profile, organization, project, and cycle tables inaccessible to browser clients.
-- Added a typed assignment service, Turkish assignment inbox, live dashboard counts, loading/empty/error/retry states, and assignment date/status presentation.
-- Added source-boundary tests, component tests, Docker-backed pgTAP authorization tests, local database lint/test scripts, and a live synthetic employee smoke test.
-- Added ADR-0018 and updated project context, architecture, security, authorization, data model, requirements, known issues, README, changelog, and release notes.
-- Refreshed generated Supabase types and patched vulnerable development-only transitive dependencies.
-
-### Files affected
-
-- `supabase/migrations/20260806233000_employee_assignment_access.sql`
-- `supabase/tests/database/employee_assignment_access.test.sql`
-- `src/features/evaluations/*`
-- `src/features/dashboard/DashboardPage.tsx`, `src/app/App.tsx`
-- `src/locales/tr/messages.ts`, `src/types/supabase.ts`
-- `scripts/smoke-employee-assignment-access.mjs`
-- `tests/employee-assignment-access.test.mjs`
-- `package.json`, `package-lock.json`
-- `docs/*`, `README.md`, `CHANGELOG.md`
-
-### Database changes
-
-Applied `20260806233000_employee_assignment_access.sql` to Supabase project `daxaymcmtbmummrxdyjy`. It adds one authenticated metadata RPC and no table, column, direct table policy, evaluation content, or credential record. Local reset applied all migrations successfully and remote dry-run reports the database is up to date.
-
-### Security impact
-
-Positive. The caller cannot select a user or organization id; assignment ownership comes from `auth.uid()`. Evaluator and subject tenant membership is revalidated at read time. The response omits evaluator identity fields, scores, comments, payloads, and credentials. Production dependency audit reports zero vulnerabilities.
-
-### Tests performed
-
-- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `npm run check`.
-- `npm run supabase:test:local` and `npm run supabase:lint:local`.
-- Linked migration dry-run, push, type generation, post-push lint, and final dry-run.
-- `npm run smoke:assignments` with a synthetic employee and anonymous denial.
-- Docker frontend image build, runtime configuration check, and `/healthz` check.
-- Production and full `npm audit` checks.
-
-### Result
-
-Vitest passes 20 files and 89 tests. pgTAP passes 8 database authorization cases. Local and linked schema lint report no errors. The live employee received three own assignments, all correctly closed by the server clock, while anonymous access was denied. The frontend image built and ran healthy, `/healthz` returned `ok`, and runtime public configuration was generated. In-app visual verification could not run because the Codex browser runtime could not create its kernel assets.
-
-### Remaining work
-
-- Implement immutable versioned evaluation templates and bind assignments to template versions.
-- Implement anonymous credentials and encrypted submission before completion mutation or reporting.
-- Complete invitation email delivery when an approved provider and mailbox are available.
-- Add Playwright visual/end-to-end coverage when browser automation is available.

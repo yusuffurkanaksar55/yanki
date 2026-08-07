@@ -44,6 +44,8 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 - A successful anonymous redemption completes the identity-domain assignment atomically and cannot be replayed.
 - Report discovery must not reveal whether a closed subject group has zero or some below-threshold participation.
 - Raw free-text answers are not returned in aggregate reports; only their non-empty response count is exposed after threshold enforcement.
+- Anonymous submission abuse controls must protect valid credentials from invalid-traffic exhaustion and must not retain IP, device, user, assignment, credential digest, request body, or evaluation content.
+- Active system administrators may see only aggregate invalid-credential and rate-limited request counts, never request-level records or evaluation content.
 
 ## Roles
 
@@ -102,5 +104,6 @@ No role is a singleton. A tenant may have multiple users with the same role when
 ## Remaining Production Scope
 
 - Additive key rotation and content-free health checks are complete. Production key custody, escrow/recovery acceptance, and retention automation are not complete.
+- Application-level anonymous submission quotas and content-free monitoring are complete. Production gateway/WAF limits and alert delivery are not complete.
 - Real invitation email delivery awaits an approved provider and mailbox.
 - The current one-time credential model provides application-level unlinkability; blind-signature cryptographic anonymity is not claimed.

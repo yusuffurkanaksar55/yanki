@@ -11,6 +11,10 @@ import {
   readRequiredUuid,
   RequestValidationError
 } from "../_shared/evaluationSubmission.ts";
+import {
+  readJsonBodyWithLimit,
+  RequestPayloadTooLargeError
+} from "../_shared/requestBody.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Headers": "apikey, authorization, content-type, x-client-info",
@@ -18,6 +22,8 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Cache-Control": "no-store"
 };
+
+const maximumRequestBodyBytes = 16384;
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
@@ -58,7 +64,9 @@ Deno.serve(async (request) => {
       return jsonResponse({ error: "ACTIVE_PROFILE_REQUIRED" }, 403);
     }
 
-    const body = readRecord(await request.json().catch(() => null));
+    const body = readRecord(
+      await readJsonBodyWithLimit(request, maximumRequestBodyBytes)
+    );
     const assignmentId = readRequiredUuid(
       body.assignmentId,
       "EVALUATION_ASSIGNMENT_ID_INVALID"
@@ -82,10 +90,14 @@ Deno.serve(async (request) => {
       submission: toPreparedSubmission(data)
     });
   } catch (error) {
-    const message = error instanceof RequestValidationError
+    const message = error instanceof RequestPayloadTooLargeError
       ? error.message
-      : readDatabaseError(error) ?? "EVALUATION_SUBMISSION_PREPARATION_FAILED";
-    const status = message === "EVALUATION_ASSIGNMENT_NOT_FOUND"
+      : error instanceof RequestValidationError
+        ? error.message
+        : readDatabaseError(error) ?? "EVALUATION_SUBMISSION_PREPARATION_FAILED";
+    const status = error instanceof RequestPayloadTooLargeError
+      ? 413
+      : message === "EVALUATION_ASSIGNMENT_NOT_FOUND"
       || message === "ACTIVE_ORGANIZATION_MEMBERSHIP_REQUIRED"
       || message === "ACTIVE_PROFILE_REQUIRED"
       ? 403

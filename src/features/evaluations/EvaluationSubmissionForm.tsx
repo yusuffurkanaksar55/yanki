@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { tr } from "../../locales/tr/messages";
-import type {
-  EvaluationAssignmentService,
-  EvaluationSubmissionAnswer,
-  EvaluationSubmissionQuestion,
-  PreparedEvaluationSubmission
+import {
+  EvaluationAssignmentServiceError,
+  type EvaluationAssignmentService,
+  type EvaluationSubmissionAnswer,
+  type EvaluationSubmissionQuestion,
+  type PreparedEvaluationSubmission
 } from "./evaluationAssignmentService";
 
 type AnswerValue = string | number | boolean | readonly string[] | null;
@@ -64,8 +65,18 @@ export function EvaluationSubmissionForm({
 
       await service.submitEvaluation(submission.credential, normalizedAnswers);
       onSubmitted();
-    } catch {
-      setFeedback(tr.assignments.submission.feedback.submitFailed);
+    } catch (error) {
+      const feedbackMessage = error instanceof EvaluationAssignmentServiceError
+        && error.code === "EVALUATION_SUBMISSION_RATE_LIMITED"
+        ? tr.assignments.submission.feedback.rateLimited
+        : error instanceof EvaluationAssignmentServiceError
+          && error.code === "EVALUATION_SUBMISSION_TOO_LARGE"
+          ? tr.assignments.submission.feedback.tooLarge
+          : tr.assignments.submission.feedback.submitFailed;
+
+      setFeedback(
+        feedbackMessage
+      );
     } finally {
       setIsSubmitting(false);
     }

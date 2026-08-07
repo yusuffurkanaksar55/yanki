@@ -72,6 +72,8 @@ export const tr = {
       feedback: {
         prepareFailed: "Değerlendirme formu hazırlanamadı. Görev hâlâ açıksa yeniden deneyin.",
         requiredAnswers: "Lütfen tüm zorunlu soruları yanıtlayın.",
+        rateLimited: "Çok sayıda gönderim denemesi yapıldı. Lütfen kısa bir süre bekleyip yeniden deneyin.",
+        tooLarge: "Yanıtların toplam boyutu gönderim sınırını aşıyor. Lütfen uzun metinleri kısaltıp yeniden deneyin.",
         submitFailed: "Değerlendirme gönderilemedi. Formun süresi dolmuş olabilir; formu kapatıp yeniden açın.",
         submitted: "Değerlendirmeniz şifrelenmiş olarak kaydedildi."
       }
@@ -318,11 +320,20 @@ export const tr = {
       keyCountValue: "{configured} yapılandırılmış / {referenced} kullanımda",
       healthy: "Sağlıklı",
       unhealthy: "Müdahale gerekli",
+      abuse: {
+        title: "Anonim gönderim trafiği",
+        invalidCredentials: "Geçersiz credential denemeleri / son 60 dakika",
+        rateLimited: "Engellenen istekler / son 60 dakika",
+        last24Hours: "Son 24 saat: {count}",
+        retention: "Sayaç saklama süresi: {days} gün"
+      },
       feedback: {
         SECURITY_OPERATIONS_SESSION_REQUIRED:
           "Oturum doğrulanamadı. Lütfen tekrar giriş yap.",
         ENCRYPTION_KEY_HEALTH_READ_FAILED:
           "Şifreleme anahtarı durumu okunamadı.",
+        ABUSE_MONITORING_READ_FAILED:
+          "Anonim gönderim güvenlik sayaçları okunamadı.",
         genericError: "Beklenmeyen bir güvenlik operasyonu hatası oluştu."
       }
     },

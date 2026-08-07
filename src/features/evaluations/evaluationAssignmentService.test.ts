@@ -76,6 +76,42 @@ describe("evaluationAssignmentService submission boundary", () => {
     });
     expect(options.headers).not.toHaveProperty("Authorization");
   });
+
+  it("maps anonymous endpoint rate limits to a safe client error", async () => {
+    const fetcher = vi.fn<typeof fetch>(async () => new Response(
+      JSON.stringify({ error: "ANONYMOUS_RATE_LIMIT_EXCEEDED" }),
+      { headers: { "Retry-After": "37" }, status: 429 }
+    ));
+    const service = createSupabaseEvaluationAssignmentService(
+      createClientStub(vi.fn()),
+      createPublicEnvironment(),
+      fetcher
+    );
+
+    await expect(service.submitEvaluation("one-time-token", [])).rejects
+      .toMatchObject({
+        code: "EVALUATION_SUBMISSION_RATE_LIMITED",
+        cause: {
+          error: "ANONYMOUS_RATE_LIMIT_EXCEEDED",
+          retryAfterSeconds: 37
+        }
+      });
+  });
+
+  it("maps oversized anonymous submissions to a safe client error", async () => {
+    const fetcher = vi.fn<typeof fetch>(async () => new Response(
+      JSON.stringify({ error: "REQUEST_PAYLOAD_TOO_LARGE" }),
+      { status: 413 }
+    ));
+    const service = createSupabaseEvaluationAssignmentService(
+      createClientStub(vi.fn()),
+      createPublicEnvironment(),
+      fetcher
+    );
+
+    await expect(service.submitEvaluation("one-time-token", [])).rejects
+      .toMatchObject({ code: "EVALUATION_SUBMISSION_TOO_LARGE" });
+  });
 });
 
 function createClientStub(

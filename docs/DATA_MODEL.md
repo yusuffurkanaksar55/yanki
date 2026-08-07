@@ -29,6 +29,8 @@ Planned tables:
 - `evaluation_assignments`
 - `anonymous_submission_credentials`
 - `encrypted_evaluation_submissions`
+- `security_rate_limit_buckets`
+- `security_abuse_event_counters`
 - `result_access_scopes`
 - `lessons_learned_cycles`
 - `audit_events`
@@ -72,6 +74,8 @@ Implemented foundation functions:
 - `can_review_evaluation_subject()`
 - `list_my_evaluation_report_targets()`
 - `get_encrypted_evaluation_report_batch()`
+- `consume_anonymous_submission_request()`
+- `get_anonymous_submission_abuse_summary()`
 
 ## Identity Domain
 
@@ -122,6 +126,10 @@ Anonymous content-domain tables store encrypted submissions and non-sensitive me
 Reporting adds no plaintext or materialized result table. `list_my_evaluation_report_targets()` returns closed configuration targets without reading participation state. `get_encrypted_evaluation_report_batch()` counts within one organization/cycle/subject group and returns no count or content below threshold; at threshold it returns only identity-free ciphertext and immutable question configuration to trusted code. Audit metadata records access status and threshold without the exact submission count.
 
 `list_referenced_evaluation_encryption_key_versions()` is executable only by `service_role`. It returns distinct key-version identifiers required by stored ciphertext, with no ciphertext, content, identity, per-version count, or timestamp. Trusted key-health code compares this inventory to server-only secret configuration and exposes only aggregate health status to system administrators.
+
+`security_rate_limit_buckets` stores one-day operational buckets keyed only by a 32-byte non-reversible hash. Known credentials use isolated buckets; invalid credentials use one global invalid-only bucket. `security_abuse_event_counters` stores five-minute aggregate invalid-credential and rate-limited counts retained for seven days. Neither table stores an IP address, device identifier, user, organization, assignment, credential digest, request body, evaluation content, or linkage to a submission. RLS is enabled and direct privileges are revoked from browser roles and `service_role`.
+
+`consume_anonymous_submission_request()` is the service-role-only quota decision boundary. `get_anonymous_submission_abuse_summary()` is also service-role-only and repeats active system-administrator authorization before returning only aggregate counts and policy constants.
 
 ## Expected Constraints
 

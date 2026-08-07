@@ -6,6 +6,10 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added isolated known-credential and invalid-only global quotas before anonymous context resolution or encryption.
+- Added bounded request-body parsing, 413/429 Turkish form feedback, `Retry-After`, and a 256 KiB anonymous payload limit.
+- Added identifier-free five-minute abuse counters, seven-day counter retention, and a system-admin aggregate monitoring panel.
+- Added 19 pgTAP abuse-control cases, request/boundary/service/component tests, ADR-0023, and live body/quota/authorization smoke verification.
 - Added backward-compatible additive encryption key rotation with independent per-version server secrets and an active-version selector.
 - Added a service-role-only referenced-key inventory, authenticated content-free key health Edge Function, and Turkish system-administrator status panel.
 - Added a no-stdout key generation tool, ignored transfer-file workflow, rotation tests, ADR-0022, and live old/new-key compatibility verification.
@@ -24,6 +28,7 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- Prevented oversized anonymous request tests from reaching the hosted gateway timeout by enforcing a smaller application limit before parsing.
 - Added non-sensitive cycle-close metadata to the trusted report batch after the live smoke test caught its omission.
 - Added the missing tenant composite key required by encrypted submission cycle references.
 - Replaced a text-wide migration assertion with an exact anonymous-content column boundary test.

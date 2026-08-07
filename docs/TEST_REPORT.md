@@ -1,5 +1,54 @@
 # Test Report
 
+## 2026-08-07 - Privacy-Preserving Anonymous Abuse Protection
+
+### Environment
+
+- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
+- Docker Desktop local Supabase stack restored from retained volumes.
+- Linked Supabase project `daxaymcmtbmummrxdyjy` with synthetic users only.
+
+### Commands executed
+
+- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run check`
+- `npm run deployment:config`
+- `npx supabase migration up --local`, `npx supabase test db`, local and linked schema lint
+- Remote migration dry-run/push/list, type generation, Edge Function deploy/list
+- `npm run smoke:abuse` with temporary process-only synthetic credentials
+
+### Passed
+
+- Vitest passed request-body, static privacy boundary, service, form, monitoring panel, and full regression coverage.
+- pgTAP passed 113 cases across five suites, including 19 new abuse table/grant/quota/summary cases.
+- Local and linked schema lint reported no errors; local and remote migration histories include `20260807170000`.
+- After a backup/restart, local `verify_jwt = false` parity allowed a no-session anonymous oversized request to reach the function and return controlled `413`; the stack was backed up and stopped again.
+- A recognized credential remained usable after the invalid-only global quota was exhausted in pgTAP, then received `429` only after its isolated twelfth request.
+- Live smoke returned `413` for a 270,000-character oversized body, `429` plus `Retry-After` for the thirteenth credential request, and `403` for non-admin monitoring access.
+- Live system-admin monitoring returned only aggregate invalid/rate-limited counts and policy constants; encrypted submission, assignment completion, and replay denial remained intact.
+
+### Failed And Corrected
+
+- The first static ordering assertion matched the imported encryption symbol instead of the awaited encryption call; the test now checks the runtime call site.
+- The first live oversized test used a 1.1 MB application limit and reached the hosted gateway's empty `503` timeout before a controlled response. Reducing the reviewed application limit to 256 KiB produced a fast stable `413`, and the client now has a dedicated Turkish oversized-response message.
+- Supabase CLI could not write its telemetry state under the workspace sandbox; rerunning the database test with approved profile-directory access passed all pgTAP suites.
+- Remote migration push applied successfully but experimental `pg-delta` cache export again missed its temporary CA file. Migration list and linked lint independently confirmed the applied schema.
+- The sandbox denied the first Docker CLI child process used by `deployment:config`; rerunning the same read-only Compose validation with approved Docker access passed.
+
+### Security checks
+
+- Verified abuse tables contain no IP, device, user, tenant, assignment, credential digest, request body, or content columns and have no direct API/service-role privileges.
+- Verified quota consumption happens before context lookup and encryption.
+- Verified invalid-only traffic cannot exhaust a recognized credential's isolated quota.
+- Verified monitoring authorization in both Edge and PostgreSQL and identifier-free aggregate output.
+
+### Skipped
+
+- Automated visual browser verification remained subject to the existing Codex browser runtime kernel-path issue; component tests and production build cover the panel structure pending that runtime fix.
+
+### Remaining risks
+
+- External gateway/WAF capacity controls and alert delivery, production key custody/recovery, retention, bootstrap, backup acceptance, and invitation email remain release blockers.
+
 ## 2026-08-07 - Additive Encryption Key Rotation And Health
 
 ### Environment
@@ -192,65 +241,4 @@
 ### Remaining risks
 
 - Template selection does not authorize submission; anonymous credentials and encrypted payload persistence remain production blockers.
-- Automated visual and full browser end-to-end coverage remain incomplete.
-
-## 2026-08-06 - Authenticated Employee Assignment Access
-
-### Environment
-
-- Workspace: `D:\Projects\anonim_degerlendirme`
-- Runtime: Node.js v24.14.0
-- Supabase CLI: 2.109.1
-- Docker Desktop: 4.82.0
-- Docker Engine: 29.6.1, Linux containers
-- Linked Supabase project: `daxaymcmtbmummrxdyjy`
-
-### Commands executed
-
-- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run check`
-- `npx supabase start`, `npx supabase db reset --local`
-- `npm run supabase:test:local`, `npm run supabase:lint:local`
-- Linked migration dry-run, push, type generation, lint, and final dry-run
-- `npm run smoke:assignments`
-- `docker build --tag yanki-frontend:local .`
-- Temporary frontend container health and runtime configuration checks
-- `npm audit --omit=dev --audit-level=high`, `npm audit fix`, final `npm audit`
-
-### Passed
-
-- Vitest passed 20 files and 89 tests; TypeScript, ESLint, production build, and memory checks passed.
-- Clean local database reset applied all migrations through `20260806233000_employee_assignment_access.sql`.
-- pgTAP passed 8 authorization tests covering own-only access, draft/cancelled exclusion, authenticated-only execution, forbidden-field absence, membership expiry, and inactive-profile denial.
-- Local and linked database lint reported no schema errors.
-- Remote dry-run identified only the employee assignment migration before deployment and reported up to date afterward.
-- Generated types include `get_my_evaluation_assignments()`.
-- Live synthetic employee authentication returned three own assignments with `CLOSED` availability; anonymous RPC access was denied and forbidden fields were absent.
-- Frontend Docker image built successfully, reported `healthy`, returned `ok` from `/healthz`, and wrote public runtime Supabase configuration.
-- The local Supabase stack was stopped after verification with its Docker volume preserved.
-- Production dependency audit found zero vulnerabilities; compatible development dependency patches reduced the full audit to zero.
-
-### Failed
-
-- Docker Desktop Linux Engine stopped during the first large local Supabase image bootstrap. Restarting Docker Desktop and cleanly stopping/starting the partial stack resolved it.
-- The pgTAP runner image first failed DNS resolution against ECR, then Supabase CLI pulled the same image from GHCR and all tests passed.
-- Remote migration application emitted a non-fatal experimental pg-delta cache warning for a missing temporary certificate file. The migration applied; type generation, linked lint, and final dry-run passed.
-- The first smoke command expected `.env`; the project uses `.env.local`. After correcting the command, one transient Supabase DNS lookup failed and the retry passed after DNS resolution was confirmed.
-- The first temporary frontend container mapped host port to container port 80 instead of the documented 8080. Recreating it with `18080:8080` passed both internal and external health checks.
-- Codex in-app browser setup failed before navigation because its runtime could not write kernel assets.
-
-### Skipped
-
-- Desktop and mobile visual browser inspection was skipped because the browser runtime did not initialize. Component rendering and production image/build checks passed.
-- Real invitation email delivery and acceptance remain deferred pending an approved provider and mailbox.
-
-### Security checks
-
-- Verified assignment ownership is derived only from `auth.uid()` and accepts no client-selected user or tenant id.
-- Verified evaluator and subject active tenant membership at read time.
-- Verified assignment and related identity tables remain default-deny to browser clients.
-- Verified no evaluator identity field, response content, score, comment, payload, credential, service-role key, or encryption key is returned or logged.
-
-### Remaining risks
-
-- Assignment display does not authorize submission; templates, anonymous credentials, encryption, completion mutation, and reporting remain production blockers.
 - Automated visual and full browser end-to-end coverage remain incomplete.

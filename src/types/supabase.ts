@@ -832,6 +832,48 @@ export type Database = {
         }
         Relationships: []
       }
+      security_abuse_event_counters: {
+        Row: {
+          bucket_started_at: string
+          event_count: number
+          event_type: string
+        }
+        Insert: {
+          bucket_started_at: string
+          event_count: number
+          event_type: string
+        }
+        Update: {
+          bucket_started_at?: string
+          event_count?: number
+          event_type?: string
+        }
+        Relationships: []
+      }
+      security_rate_limit_buckets: {
+        Row: {
+          bucket_key_hash: string
+          bucket_scope: string
+          expires_at: string
+          request_count: number
+          window_started_at: string
+        }
+        Insert: {
+          bucket_key_hash: string
+          bucket_scope: string
+          expires_at: string
+          request_count: number
+          window_started_at: string
+        }
+        Update: {
+          bucket_key_hash?: string
+          bucket_scope?: string
+          expires_at?: string
+          request_count?: number
+          window_started_at?: string
+        }
+        Relationships: []
+      }
       user_invitations: {
         Row: {
           accepted_at: string | null
@@ -1147,6 +1189,24 @@ export type Database = {
         }
         Returns: boolean
       }
+      consume_anonymous_submission_request: {
+        Args: { credential_digest_hex: string }
+        Returns: Json
+      }
+      consume_security_rate_limit: {
+        Args: {
+          managed_bucket_key_hash: string
+          managed_bucket_scope: string
+          managed_limit: number
+          managed_observed_at: string
+          managed_window: string
+        }
+        Returns: number
+      }
+      get_anonymous_submission_abuse_summary: {
+        Args: { actor_user_id: string }
+        Returns: Json
+      }
       get_anonymous_submission_context: {
         Args: { credential_digest_hex: string }
         Returns: Json
@@ -1184,6 +1244,10 @@ export type Database = {
       list_referenced_evaluation_encryption_key_versions: {
         Args: never
         Returns: string[]
+      }
+      record_security_abuse_event: {
+        Args: { managed_event_type: string; managed_observed_at: string }
+        Returns: undefined
       }
       redeem_anonymous_submission_credential: {
         Args: {

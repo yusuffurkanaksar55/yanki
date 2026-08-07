@@ -15,6 +15,10 @@ import {
   RequestValidationError,
   type EncryptionContext
 } from "../_shared/evaluationSubmission.ts";
+import {
+  readJsonBodyWithLimit,
+  RequestPayloadTooLargeError
+} from "../_shared/requestBody.ts";
 
 type QuestionType =
   | "RATING_1_TO_5"
@@ -49,8 +53,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "apikey, content-type, x-client-info",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Expose-Headers": "Retry-After",
   "Cache-Control": "no-store"
 };
+
+const maximumRequestBodyBytes = 262144;
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
@@ -62,7 +69,9 @@ Deno.serve(async (request) => {
   }
 
   try {
-    const body = readRecord(await request.json().catch(() => null));
+    const body = readRecord(
+      await readJsonBodyWithLimit(request, maximumRequestBodyBytes)
+    );
     const credential = readRequiredString(
       body.credential,
       "ANONYMOUS_CREDENTIAL_INVALID"
@@ -73,6 +82,40 @@ Deno.serve(async (request) => {
       readRequiredEnvironmentValue("SUPABASE_SERVICE_ROLE_KEY"),
       { auth: { persistSession: false } }
     );
+    const { data: rateLimitData, error: rateLimitError } =
+      await serviceClient.rpc("consume_anonymous_submission_request", {
+        credential_digest_hex: digestHex
+      });
+
+    if (rateLimitError) {
+      throw rateLimitError;
+    }
+
+    const rateLimitDecision = readRecord(rateLimitData);
+
+    if (rateLimitDecision.allowed !== true) {
+      const errorCode = readRequiredString(
+        rateLimitDecision.error_code,
+        "ANONYMOUS_RATE_LIMIT_DECISION_INVALID"
+      );
+      const retryAfterSeconds = typeof rateLimitDecision.retry_after_seconds
+        === "number"
+        ? Math.max(1, Math.ceil(rateLimitDecision.retry_after_seconds))
+        : null;
+
+      return jsonResponse(
+        { error: errorCode },
+        errorCode === "ANONYMOUS_RATE_LIMIT_EXCEEDED"
+          ? 429
+          : errorCode === "ANONYMOUS_CREDENTIAL_ALREADY_REDEEMED"
+            ? 409
+            : 400,
+        retryAfterSeconds === null
+          ? {}
+          : { "Retry-After": String(retryAfterSeconds) }
+      );
+    }
+
     const { data: contextData, error: contextError } = await serviceClient.rpc(
       "get_anonymous_submission_context",
       { credential_digest_hex: digestHex }
@@ -118,12 +161,16 @@ Deno.serve(async (request) => {
     return jsonResponse({ accepted: true }, 201);
   } catch (error) {
     const encryptionConfigurationError = readEncryptionConfigurationError(error);
-    const message = error instanceof RequestValidationError
+    const message = error instanceof RequestPayloadTooLargeError
       ? error.message
-      : readDatabaseError(error)
-        ?? encryptionConfigurationError
-        ?? "ANONYMOUS_EVALUATION_SUBMISSION_FAILED";
-    const status = message === "ANONYMOUS_CREDENTIAL_ALREADY_REDEEMED"
+      : error instanceof RequestValidationError
+        ? error.message
+        : readDatabaseError(error)
+          ?? encryptionConfigurationError
+          ?? "ANONYMOUS_EVALUATION_SUBMISSION_FAILED";
+    const status = error instanceof RequestPayloadTooLargeError
+      ? 413
+      : message === "ANONYMOUS_CREDENTIAL_ALREADY_REDEEMED"
       ? 409
       : encryptionConfigurationError
         ? 500
@@ -305,9 +352,17 @@ function readTextAnswer(value: unknown, maximumLength: number): string {
   return text;
 }
 
-function jsonResponse(body: Record<string, unknown>, status = 200): Response {
+function jsonResponse(
+  body: Record<string, unknown>,
+  status = 200,
+  additionalHeaders: Record<string, string> = {}
+): Response {
   return new Response(JSON.stringify(body), {
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: {
+      ...corsHeaders,
+      ...additionalHeaders,
+      "Content-Type": "application/json"
+    },
     status
   });
 }

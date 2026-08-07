@@ -2,7 +2,115 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(29);
+select plan(48);
+
+select has_table(
+  'public',
+  'security_rate_limit_buckets',
+  'Anonymous endpoint rate-limit bucket table exists'
+);
+
+select has_table(
+  'public',
+  'security_abuse_event_counters',
+  'Aggregate abuse event counter table exists'
+);
+
+select ok(
+  (
+    select class.relrowsecurity
+    from pg_catalog.pg_class class
+    where class.oid = 'public.security_rate_limit_buckets'::regclass
+  ),
+  'Rate-limit buckets have RLS enabled'
+);
+
+select ok(
+  (
+    select class.relrowsecurity
+    from pg_catalog.pg_class class
+    where class.oid = 'public.security_abuse_event_counters'::regclass
+  ),
+  'Aggregate abuse counters have RLS enabled'
+);
+
+select ok(
+  not has_table_privilege(
+    'service_role',
+    'public.security_rate_limit_buckets',
+    'SELECT'
+  ),
+  'Service role cannot read rate-limit buckets directly'
+);
+
+select ok(
+  not has_table_privilege(
+    'service_role',
+    'public.security_abuse_event_counters',
+    'SELECT'
+  ),
+  'Service role cannot read abuse counters directly'
+);
+
+select ok(
+  has_function_privilege(
+    'service_role',
+    'public.consume_anonymous_submission_request(text)',
+    'EXECUTE'
+  ),
+  'Service role can request an anonymous submission quota decision'
+);
+
+select ok(
+  not has_function_privilege(
+    'authenticated',
+    'public.consume_anonymous_submission_request(text)',
+    'EXECUTE'
+  ),
+  'Authenticated clients cannot consume anonymous submission quotas directly'
+);
+
+select ok(
+  has_function_privilege(
+    'service_role',
+    'public.get_anonymous_submission_abuse_summary(uuid)',
+    'EXECUTE'
+  ),
+  'Service role can request the safe system-admin monitoring summary'
+);
+
+select ok(
+  not has_function_privilege(
+    'authenticated',
+    'public.get_anonymous_submission_abuse_summary(uuid)',
+    'EXECUTE'
+  ),
+  'Authenticated clients cannot read abuse summaries directly'
+);
+
+select is(
+  (
+    select count(*)::integer
+    from information_schema.columns column_info
+    where column_info.table_schema = 'public'
+      and column_info.table_name in (
+        'security_rate_limit_buckets',
+        'security_abuse_event_counters'
+      )
+      and column_info.column_name in (
+        'ip_address',
+        'device_id',
+        'user_id',
+        'organization_id',
+        'assignment_id',
+        'credential_digest',
+        'request_body',
+        'content'
+      )
+  ),
+  0,
+  'Abuse controls store no identity, tenant, credential, request, or content columns'
+);
 
 select has_table(
   'public',
@@ -340,6 +448,100 @@ select is(
   ),
   32,
   'Identity domain stores only a fixed-length credential digest'
+);
+
+select is(
+  public.consume_anonymous_submission_request(repeat('01', 32))
+    ->> 'error_code',
+  'ANONYMOUS_CREDENTIAL_INVALID_OR_EXPIRED',
+  'An unknown credential receives a safe invalid response before its quota is exhausted'
+);
+
+do $$
+declare
+  request_number integer;
+begin
+  for request_number in 2..120 loop
+    perform public.consume_anonymous_submission_request(
+      lpad(to_hex(request_number), 64, '0')
+    );
+  end loop;
+end;
+$$;
+
+select is(
+  public.consume_anonymous_submission_request(repeat('fe', 32))
+    ->> 'error_code',
+  'ANONYMOUS_RATE_LIMIT_EXCEEDED',
+  'The invalid-only global quota rejects excess unknown credential traffic'
+);
+
+select is(
+  public.consume_anonymous_submission_request(repeat('ab', 32))
+    ->> 'allowed',
+  'true',
+  'A recognized credential remains available when the invalid-only quota is exhausted'
+);
+
+do $$
+declare
+  request_number integer;
+begin
+  for request_number in 2..12 loop
+    perform public.consume_anonymous_submission_request(repeat('ab', 32));
+  end loop;
+end;
+$$;
+
+select is(
+  public.consume_anonymous_submission_request(repeat('ab', 32))
+    ->> 'error_code',
+  'ANONYMOUS_RATE_LIMIT_EXCEEDED',
+  'A recognized credential has an isolated ten-minute quota'
+);
+
+select is(
+  public.get_anonymous_submission_abuse_summary(
+    '41111111-1111-4111-8111-111111111111'
+  ) ->> 'invalid_credential_attempts_last_60_minutes',
+  '121',
+  'The system-admin summary reports aggregate invalid traffic without identifiers'
+);
+
+select is(
+  public.get_anonymous_submission_abuse_summary(
+    '41111111-1111-4111-8111-111111111111'
+  ) ->> 'rate_limited_requests_last_60_minutes',
+  '2',
+  'The system-admin summary reports aggregate rejected request counts'
+);
+
+select ok(
+  not (
+    public.get_anonymous_submission_abuse_summary(
+      '41111111-1111-4111-8111-111111111111'
+    )
+    ?| array[
+      'user_id',
+      'organization_id',
+      'assignment_id',
+      'credential',
+      'credential_digest',
+      'content'
+    ]
+  ),
+  'The abuse summary contains no user, tenant, credential, assignment, or content keys'
+);
+
+select throws_ok(
+  $$
+    select public.get_anonymous_submission_abuse_summary(
+      '42222222-2222-4222-8222-222222222222'
+    )
+  $$,
+  '42501',
+  'SECURITY_MONITORING_ACCESS_DENIED',
+  'A non-admin cannot read aggregate abuse counters'
 );
 
 select public.issue_anonymous_submission_credential(

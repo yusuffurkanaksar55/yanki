@@ -23,6 +23,7 @@ const employeePassword = readRequiredEnvironment(
   "ASSIGNMENT_EMPLOYEE_PASSWORD"
 );
 
+const adminAccessToken = await signIn(adminEmail, adminPassword);
 const employeeAccessToken = await signIn(employeeEmail, employeePassword);
 let assignments = await listAssignments(employeeAccessToken);
 let assignment = assignments.find((candidate) =>
@@ -33,7 +34,6 @@ let assignment = assignments.find((candidate) =>
 let syntheticFixtureCreated = false;
 
 if (!assignment) {
-  const adminAccessToken = await signIn(adminEmail, adminPassword);
   const evaluationCycleId = await createSyntheticAssignment({
     adminAccessToken,
     employeeEmail
@@ -89,6 +89,69 @@ if (
   throw new Error("The one-time anonymous credential was not replay-safe.");
 }
 
+const oversized = await invokeAnonymousSubmission({
+  answers: [{ questionId: crypto.randomUUID(), value: "x".repeat(270000) }],
+  credential: "invalid"
+});
+
+if (
+  oversized.response.status !== 413
+  || oversized.body.error !== "REQUEST_PAYLOAD_TOO_LARGE"
+) {
+  throw new Error(
+    `The anonymous request body limit was not enforced: ${oversized.response.status} ${readError(oversized.body)}`
+  );
+}
+
+for (let requestNumber = 3; requestNumber <= 12; requestNumber += 1) {
+  const repeatedReplay = await invokeAnonymousSubmission(submissionRequest);
+
+  if (
+    repeatedReplay.response.status !== 409
+    || repeatedReplay.body.error !== "ANONYMOUS_CREDENTIAL_ALREADY_REDEEMED"
+  ) {
+    throw new Error(
+      `Credential replay ${requestNumber} did not preserve the safe conflict response.`
+    );
+  }
+}
+
+const rateLimited = await invokeAnonymousSubmission(submissionRequest);
+
+if (
+  rateLimited.response.status !== 429
+  || rateLimited.body.error !== "ANONYMOUS_RATE_LIMIT_EXCEEDED"
+  || !rateLimited.response.headers.get("retry-after")
+) {
+  throw new Error("The isolated anonymous credential quota was not enforced.");
+}
+
+const monitoring = await callFunction(
+  "security-abuse-monitoring",
+  {},
+  adminAccessToken
+);
+const abuseSummary = readRecord(monitoring.summary);
+
+if (
+  typeof abuseSummary.invalidCredentialAttemptsLast60Minutes !== "number"
+  || abuseSummary.invalidCredentialAttemptsLast60Minutes < 12
+  || typeof abuseSummary.rateLimitedRequestsLast60Minutes !== "number"
+  || abuseSummary.rateLimitedRequestsLast60Minutes < 1
+) {
+  throw new Error("The aggregate abuse monitoring summary is incomplete.");
+}
+
+const deniedMonitoring = await invokeAuthenticatedFunction(
+  "security-abuse-monitoring",
+  {},
+  employeeAccessToken
+);
+
+if (deniedMonitoring.response.status !== 403) {
+  throw new Error("A non-admin could read anonymous abuse counters.");
+}
+
 assignments = await listAssignments(employeeAccessToken);
 const completedAssignment = assignments.find((candidate) =>
   isRecord(candidate) && candidate.id === assignment.id
@@ -104,8 +167,12 @@ if (
 
 console.log(JSON.stringify({
   answerCount: answers.length,
+  anonymousBodyLimitEnforced: true,
+  anonymousCredentialQuotaEnforced: true,
   assignmentCompleted: true,
+  identifierFreeMonitoringAvailable: true,
   encryptedSubmissionAccepted: true,
+  nonAdminMonitoringDenied: true,
   oneTimeCredentialReplayDenied: true,
   syntheticFixtureCreated
 }, null, 2));
@@ -313,6 +380,23 @@ async function listAssignments(accessToken) {
 }
 
 async function callFunction(functionName, body, accessToken) {
+  const result = await invokeAuthenticatedFunction(
+    functionName,
+    body,
+    accessToken
+  );
+  const { response, responseBody } = result;
+
+  if (!response.ok) {
+    throw new Error(
+      `${functionName} failed: ${response.status} ${readError(responseBody)}`
+    );
+  }
+
+  return responseBody;
+}
+
+async function invokeAuthenticatedFunction(functionName, body, accessToken) {
   const response = await fetch(
     `${supabaseUrl}/functions/v1/${functionName}`,
     {
@@ -327,13 +411,7 @@ async function callFunction(functionName, body, accessToken) {
   );
   const responseBody = await readResponseBody(response);
 
-  if (!response.ok) {
-    throw new Error(
-      `${functionName} failed: ${response.status} ${readError(responseBody)}`
-    );
-  }
-
-  return responseBody;
+  return { response, responseBody };
 }
 
 async function invokeAnonymousSubmission(body) {

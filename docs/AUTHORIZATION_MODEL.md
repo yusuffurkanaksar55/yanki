@@ -43,6 +43,8 @@ Project date updates are available to platform/matching-organization system admi
 
 `anonymous-evaluation-submissions` has no authenticated user authority. Its sole capability is possession of a valid unexpired random credential. It cannot select an organization, subject, assignment, cycle, or template; those values are derived from the credential digest in trusted code. Atomic redemption permits one encrypted insert and one assignment completion, then makes replay terminal.
 
+`consume_anonymous_submission_request()` is executable only by `service_role`. It returns a quota decision but no credential, user, assignment, tenant, or content data. `security-abuse-monitoring` requires an authenticated active `SYSTEM_ADMIN`, repeats that authorization in `get_anonymous_submission_abuse_summary()`, and returns only global aggregate counters. Browser roles cannot execute either database function directly or read the backing tables.
+
 `evaluation-reports` binds every request to the authenticated active user. `list_my_evaluation_report_targets()` returns only closed, authorized cycle-plus-subject targets and no participation state. `get_encrypted_evaluation_report_batch()` denies self access, every active `SYSTEM_ADMIN`, unapproved roles, missing active tenant membership, scope mismatch, and open cycles before applying the threshold. It releases ciphertext only at or above threshold. Direct ciphertext-table access remains revoked from `service_role`.
 
 `encryption-key-health` requires an authenticated active `SYSTEM_ADMIN`. Its service-role-only inventory can inspect only distinct key-version identifiers referenced by ciphertext. The browser receives configuration validity, active/historical coverage booleans, and total version counts; it receives no version names, keys, ciphertext, content, identities, or per-version usage.
@@ -51,7 +53,7 @@ Project date updates are available to platform/matching-organization system admi
 
 ### `SYSTEM_ADMIN`
 
-Can manage scoped user invitations, hierarchy, projects, project memberships, templates, assignments, cycles, and configuration. Cannot read evaluation content, lessons learned content, decrypted payloads, or raw individual responses.
+Can manage scoped user invitations, hierarchy, projects, project memberships, templates, assignments, cycles, and configuration. Can view only content-free global abuse counters and encryption-key health. Cannot read evaluation content, lessons learned content, decrypted payloads, raw individual responses, or request-level abuse records.
 
 ### `EMPLOYEE`
 

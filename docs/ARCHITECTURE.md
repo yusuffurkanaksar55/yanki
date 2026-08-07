@@ -77,6 +77,12 @@ Assignments and submissions are separate domains.
 - `redeem_anonymous_submission_credential()` atomically stores ciphertext, marks the credential redeemed, and completes the assignment. The content row contains no evaluator, assignment, credential, plaintext answer, or exact submission timestamp.
 - This is application-level unlinkability. Exact assignment completion time remains in the identity domain while only `stored_on` date exists in the content domain; sparse-group inference is handled later by thresholded reporting and operational policy.
 
+## Anonymous Abuse-Control Architecture
+
+`anonymous-evaluation-submissions` enforces a 256 KiB body limit before JSON parsing and consumes a service-role-only quota decision before context resolution, validation, or encryption. A recognized credential uses an isolated bucket keyed by a SHA-256 hash of its internal random row id, limited to 12 requests per 10 minutes. Unknown credentials share a global invalid-only bucket limited to 120 requests per minute, so invalid traffic cannot exhaust a valid credential's application quota.
+
+Rate buckets expire after one day. Invalid-credential and rate-limited events are stored only as five-minute aggregate counters retained for seven days. No abuse table contains IP, device, user, organization, assignment, credential digest, request body, or content. `security-abuse-monitoring` repeats active `SYSTEM_ADMIN` authorization in Edge and PostgreSQL and returns only 60-minute/24-hour aggregate counts plus configured limits. External reverse-proxy/WAF rate limits and alert delivery remain deployment responsibilities for volumetric protection.
+
 ## Reporting Architecture
 
 Reporting uses the authenticated `evaluation-reports` Edge Function and service-role-only database functions. Report discovery returns authorized closed cycle-plus-subject targets independently of submission existence and contains no participation count. Batch preparation denies active system administrators, the subject, unapproved roles, missing team-leader manager relationships, cross-scope access, and open cycles before counting content. Below threshold it returns no exact count, question set, or ciphertext.
@@ -124,6 +130,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Anonymous encryption and redemption Edge Function: `supabase/functions/anonymous-evaluation-submissions/index.ts`
 - Thresholded decryption and aggregate reporting Edge Function: `supabase/functions/evaluation-reports/index.ts`
 - Content-free encryption key health Edge Function: `supabase/functions/encryption-key-health/index.ts`
+- Aggregate anonymous abuse monitoring Edge Function: `supabase/functions/security-abuse-monitoring/index.ts`
 - User onboarding Edge Function: `supabase/functions/user-onboarding/index.ts`
 - Organization administration Edge Function: `supabase/functions/organization-administration/index.ts`
 - Initial migration: `supabase/migrations/20260719132911_initial_security_foundation.sql`
@@ -138,6 +145,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Anonymous encrypted submission migration: `supabase/migrations/20260807013000_anonymous_encrypted_evaluation_submissions.sql`
 - Thresholded reporting migrations: `supabase/migrations/20260807103000_thresholded_evaluation_reporting.sql`, `supabase/migrations/20260807111500_reporting_close_metadata_fix.sql`
 - Encryption key lifecycle migration: `supabase/migrations/20260807143000_encryption_key_lifecycle.sql`
+- Anonymous endpoint abuse-control migration: `supabase/migrations/20260807170000_anonymous_endpoint_abuse_protection.sql`
 - Database authorization tests: `supabase/tests/database/employee_assignment_access.test.sql`
 - Anonymous submission database tests: `supabase/tests/database/anonymous_encrypted_submission.test.sql`
 - Reporting authorization database tests: `supabase/tests/database/thresholded_evaluation_reporting.test.sql`

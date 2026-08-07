@@ -1,5 +1,71 @@
 # Error Log
 
+## ERR-20260807-043 - Hosted oversized request reached gateway timeout
+
+### Context
+
+The first live abuse smoke sent a body just above the original 1.1 MB anonymous application limit.
+
+### Symptoms
+
+The hosted endpoint returned an empty HTTP 503 after roughly two minutes instead of the Edge Function's controlled 413 response.
+
+### Root cause
+
+The original application threshold allowed the request to reach the linked hosted gateway's practical timeout path before the application could provide a stable rejection contract.
+
+### Correct solution
+
+Set the anonymous application body limit to 256 KiB, retain streaming byte checks, map 413 to a dedicated Turkish form message, redeploy, and verify a 270,000-character request returns a fast controlled 413.
+
+### Prevention
+
+Keep request-size limits below infrastructure timeout paths and include live oversized-body verification in `smoke:abuse` for managed and dedicated release environments.
+
+### Related files
+
+- `supabase/functions/_shared/requestBody.ts`
+- `supabase/functions/anonymous-evaluation-submissions/index.ts`
+- `src/features/evaluations/evaluationAssignmentService.ts`
+- `scripts/smoke-anonymous-evaluation-submission.mjs`
+
+### Related tests
+
+- `tests/request-body-limit.test.ts`
+- `npm run smoke:abuse`
+
+## ERR-20260807-042 - Remote migration catalog cache missed temporary CA file
+
+### Context
+
+The anonymous abuse-control migration was pushed to the linked Supabase project with experimental `pg-delta` enabled.
+
+### Symptoms
+
+The migration applied, but the CLI warned that catalog caching failed because `.temp/pgdelta/pgdelta-target-ca.crt` did not exist.
+
+### Root cause
+
+Supabase CLI 2.109.1 destroyed the experimental catalog-export worker after its temporary certificate file was unavailable. The database migration transaction itself had already completed.
+
+### Correct solution
+
+Verify application independently with `npx supabase migration list` and linked schema lint. Both confirmed matching local/remote migration history and no schema errors.
+
+### Prevention
+
+Treat post-push cache warnings separately from migration status, retain independent list/lint verification, and reassess after a reviewed Supabase CLI upgrade.
+
+### Related files
+
+- `supabase/migrations/20260807170000_anonymous_endpoint_abuse_protection.sql`
+- `supabase/config.toml`
+
+### Related tests
+
+- `npx supabase migration list`
+- `npm run supabase:lint:linked`
+
 ## ERR-20260807-041 - Shared keyring dependent was not redeployed before rotation smoke
 
 ### Context
@@ -248,66 +314,6 @@ Use env-file secret transfer for structured values and retain safe configuration
 ### Related tests
 
 - `npm run smoke:submissions`
-
-## ERR-20260807-033 - Legacy PowerShell random Fill call failed before secret upload
-
-### Context
-
-A development-only 32-byte encryption key was generated for the linked synthetic environment.
-
-### Symptoms
-
-Windows PowerShell reported that `RandomNumberGenerator.Fill` was unavailable, but the remaining command still uploaded the initialized byte array.
-
-### Root cause
-
-The installed .NET runtime lacks the newer static `Fill` API and PowerShell did not stop the compound command on the method error.
-
-### Correct solution
-
-Replace the secret immediately with bytes produced by `RandomNumberGenerator.Create().GetBytes()` before function deployment or encryption.
-
-### Prevention
-
-Use runtime-compatible cryptographic APIs and make secret-generation commands fail closed before upload.
-
-### Related files
-
-- `docs/DEPLOYMENT.md`
-
-### Related tests
-
-- `npm run smoke:submissions`
-
-## ERR-20260807-032 - Evaluation cycle lacked a composite tenant key
-
-### Context
-
-The anonymous content table uses composite tenant foreign keys for every reporting dimension.
-
-### Symptoms
-
-Local Supabase startup rejected the encrypted submission table because `evaluation_cycles (organization_id, id)` was not unique.
-
-### Root cause
-
-Projects and template versions already had composite tenant keys, but evaluation cycles did not.
-
-### Correct solution
-
-Add `evaluation_cycles_organization_id_id_unique_idx` before creating the composite foreign key and rerun the full local migration chain.
-
-### Prevention
-
-Require executable empty-database migration verification for every new composite tenant relationship.
-
-### Related files
-
-- `supabase/migrations/20260807013000_anonymous_encrypted_evaluation_submissions.sql`
-
-### Related tests
-
-- `npm run supabase:test:local`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

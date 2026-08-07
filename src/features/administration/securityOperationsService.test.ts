@@ -36,6 +36,44 @@ describe("securityOperationsService", () => {
       headers: { Authorization: "Bearer access-token" }
     });
   });
+
+  it("reads identifier-free anonymous traffic counters", async () => {
+    const invoke = vi.fn(async () => ({
+      data: {
+        summary: {
+          counterRetentionDays: 7,
+          invalidCredentialAttemptsLast24Hours: 8,
+          invalidCredentialAttemptsLast60Minutes: 3,
+          invalidGlobalLimit: 120,
+          invalidGlobalWindowSeconds: 60,
+          knownCredentialLimit: 12,
+          knownCredentialWindowSeconds: 600,
+          rateLimitedRequestsLast24Hours: 2,
+          rateLimitedRequestsLast60Minutes: 1
+        }
+      },
+      error: null
+    }));
+    const service = createSupabaseSecurityOperationsService(
+      createClientStub(invoke)
+    );
+
+    await expect(service.getAbuseMonitoringSummary()).resolves.toEqual({
+      counterRetentionDays: 7,
+      invalidCredentialAttemptsLast24Hours: 8,
+      invalidCredentialAttemptsLast60Minutes: 3,
+      invalidGlobalLimit: 120,
+      invalidGlobalWindowSeconds: 60,
+      knownCredentialLimit: 12,
+      knownCredentialWindowSeconds: 600,
+      rateLimitedRequestsLast24Hours: 2,
+      rateLimitedRequestsLast60Minutes: 1
+    });
+    expect(invoke).toHaveBeenCalledWith("security-abuse-monitoring", {
+      body: {},
+      headers: { Authorization: "Bearer access-token" }
+    });
+  });
 });
 
 function createClientStub(
