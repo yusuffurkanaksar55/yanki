@@ -5,6 +5,8 @@ import {
   type AssignmentInboxSummary
 } from "../evaluations/AssignmentInbox";
 import type { EvaluationAssignmentService } from "../evaluations/evaluationAssignmentService";
+import { EvaluationReportsPanel } from "../reporting/EvaluationReportsPanel";
+import type { EvaluationReportService } from "../reporting/evaluationReportService";
 import type {
   WorkspaceContext,
   WorkspaceMembership,
@@ -12,14 +14,17 @@ import type {
 } from "../workspace/workspaceContextService";
 import {
   canAccessAdministration,
+  canAccessEvaluationReports,
   isAdministrationRole
 } from "../workspace/workspaceAuthorization";
 
-const baseNavigationItems = [
+const baseNavigationItems: readonly {
+  readonly href: string;
+  readonly label: string;
+}[] = [
   { href: "#dashboard", label: tr.navigation.dashboard },
   { href: "#assignments", label: tr.navigation.cycles },
-  { href: "#content", label: tr.navigation.projects },
-  { href: "#content", label: tr.navigation.reports }
+  { href: "#content", label: tr.navigation.projects }
 ];
 
 const readinessItems = [
@@ -43,6 +48,7 @@ const readinessItems = [
 
 type DashboardPageProps = {
   readonly evaluationAssignmentService?: EvaluationAssignmentService;
+  readonly evaluationReportService?: EvaluationReportService;
   readonly profileDisplayName?: string | null;
   readonly userEmail?: string | null;
   readonly isSigningOut?: boolean;
@@ -52,6 +58,7 @@ type DashboardPageProps = {
 
 export function DashboardPage({
   evaluationAssignmentService,
+  evaluationReportService,
   profileDisplayName,
   userEmail,
   isSigningOut = false,
@@ -62,6 +69,7 @@ export function DashboardPage({
     useState<AssignmentInboxSummary | null>(null);
   const navigationItems = getNavigationItems(workspaceContext);
   const hasAdministrationRole = canAccessAdministration(workspaceContext);
+  const hasReportingRole = canAccessEvaluationReports(workspaceContext);
   const metricCards = createMetricCards(assignmentSummary);
   const handleAssignmentSummaryChange = useCallback(
     (summary: AssignmentInboxSummary) => setAssignmentSummary(summary),
@@ -164,6 +172,10 @@ export function DashboardPage({
           onSummaryChange={handleAssignmentSummaryChange}
           service={evaluationAssignmentService}
         />
+
+        {hasReportingRole ? (
+          <EvaluationReportsPanel service={evaluationReportService} />
+        ) : null}
 
         <section
           aria-label={tr.dashboard.metricsSectionLabel}
@@ -373,14 +385,17 @@ function ContextList({
 function getNavigationItems(
   workspaceContext: WorkspaceContext | null | undefined
 ): readonly { readonly href: string; readonly label: string }[] {
-  if (canAccessAdministration(workspaceContext)) {
-    return [
-      ...baseNavigationItems,
-      { href: "#administration", label: tr.navigation.administration }
-    ];
+  const items = [...baseNavigationItems];
+
+  if (canAccessEvaluationReports(workspaceContext)) {
+    items.push({ href: "#reports", label: tr.navigation.reports });
   }
 
-  return baseNavigationItems;
+  if (canAccessAdministration(workspaceContext)) {
+    items.push({ href: "#administration", label: tr.navigation.administration });
+  }
+
+  return items;
 }
 
 function formatRole(role: WorkspaceRole): string {

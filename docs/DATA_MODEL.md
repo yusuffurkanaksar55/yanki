@@ -2,7 +2,7 @@
 
 ## Status
 
-Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed onboarding, configurable hierarchy, own-context RPCs, immutable versioned templates, project/cycle/assignment planning, identity-domain one-time credentials, and content-domain encrypted evaluation submissions.
+Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed onboarding, configurable hierarchy, own-context RPCs, immutable versioned templates, project/cycle/assignment planning, identity-domain one-time credentials, content-domain encrypted evaluation submissions, and thresholded reporting functions.
 
 Generated TypeScript database types are stored in `src/types/supabase.ts` and should be regenerated after schema changes.
 
@@ -27,9 +27,6 @@ Planned tables:
 - `evaluation_template_questions`
 - `evaluation_cycles`
 - `evaluation_assignments`
-- `evaluation_templates`
-- `evaluation_template_versions`
-- `evaluation_template_questions`
 - `anonymous_submission_credentials`
 - `encrypted_evaluation_submissions`
 - `result_access_scopes`
@@ -50,8 +47,13 @@ Implemented foundation tables:
 - `manager_assignments`
 - `projects`
 - `project_memberships`
+- `evaluation_templates`
+- `evaluation_template_versions`
+- `evaluation_template_questions`
 - `evaluation_cycles`
 - `evaluation_assignments`
+- `anonymous_submission_credentials`
+- `encrypted_evaluation_submissions`
 
 Implemented foundation functions:
 
@@ -67,6 +69,9 @@ Implemented foundation functions:
 - `admin_save_evaluation_template_draft()`
 - `admin_publish_evaluation_template_version()`
 - `admin_clone_evaluation_template_version()`
+- `can_review_evaluation_subject()`
+- `list_my_evaluation_report_targets()`
+- `get_encrypted_evaluation_report_batch()`
 
 ## Identity Domain
 
@@ -113,6 +118,8 @@ Anonymous content-domain tables store encrypted submissions and non-sensitive me
 `encrypted_evaluation_submissions` stores organization, cycle, optional project, evaluated subject, assignment kind, immutable template version, AES-256-GCM ciphertext and nonce, key/context/payload versions, and date-only `stored_on`. It deliberately has no evaluator, assignment, credential, digest, answer JSON, score, comment, or exact submission timestamp column. Update attempts are rejected.
 
 `issue_anonymous_submission_credential()`, `get_anonymous_submission_context()`, and `redeem_anonymous_submission_credential()` are executable only by `service_role`. Direct table privileges are revoked even from `service_role`, forcing trusted code through the reviewed lifecycle functions.
+
+Reporting adds no plaintext or materialized result table. `list_my_evaluation_report_targets()` returns closed configuration targets without reading participation state. `get_encrypted_evaluation_report_batch()` counts within one organization/cycle/subject group and returns no count or content below threshold; at threshold it returns only identity-free ciphertext and immutable question configuration to trusted code. Audit metadata records access status and threshold without the exact submission count.
 
 ## Expected Constraints
 

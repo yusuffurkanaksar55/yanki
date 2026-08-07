@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and implemented through default-deny tables, narrow own-context RPCs, record-backed scoped administration, immutable templates, authenticated one-time submission preparation, and anonymous atomic redemption. Reporting authorization is not implemented yet.
+Authorization is documented and implemented through default-deny tables, narrow own-context RPCs, record-backed scoped administration, immutable templates, authenticated one-time submission preparation, anonymous atomic redemption, and thresholded scoped aggregate reporting.
 
 ## Principles
 
@@ -43,6 +43,8 @@ Project date updates are available to platform/matching-organization system admi
 
 `anonymous-evaluation-submissions` has no authenticated user authority. Its sole capability is possession of a valid unexpired random credential. It cannot select an organization, subject, assignment, cycle, or template; those values are derived from the credential digest in trusted code. Atomic redemption permits one encrypted insert and one assignment completion, then makes replay terminal.
 
+`evaluation-reports` binds every request to the authenticated active user. `list_my_evaluation_report_targets()` returns only closed, authorized cycle-plus-subject targets and no participation state. `get_encrypted_evaluation_report_batch()` denies self access, every active `SYSTEM_ADMIN`, unapproved roles, missing active tenant membership, scope mismatch, and open cycles before applying the threshold. It releases ciphertext only at or above threshold. Direct ciphertext-table access remains revoked from `service_role`.
+
 ## Roles
 
 ### `SYSTEM_ADMIN`
@@ -59,7 +61,7 @@ Can access authorized anonymous aggregate results for users in assigned scope af
 
 ### `PROJECT_MANAGER`
 
-Can manage assigned projects according to explicit scope. When delegated by an administrator, can configure project completion dates and evaluation close dates for assigned projects. Can be evaluated. Cannot infer evaluator identities or view own results unless a separate approved reviewer role and scope explicitly permits it.
+Can manage assigned projects according to explicit scope. When delegated by an administrator, can configure project completion dates and evaluation close dates for assigned projects. Can be evaluated. `PROJECT_MANAGER` alone grants no report access; a separately assigned approved reviewer role and scope can grant reports about other users, but self access remains denied.
 
 The project administration boundary lists assigned project configuration and permits exact assigned project managers to update project completion and evaluation close dates. Project creation, membership management, and assignment generation remain system-administrator-only.
 
@@ -86,11 +88,11 @@ Planned scope boundaries:
 
 ## Self-Access Prevention
 
-Users must not access results about themselves. This must be enforced in UI, Edge Functions, database policies, and tests.
+Users must not access results about themselves. The reporting target list excludes self targets, the batch function returns `REPORT_SELF_ACCESS_DENIED`, the Edge Function exposes only the authenticated actor's authorized result, and regression tests cover direct identifier manipulation.
 
 ## Threshold Enforcement
 
-Report access requires the configured anonymity threshold to be met. The default is 4 submissions per reportable group.
+Report access requires the configured anonymity threshold to be met. The default and database floor are 4 submissions per fixed cycle-plus-subject group. Below threshold, no exact count, ciphertext, question set, or result is returned.
 
 ## URL Manipulation Defense
 

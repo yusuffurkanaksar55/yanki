@@ -56,7 +56,7 @@ export async function encryptEvaluationPayload(
 
   const key = await crypto.subtle.importKey(
     "raw",
-    keyring.keyBytes,
+    readKeyBytes(keyring, keyring.activeVersion),
     { name: "AES-GCM" },
     false,
     ["encrypt"]
@@ -79,6 +79,63 @@ export async function encryptEvaluationPayload(
   };
 }
 
+export async function decryptEvaluationPayload(
+  encrypted: EncryptedPayload,
+  context: EncryptionContext
+): Promise<Record<string, unknown>> {
+  if (
+    encrypted.ciphertextHex.length < 34
+    || encrypted.ciphertextHex.length > 2097152
+    || !/^[0-9a-fA-F]+$/u.test(encrypted.ciphertextHex)
+    || encrypted.ciphertextHex.length % 2 !== 0
+    || !/^[0-9a-fA-F]{24}$/u.test(encrypted.nonceHex)
+    || !/^[A-Za-z0-9._-]{1,64}$/u.test(encrypted.keyVersion)
+  ) {
+    throw new Error("EVALUATION_ENCRYPTED_PAYLOAD_INVALID");
+  }
+
+  const keyring = readEncryptionKeyring();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    readKeyBytes(keyring, encrypted.keyVersion),
+    { name: "AES-GCM" },
+    false,
+    ["decrypt"]
+  );
+  let plaintext: ArrayBuffer;
+
+  try {
+    plaintext = await crypto.subtle.decrypt(
+      {
+        additionalData: new TextEncoder().encode(
+          serializeEncryptionContext(context)
+        ),
+        iv: fromHex(encrypted.nonceHex),
+        name: "AES-GCM",
+        tagLength: 128
+      },
+      key,
+      fromHex(encrypted.ciphertextHex)
+    );
+  } catch {
+    throw new Error("EVALUATION_PAYLOAD_DECRYPTION_FAILED");
+  }
+
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(new TextDecoder().decode(plaintext));
+  } catch {
+    throw new Error("EVALUATION_DECRYPTED_PAYLOAD_INVALID");
+  }
+
+  if (!isRecord(parsed)) {
+    throw new Error("EVALUATION_DECRYPTED_PAYLOAD_INVALID");
+  }
+
+  return parsed;
+}
+
 export function serializeEncryptionContext(context: EncryptionContext): string {
   return JSON.stringify({
     assignmentKind: context.assignmentKind,
@@ -93,7 +150,7 @@ export function serializeEncryptionContext(context: EncryptionContext): string {
 
 function readEncryptionKeyring(): {
   readonly activeVersion: string;
-  readonly keyBytes: Uint8Array;
+  readonly keys: ReadonlyMap<string, Uint8Array>;
 } {
   const activeVersion = readRequiredEnvironmentValue(
     "EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION"
@@ -118,13 +175,45 @@ function readEncryptionKeyring(): {
     throw new Error("EVALUATION_ENCRYPTION_KEYRING_INVALID");
   }
 
-  const keyBytes = fromBase64(String(parsed[activeVersion]));
+  const keys = new Map<string, Uint8Array>();
 
-  if (keyBytes.length !== 32) {
-    throw new Error("EVALUATION_ENCRYPTION_KEY_INVALID");
+  for (const [version, encodedKey] of Object.entries(parsed)) {
+    if (
+      !/^[A-Za-z0-9._-]{1,64}$/u.test(version)
+      || typeof encodedKey !== "string"
+    ) {
+      throw new Error("EVALUATION_ENCRYPTION_KEYRING_INVALID");
+    }
+
+    let keyBytes: Uint8Array;
+
+    try {
+      keyBytes = fromBase64(encodedKey);
+    } catch {
+      throw new Error("EVALUATION_ENCRYPTION_KEYRING_INVALID");
+    }
+
+    if (keyBytes.length !== 32) {
+      throw new Error("EVALUATION_ENCRYPTION_KEY_INVALID");
+    }
+
+    keys.set(version, keyBytes);
   }
 
-  return { activeVersion, keyBytes };
+  return { activeVersion, keys };
+}
+
+function readKeyBytes(
+  keyring: { readonly keys: ReadonlyMap<string, Uint8Array> },
+  version: string
+): Uint8Array {
+  const keyBytes = keyring.keys.get(version);
+
+  if (!keyBytes) {
+    throw new Error("EVALUATION_ENCRYPTION_KEY_VERSION_UNAVAILABLE");
+  }
+
+  return keyBytes;
 }
 
 export function readRequiredEnvironmentValue(name: string): string {
@@ -226,4 +315,18 @@ function fromBase64(value: string): Uint8Array {
   } catch {
     throw new Error("BASE64_VALUE_INVALID");
   }
+}
+
+function fromHex(value: string): Uint8Array {
+  if (!/^(?:[0-9a-fA-F]{2})+$/u.test(value)) {
+    throw new Error("HEX_VALUE_INVALID");
+  }
+
+  const bytes = new Uint8Array(value.length / 2);
+
+  for (let index = 0; index < value.length; index += 2) {
+    bytes[index / 2] = Number.parseInt(value.slice(index, index + 2), 16);
+  }
+
+  return bytes;
 }

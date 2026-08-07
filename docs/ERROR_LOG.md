@@ -1,5 +1,37 @@
 # Error Log
 
+## ERR-20260807-038 - Trusted report batch omitted cycle close metadata
+
+### Context
+
+The first live thresholded reporting smoke test successfully passed database authorization and decryption preparation.
+
+### Symptoms
+
+`evaluation-reports` stopped with `REPORT_CLOSE_MISSING` before returning an aggregate.
+
+### Root cause
+
+The applied thresholded batch function returned report identity, threshold, questions, and ciphertext but omitted the non-sensitive cycle close timestamp required by the typed report response.
+
+### Correct solution
+
+Add a forward-only compatibility migration that keeps the reviewed threshold/authorization implementation owner-only, delegates through the public service-role boundary, and appends the database-derived close timestamp.
+
+### Prevention
+
+Assert every required safe report metadata field in pgTAP and run the complete live encrypted submission-to-report path after deployment.
+
+### Related files
+
+- `supabase/migrations/20260807111500_reporting_close_metadata_fix.sql`
+- `supabase/tests/database/thresholded_evaluation_reporting.test.sql`
+
+### Related tests
+
+- `npm run supabase:test:local`
+- `npm run smoke:reports`
+
 ## ERR-20260807-037 - User-scoped Docker installation was absent from PATH
 
 ### Context
@@ -273,36 +305,6 @@ Keep explicit operation branches in multi-operation triggers and retain executab
 ### Related tests
 
 - `supabase/tests/database/versioned_evaluation_templates.test.sql`
-
-## ERR-20260806-028 - Codex browser runtime could not initialize
-
-### Context
-
-The Turkish assignment inbox required desktop and mobile visual verification.
-
-### Symptoms
-
-The browser control runtime failed before navigation with `failed to write kernel assets` and a Windows path-not-found error.
-
-### Root cause
-
-The Codex browser runtime could not create its own kernel asset path. Windows `TEMP` and `TMP` existed, and the Vite server was healthy, so this was outside the application.
-
-### Correct solution
-
-Retain component, build, and Docker image verification now; rerun visual checks when the Codex browser runtime is available.
-
-### Prevention
-
-Keep visual verification as an explicit release check and do not treat component tests as a permanent replacement.
-
-### Related files
-
-- `src/features/evaluations/AssignmentInbox.tsx`
-
-### Related tests
-
-- `src/features/evaluations/AssignmentInbox.test.tsx`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

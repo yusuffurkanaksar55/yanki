@@ -1137,18 +1137,48 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      can_review_evaluation_subject: {
+        Args: {
+          actor_user_id: string
+          managed_evaluation_cycle_id: string
+          managed_organization_id: string
+          managed_project_id: string
+          managed_subject_user_id: string
+        }
+        Returns: boolean
+      }
       get_anonymous_submission_context: {
         Args: { credential_digest_hex: string }
         Returns: Json
       }
+      get_encrypted_evaluation_report_batch: {
+        Args: {
+          actor_user_id: string
+          managed_evaluation_cycle_id: string
+          managed_subject_user_id: string
+        }
+        Returns: Json
+      }
       get_my_evaluation_assignments: { Args: never; Returns: Json }
       get_my_workspace_context: { Args: never; Returns: Json }
+      get_thresholded_evaluation_report_batch_without_close_metadata: {
+        Args: {
+          actor_user_id: string
+          managed_evaluation_cycle_id: string
+          managed_subject_user_id: string
+        }
+        Returns: Json
+      }
       issue_anonymous_submission_credential: {
         Args: {
           actor_user_id: string
           credential_digest_hex: string
           managed_assignment_id: string
         }
+        Returns: Json
+      }
+      list_my_evaluation_report_targets: {
+        Args: { actor_user_id: string }
         Returns: Json
       }
       redeem_anonymous_submission_credential: {

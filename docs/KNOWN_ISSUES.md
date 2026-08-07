@@ -1,6 +1,6 @@
 # Known Issues
 
-## ISSUE-001 - Reporting and production security flows are incomplete
+## ISSUE-001 - Production security operations are incomplete
 
 ### Severity
 
@@ -8,11 +8,11 @@ High
 
 ### Description
 
-One-time anonymous credential preparation, AES-256-GCM encrypted submission storage, atomic assignment completion, and replay denial are implemented and live-smoke-tested. Trusted decryption, anonymity-thresholded aggregate reporting, reviewer scope/self-access enforcement, production key rotation, retention, and anonymous-endpoint abuse controls are not implemented yet.
+One-time anonymous submission and trusted thresholded aggregate reporting are implemented and live-smoke-tested. Production key replacement/rotation/recovery, retention, anonymous-endpoint abuse controls, production bootstrap, monitoring, and backup/restore acceptance are not implemented yet.
 
 ### Impact
 
-Synthetic encrypted submissions are supported, but the product must not accept live employee content or expose results until reporting and production key operations pass their security gates.
+Synthetic encrypted submissions and authorized aggregate results are supported, but the product must not accept live employee content until production key and operational security gates pass.
 
 ### Workaround
 
@@ -20,11 +20,11 @@ Continue development and synthetic acceptance testing only. Do not use the linke
 
 ### Planned resolution
 
-Implement trusted thresholded reporting and self-access denial next. Then replace/rotate the development key, add key recovery, endpoint rate limits, retention, production bootstrap, backup/restore acceptance, and approved invitation-mail verification.
+Replace/rotate the development key, add key recovery, endpoint rate limits, retention, production bootstrap, monitoring, backup/restore acceptance, and approved invitation-mail verification.
 
 ### Related tests
 
-`tests/anonymous-submission-boundary.test.mjs`, `supabase/tests/database/anonymous_encrypted_submission.test.sql`, `src/features/evaluations/evaluationAssignmentService.test.ts`, `src/features/evaluations/AssignmentInbox.test.tsx`, `npm run smoke:submissions`
+`tests/evaluation-reporting-boundary.test.mjs`, `supabase/tests/database/thresholded_evaluation_reporting.test.sql`, `src/features/reporting/EvaluationReportsPanel.test.tsx`, `npm run smoke:reports`
 
 ## ISSUE-005 - Remaining delegated administration actions are not implemented
 
@@ -38,7 +38,7 @@ The product requires multiple administrators, CEOs/C-Level users, project manage
 
 ### Impact
 
-Resolved for the delegated date requirement. System administrators and exact assigned project managers can update project completion and evaluation close dates. Employee own-assignment reads are also implemented; sensitive submission remains tracked by ISSUE-001.
+Resolved for the delegated date requirement. System administrators and exact assigned project managers can update project completion and evaluation close dates. Employee assignment, anonymous submission, and thresholded report flows are also implemented; production operations remain tracked by ISSUE-001.
 
 ### Workaround
 

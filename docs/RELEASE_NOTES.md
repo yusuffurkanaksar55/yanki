@@ -1,5 +1,13 @@
 # Release Notes
 
+## 2026-08-07 - Thresholded Trusted Aggregate Reporting
+
+This is not a product release. Scoped team leaders with an active manager relationship, C-Level reviewers, and board reviewers can now open closed cycle-plus-subject reports. Database functions deny system administrators, dual admin/reviewer accounts, the evaluated subject, unapproved roles, cross-scope users, and open cycles before applying the configured threshold.
+
+Below threshold, target discovery and report responses reveal no exact participation count, question content, ciphertext, or decrypted values. At threshold, `evaluation-reports` decrypts only the identity-free batch in trusted code, validates the exact immutable question set, and returns rating distributions/averages, boolean and option counts, plus counts for text answers. Raw free-text content is never returned.
+
+Vitest passed 27 files and 111 tests; Docker-backed pgTAP passed 89 cases across four suites. Live verification submitted four encrypted evaluations, produced a `3.5` rating average, withheld raw text, and confirmed anonymous, employee, system-admin, self, and premature access denial. The linked migration and Edge Function are active and schema lint is clean. Production key operations, rate limiting, retention, backup acceptance, and invitation email remain release blockers.
+
 ## 2026-08-07 - Anonymous Encrypted Evaluation Submission
 
 This is not a product release. An authenticated employee can now open an available assignment, receive a one-time random submission credential, answer the immutable template in Turkish, and submit through a separate anonymous endpoint. The browser keeps the raw credential in component memory and sends the anonymous request without a user Authorization header or cookies.

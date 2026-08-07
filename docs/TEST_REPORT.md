@@ -1,5 +1,52 @@
 # Test Report
 
+## 2026-08-07 - Thresholded Trusted Aggregate Reporting
+
+### Environment
+
+- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
+- Docker Desktop local Supabase stack reset from all migrations.
+- Linked Supabase project `daxaymcmtbmummrxdyjy` with synthetic users only.
+
+### Commands executed
+
+- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run check`
+- `npx supabase db reset --local --no-seed`
+- `npm run supabase:test:local`
+- `npm run supabase:push:dry-run`, remote migration push/list, `npm run supabase:lint:linked`
+- `npm run supabase:types`, Edge Function deploy/list
+- `npm run smoke:reports`
+
+### Passed
+
+- Vitest passed 27 files and 111 tests before the final documentation check.
+- pgTAP passed 89 cases across employee access, template lifecycle, encrypted submission, and thresholded reporting suites.
+- The 34 reporting cases cover grants, owner-only compatibility implementation, closed-window enforcement, role/scope checks, active team-leader relationship, system-admin/dual-role/self/cross-tenant denial, count-free withholding, audit minimization, threshold release, identity-free batch shape, and close metadata.
+- Live smoke submitted four encrypted evaluations, produced a `3.5` rating average, withheld all synthetic raw-text markers, and denied premature, system-admin, self, employee, and anonymous access.
+- Remote migrations match local history, `evaluation-reports` is active, and linked schema lint reports no errors.
+
+### Failed And Corrected
+
+- The first database test fixture generated odd-length hex for single-digit bytes; two-digit padding corrected the fixture.
+- The first live report stopped with `REPORT_CLOSE_MISSING`; an applied migration had omitted non-sensitive close metadata. A forward-only compatibility migration added it and the complete live scenario passed.
+- Supabase CLI applied both migrations but could not cache its local experimental `pg-delta` catalog because a temporary CA file was missing. Migration list and linked lint independently confirmed the remote schema.
+
+### Skipped
+
+- Automated visual browser verification could not start because the Codex browser runtime could not create its kernel asset path. Component, build, database, and live API verification passed.
+- Real invitation email remains deferred until an approved mailbox/provider is available.
+
+### Security checks
+
+- Verified no ciphertext is released below threshold and no exact below-threshold count is returned or audited.
+- Verified report discovery is independent of submission existence.
+- Verified active system administrators, dual-role admins, report subjects, employees, cross-tenant reviewers, and anonymous callers are denied.
+- Verified raw text and ciphertext are absent from trusted report output and the frontend report model.
+
+### Remaining risks
+
+- Production key rotation/recovery, anonymous endpoint rate limiting, retention, production bootstrap, monitoring, backup acceptance, and invitation email remain release blockers.
+
 ## 2026-08-07 - Anonymous Encrypted Evaluation Submission
 
 ### Environment
@@ -227,67 +274,3 @@
 - Container runtime behavior and local database triggers still need executable Docker-backed verification.
 - Production bootstrap, backup/restore automation, release publishing, and customer acceptance automation are incomplete.
 - Sensitive evaluation submission, anonymous credentials, encryption, and reporting remain unimplemented production blockers.
-
-## 2026-07-22 - Delegated Project Date Administration
-
-### Environment
-
-- Workspace: `D:\Projects\anonim_degerlendirme`
-- Runtime: Node.js v24.14.0
-- Supabase CLI: 2.109.1
-- Linked Supabase project: `daxaymcmtbmummrxdyjy`
-- Deployed Edge Function: `admin-project-cycles`, version `6`, `ACTIVE`, `verify_jwt=false`
-
-### Commands executed
-
-- `npm run check`
-- `npm test -- --run src/features/administration/ProjectCycleManagementPanel.test.tsx tests/admin-project-cycle-function.test.mjs`
-- `npm test -- --run src/features/administration/AdministrationPage.test.tsx`
-- `npx supabase db push --linked --include-all --dry-run`
-- `npx supabase db push --linked --include-all --yes`
-- `npx supabase db lint --linked`
-- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
-- `npx supabase functions list`
-- `npm run smoke:project-dates`
-- Authenticated browser verification at the default desktop viewport and a 390-pixel mobile viewport.
-
-### Passed
-
-- Final application checks passed lint, typecheck, 15 Vitest files with 68 tests, and production build.
-- Initial dry-run showed only `20260722234500_delegated_project_date_administration.sql`; final dry-run reports the remote database is up to date.
-- Linked database lint reports no schema errors.
-- `admin-project-cycles` deployed as `ACTIVE`, version `6`, with internal bearer-token validation.
-- The project manager updated an assigned project's evaluation close date and the system administrator restored the original value.
-- The employee date update returned HTTP 403 with `ADMINISTRATION_SCOPE_DENIED`.
-- The unauthenticated project request returned HTTP 401 with `AUTHENTICATION_REQUIRED`.
-- Component tests verify system-administrator controls and project-manager date-only controls.
-- Boundary tests verify service-role-only RPC execution, exact assigned-manager plus matching project-role checks, editable cycle rules, and safe auditing.
-- Desktop and 390-pixel mobile browser verification found no horizontal overflow, no browser warnings/errors, and a usable single-column mobile date form.
-
-### Failed
-
-- Initial component/page tests used page-global selectors for repeated date labels and project headings; selectors were scoped to their semantic form/region.
-- The first full check found smoke-script lint errors for an unused initial assignment and a throwing `finally`; restoration and error propagation were separated.
-- The first live assertion compared equivalent `Z` and `+00:00` timestamp strings literally; it was corrected to compare epoch instants. The script restored the original date before failing.
-- The first sandboxed linked lint could not write Supabase telemetry under the user profile; the same command passed with the required narrow filesystem permission.
-- Migration/function deployment repeated the known warning that Docker Desktop was not running in the current shell; remote deployment still completed.
-
-### Skipped
-
-- Real invitation delivery and acceptance remain deferred because no approved mailbox/provider decision is available.
-- Local Supabase reset remains skipped because the Docker Desktop engine is not running in this shell.
-- Closed/archived live cycle mutation was not attempted against retained synthetic data; database and source-level tests cover that rejection.
-
-### Security checks
-
-- Verified delegated authorization requires both exact project-manager ownership and an active matching project scope.
-- Verified organization/platform system administrators can restore configuration.
-- Verified employee and unauthenticated denial.
-- Verified project and evaluation-cycle dates update atomically through a service-role-only RPC.
-- Verified browser code contains no service-role key and has no direct project-table mutation.
-- Verified no evaluation content, evaluator-response linkage, anonymous credential, or encryption material was introduced.
-
-### Remaining risks
-
-- Employee assignment access and scoped evaluation authorization are not implemented.
-- Versioned templates, sensitive evaluation submission, anonymous credentials, encryption, thresholded reporting, and self-access prevention runtimes remain unimplemented.

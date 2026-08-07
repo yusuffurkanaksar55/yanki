@@ -22,6 +22,8 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Evaluation templates: tenant-scoped logical templates, editable drafts, database-immutable published versions, ordered typed questions, trusted system-admin management, and exact cycle/assignment version binding implemented.
 - Anonymous evaluation submission: authenticated one-time credential preparation, browser-memory-only raw credentials, identity-free anonymous redemption, atomic assignment completion, and a Turkish typed-question form implemented.
 - Evaluation encryption: answers are validated and encrypted with AES-256-GCM inside a trusted Edge Function; only ciphertext, nonce, key version, date-only storage metadata, subject/reporting scope, and immutable template context are persisted.
+- Aggregate reporting: authorized team leaders, C-Level reviewers, and board reviewers can request closed-cycle subject reports through a trusted Edge Function. Database functions enforce scope, system-admin denial, self-access denial, and the configured anonymity threshold before releasing an identity-free ciphertext batch for server-side decryption and aggregation.
+- Reporting UI: the Turkish dashboard lists authorized closed report targets without participation counts, shows a count-free withheld state below threshold, renders numeric/categorical aggregates above threshold, and never receives raw free-text responses.
 - Delegated project date administration: system administrators and assigned project managers can atomically update project completion and evaluation close dates through a trusted boundary.
 - Deployment portability: one frontend image can receive public Supabase runtime configuration at container startup and run against managed or self-hosted Supabase.
 - Multi-tenant integrity: `organizations.id` is the company boundary; project memberships carry explicit organization scope and identity-bearing relationships require active matching organization membership.
@@ -57,20 +59,20 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 
 ## Current Database Structure
 
-The Supabase migrations additionally create immutable versioned templates, identity-domain `anonymous_submission_credentials`, and content-domain `encrypted_evaluation_submissions`. Service-role-only RPCs issue digested one-time credentials, return identity-free encryption context, and atomically persist ciphertext while completing the assignment. The content table has no evaluator, assignment, credential, plaintext answer, or exact submission timestamp column. RLS is enabled on all public tables and direct table privileges remain default-deny, including to `service_role` for sensitive submission tables.
+The Supabase migrations additionally create immutable versioned templates, identity-domain `anonymous_submission_credentials`, and content-domain `encrypted_evaluation_submissions`. Service-role-only RPCs issue digested one-time credentials, return identity-free encryption context, atomically persist ciphertext, and release a report batch only after authorization, closure, and threshold checks. The content table has no evaluator, assignment, credential, plaintext answer, or exact submission timestamp column. RLS is enabled on all public tables and direct table privileges remain default-deny, including to `service_role` for sensitive submission tables.
 
 ## Current Authentication Model
 
-The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, own-assignment display and encrypted anonymous submission, trusted immutable-template and project/cycle administration, system-admin invitation creation/revocation, authenticated invitation acceptance, and trusted existing-user role/hierarchy administration. Real invitation email delivery and acceptance still require an approved mailbox smoke test. Microsoft Entra ID and reporting authorization are not implemented yet.
+The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, own-assignment display and encrypted anonymous submission, thresholded aggregate reports for authorized reviewers, trusted immutable-template and project/cycle administration, system-admin invitation creation/revocation, authenticated invitation acceptance, and trusted existing-user role/hierarchy administration. Real invitation email delivery and acceptance still require an approved mailbox smoke test. Microsoft Entra ID is not implemented yet.
 
 ## Current Authorization Model
 
-Own-assignment read authorization derives the actor from `auth.uid()`. Submission preparation revalidates that same actor against a pending open assignment, while the separate anonymous endpoint can redeem only its one-time random credential. Credential replacement, redemption, ciphertext insertion, and completion transitions are database-atomic. Reporting authorization remains future work. See `docs/AUTHORIZATION_MODEL.md`.
+Own-assignment read authorization derives the actor from `auth.uid()`. Submission preparation revalidates that same actor against a pending open assignment, while the separate anonymous endpoint can redeem only its one-time random credential. Credential replacement, redemption, ciphertext insertion, and completion transitions are database-atomic. Reporting binds the authenticated actor in `evaluation-reports`; service-role-only database functions then revalidate closure, active membership, reviewer role and scope, manager relationship where required, system-admin denial, self denial, and threshold. See `docs/AUTHORIZATION_MODEL.md`.
 
 ## Known Limitations
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
-- Thresholded reporting, trusted decryption/aggregation, production key rotation, and reviewer self-access prevention are not implemented.
+- Production key rotation/recovery, endpoint rate limiting, retention automation, production bootstrap, and backup/restore acceptance are not implemented.
 - Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
 - Microsoft Entra ID is not implemented. The current anonymous credential model provides reviewed application-level unlinkability, not blind-signature cryptographic anonymity.
 - The Docker delivery foundation exists, but production organization bootstrap, backup automation, release automation, and customer acceptance automation are not implemented.
@@ -79,6 +81,7 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Recent Major Changes
 
+- 2026-08-07: Added and deployed closed-cycle thresholded aggregate reporting, trusted AES-GCM decryption, reviewer scope checks, system-admin and self-access denial, Turkish reporting UI, and live synthetic verification.
 - 2026-08-07: Added and deployed one-time anonymous credentials, AES-256-GCM encrypted evaluation persistence, atomic assignment completion, Turkish submission UI, and live replay-denial verification.
 - 2026-08-06: Added and deployed immutable versioned evaluation templates with trusted management UI and exact cycle/assignment binding.
 - 2026-08-06: Added authenticated employee assignment access, Turkish assignment inbox, database authorization tests, and live synthetic verification.
@@ -90,6 +93,6 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Current Development Priorities
 
-1. Implement trusted decryption, anonymity-thresholded aggregate reporting, reviewer scope checks, and self-access prevention.
-2. Replace the development encryption key before production, add key rotation/recovery procedures, production tenant bootstrap, backup/restore automation, and customer deployment acceptance checks.
-3. Configure email delivery when a provider is approved, then add broader Playwright end-to-end and abuse/rate-limit coverage.
+1. Replace the development encryption key before production and implement key rotation/recovery, endpoint rate limits, retention, production tenant bootstrap, backup/restore automation, monitoring, and customer acceptance checks.
+2. Configure email delivery when a provider is approved and complete real invitation acceptance verification.
+3. Add broader Playwright workflows and design a separately reviewed disclosure-resistant approach if raw-text themes are ever required.

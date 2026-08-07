@@ -6,6 +6,11 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added closed-cycle aggregate reporting with database-enforced role/scope checks, active team-leader relationships, system-admin denial, self-access denial, and a minimum anonymity threshold of four.
+- Added trusted AES-GCM decryption and immutable-question validation in `evaluation-reports`, returning only numeric/categorical aggregates and text response counts.
+- Added a Turkish reviewer report panel with count-free withheld states and no raw-text response model.
+- Added 34 reporting pgTAP cases, aggregate/boundary/component tests, and a live four-user report smoke workflow.
+- Added ADR-0021 for fixed-group thresholded trusted reporting.
 - Added tenant-scoped one-time anonymous submission credentials stored only as SHA-256 digests in the identity domain.
 - Added identity-free AES-256-GCM evaluation persistence with versioned keys, random nonces, authenticated context, and date-only content timestamps.
 - Added service-role-only issue, context, and atomic redemption RPCs while revoking direct sensitive-table access from every API role, including `service_role`.
@@ -16,6 +21,7 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- Added non-sensitive cycle-close metadata to the trusted report batch after the live smoke test caught its omission.
 - Added the missing tenant composite key required by encrypted submission cycle references.
 - Replaced a text-wide migration assertion with an exact anonymous-content column boundary test.
 - Added safe operational encryption-configuration error codes without logging sensitive values.

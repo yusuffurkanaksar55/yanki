@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, server-side AES-256-GCM encryption, atomic assignment completion, and trusted administration boundaries. Thresholded reporting and production key operations remain unimplemented.
+This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, server-side AES-256-GCM encryption, atomic assignment completion, trusted thresholded aggregate reporting, and trusted administration boundaries. Production key operations remain unimplemented.
 
 ## Security Objectives
 
@@ -56,7 +56,7 @@ The implemented keyring uses `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION` and `EVA
 
 ## Decryption
 
-Decryption is allowed only in trusted server-side reporting flows after:
+Decryption is implemented only in `evaluation-reports`, after the database has enforced:
 
 - Authentication validation
 - Role validation
@@ -66,6 +66,8 @@ Decryption is allowed only in trusted server-side reporting flows after:
 - Request schema validation
 
 Raw decrypted individual responses must not be returned to reviewers.
+
+The trusted function validates the AES-GCM authenticated context and the exact immutable question set for every decrypted payload. It emits only aggregate values. Raw short- and long-text responses are discarded during aggregation and represented only by a non-empty response count.
 
 ## Browser Authentication Boundary
 
@@ -105,6 +107,8 @@ The default minimum result threshold is 4 submissions per reportable group. The 
 
 Below threshold, the application must withhold results and return a Turkish user-facing message through the localization system.
 
+The implemented report group is fixed to evaluation cycle plus evaluated subject. Target discovery is independent of submission existence. A below-threshold response contains neither the exact count nor questions, ciphertext, or decrypted values. Client-selected slicing is not supported.
+
 ## Logging And Auditing
 
 Allowed audit events include configuration and access metadata, such as user account creation, team creation, project creation, cycle opening, assignment batch creation, role scope changes, authorized report access, and encryption key version changes.
@@ -129,7 +133,6 @@ In customer-managed installations, the customer controls the host, database, app
 
 - Complete live invitation email delivery and acceptance verification with an approved test mailbox.
 - Add narrowly scoped Supabase RLS policies only after server-side authorization flows are designed.
-- Implement trusted decryption, aggregate reporting, threshold enforcement, reviewer scope checks, and self-access prevention.
 - Replace the development key before production and implement key rotation, escrow, recovery, and ciphertext retention procedures.
 - Add production abuse controls for anonymous credential preparation/redemption, including gateway rate limits and alerting without sensitive request logging.
 - Add executable cross-tenant database tests against a running local or dedicated Supabase stack.

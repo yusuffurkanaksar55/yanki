@@ -72,7 +72,7 @@ The database URL is a server secret and must be percent-encoded where required. 
 docker compose --env-file .env.deploy up -d --build --wait
 ```
 
-11. Route the public application domain to the frontend container, verify `/healthz`, sign-in redirects, password reset, invitation delivery when enabled, and all role-denial scenarios.
+11. Route the public application domain to the frontend container, verify `/healthz`, sign-in redirects, password reset, invitation delivery when enabled, and all role-denial scenarios. Run synthetic submission and report acceptance, including threshold, self, system-admin, employee, and anonymous denial checks.
 12. Create the initial organization and administrator through an approved bootstrap procedure. A production bootstrap command is not implemented yet; manual service-role writes are not an approved workaround.
 13. Schedule encrypted backups, define retention, and perform a restore drill before accepting live data. Document recovery time and recovery point objectives.
 14. Configure capacity, availability, certificate, backup, database, Auth, Functions, and application health alerts. Never collect scores, comments, decrypted payloads, credentials, tokens, or evaluator-to-response mappings in logs.
@@ -89,11 +89,12 @@ docker compose --env-file .env.deploy up -d --build --wait
 
 ## Production Release Gate
 
-This repository now has deployed anonymous encrypted submission storage, but it is not approved for live employee data. Scoped aggregate reporting, production encryption-key replacement and rotation, rate limiting, production bootstrap, backup/restore automation, retention policy, and broader end-to-end security regression coverage must be completed before production use.
+This repository now has deployed anonymous encrypted submission storage and scoped thresholded aggregate reporting, but it is not approved for live employee data. Production encryption-key replacement and rotation, rate limiting, production bootstrap, backup/restore automation, retention policy, monitoring, and broader end-to-end security regression coverage must be completed before production use.
 
 ## Encryption Key Operations
 
 - Keep every still-referenced key version in the server-only JSON keyring until all ciphertext under that version has been re-encrypted or deleted under an approved retention policy.
+- Report decryption requires the exact historic key version stored with each ciphertext. A key version must not be retired merely because it is no longer active for new submissions.
 - Back up the keyring through the approved secret manager and test recovery separately from database restore. A database backup without its keys is unrecoverable; a key backup without access controls defeats database-at-rest confidentiality.
 - Rotate by adding a new random key version, switching the active version, verifying new submissions, and only then scheduling reviewed re-encryption or retirement work.
 - Never print keyring values in CI logs, shell history, support bundles, browser configuration, or customer handover documents.

@@ -79,7 +79,9 @@ Assignments and submissions are separate domains.
 
 ## Reporting Architecture
 
-Reporting must use server-side aggregation, threshold checks, scoped authorization, and self-access prevention. Decryption is allowed only in trusted server code for authorized aggregate preparation. Raw individual response payloads must not be returned to reviewers.
+Reporting uses the authenticated `evaluation-reports` Edge Function and service-role-only database functions. Report discovery returns authorized closed cycle-plus-subject targets independently of submission existence and contains no participation count. Batch preparation denies active system administrators, the subject, unapproved roles, missing team-leader manager relationships, cross-scope access, and open cycles before counting content. Below threshold it returns no exact count, question set, or ciphertext.
+
+At or above threshold, the database releases an identity-free ciphertext batch plus immutable question configuration to the trusted function. AES-GCM decryption authenticates tenant, cycle, project, subject, assignment kind, template version, and context version. Every decrypted payload must contain the exact question set and valid answer types before aggregation. The browser receives rating averages/distributions, boolean counts, option counts, and text response counts. Raw short- and long-text values are never returned.
 
 ## Localization
 
@@ -95,6 +97,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Root app: `src/app/App.tsx`
 - Dashboard feature: `src/features/dashboard/DashboardPage.tsx`
 - Employee assignment service and inbox: `src/features/evaluations/evaluationAssignmentService.ts`, `src/features/evaluations/AssignmentInbox.tsx`
+- Aggregate reporting service and panel: `src/features/reporting/evaluationReportService.ts`, `src/features/reporting/EvaluationReportsPanel.tsx`
 - Administration feature: `src/features/administration/AdministrationPage.tsx`
 - Administration project/cycle/member/assignment service and panel: `src/features/administration/projectCycleService.ts`, `src/features/administration/ProjectCycleManagementPanel.tsx`
 - Administration evaluation-template service and panel: `src/features/administration/evaluationTemplateService.ts`, `src/features/administration/EvaluationTemplateManagementPanel.tsx`
@@ -117,6 +120,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Evaluation-template Edge Function: `supabase/functions/evaluation-templates/index.ts`
 - Authenticated submission preparation Edge Function: `supabase/functions/evaluation-submission-credentials/index.ts`
 - Anonymous encryption and redemption Edge Function: `supabase/functions/anonymous-evaluation-submissions/index.ts`
+- Thresholded decryption and aggregate reporting Edge Function: `supabase/functions/evaluation-reports/index.ts`
 - User onboarding Edge Function: `supabase/functions/user-onboarding/index.ts`
 - Organization administration Edge Function: `supabase/functions/organization-administration/index.ts`
 - Initial migration: `supabase/migrations/20260719132911_initial_security_foundation.sql`
@@ -129,8 +133,10 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Versioned template migration: `supabase/migrations/20260806234500_versioned_evaluation_templates.sql`
 - Template immutability hardening migration: `supabase/migrations/20260807001500_template_immutability_hardening.sql`
 - Anonymous encrypted submission migration: `supabase/migrations/20260807013000_anonymous_encrypted_evaluation_submissions.sql`
+- Thresholded reporting migrations: `supabase/migrations/20260807103000_thresholded_evaluation_reporting.sql`, `supabase/migrations/20260807111500_reporting_close_metadata_fix.sql`
 - Database authorization tests: `supabase/tests/database/employee_assignment_access.test.sql`
 - Anonymous submission database tests: `supabase/tests/database/anonymous_encrypted_submission.test.sql`
+- Reporting authorization database tests: `supabase/tests/database/thresholded_evaluation_reporting.test.sql`
 - Invitation acceptance migration: `supabase/migrations/20260720232000_user_invitation_acceptance_flow.sql`
 - Invitation acceptance revalidation migration: `supabase/migrations/20260720234500_invitation_acceptance_context_revalidation.sql`
 - Organization administration migration: `supabase/migrations/20260722210000_hierarchy_administration_foundation.sql`

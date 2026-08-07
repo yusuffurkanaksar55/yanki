@@ -6,9 +6,9 @@ Secure company-internal web platform for anonymous employee, team, project, mana
 
 ## Current Status
 
-The repository is in application development phase. It contains persistent project memory, a React + TypeScript + Vite application, Supabase Auth onboarding, configurable hierarchy and scoped administration, immutable versioned evaluation templates, authenticated assignment access, a Turkish evaluation form, one-time anonymous credentials, AES-256-GCM encrypted submission persistence, atomic assignment completion, a portable Docker/Nginx frontend package, explicit multi-tenant integrity controls, and executable frontend/database/security tests.
+The repository is in application development phase. It contains persistent project memory, a React + TypeScript + Vite application, Supabase Auth onboarding, configurable hierarchy and scoped administration, immutable versioned evaluation templates, authenticated assignment access, a Turkish evaluation form, one-time anonymous credentials, AES-256-GCM encrypted submission persistence, thresholded trusted aggregate reporting, a portable Docker/Nginx frontend package, explicit multi-tenant integrity controls, and executable frontend/database/security tests.
 
-Invitation delivery still needs an approved mailbox smoke test. Trusted thresholded reporting, production key rotation/recovery, endpoint rate limiting, production bootstrap, and backup/restore acceptance have not been implemented yet.
+Invitation delivery still needs an approved mailbox smoke test. Production key rotation/recovery, endpoint rate limiting, retention, production bootstrap, and backup/restore acceptance have not been implemented yet.
 
 ## Target Stack
 
@@ -53,6 +53,7 @@ npm run deployment:config
 npm run smoke:hierarchy
 npm run smoke:assignments
 npm run smoke:submissions
+npm run smoke:reports
 npm run smoke:templates
 npm run smoke:project-dates
 npm run supabase:migrations
@@ -69,7 +70,7 @@ These commands currently validate the React application scaffold, documentation 
 
 The remote Supabase project is linked to project ref `daxaymcmtbmummrxdyjy`. Public frontend environment examples are documented in `.env.example`; real local values belong in `.env.local`, which is ignored by Git.
 
-The applied migrations create default-deny onboarding, hierarchy, template, project, cycle, assignment, one-time credential, and encrypted content domains. Every cycle and assignment preserves an exact published template version. Evaluation answers are stored only as AES-256-GCM ciphertext; the content table has no evaluator, assignment, credential, plaintext answer, or exact submission timestamp column.
+The applied migrations create default-deny onboarding, hierarchy, template, project, cycle, assignment, one-time credential, encrypted content, and thresholded reporting boundaries. Every cycle and assignment preserves an exact published template version. Evaluation answers are stored only as AES-256-GCM ciphertext; the content table has no evaluator, assignment, credential, plaintext answer, or exact submission timestamp column. Reports are decrypted only in trusted code after closure, scope, self-access, administrator-deny, and threshold checks.
 
 ## Deployment
 

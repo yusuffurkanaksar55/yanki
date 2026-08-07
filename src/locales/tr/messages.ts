@@ -77,6 +77,52 @@ export const tr = {
       }
     }
   },
+  reports: {
+    sectionLabel: "Anonim toplu değerlendirme raporları",
+    eyebrow: "Kapalı süreçler",
+    title: "Toplu değerlendirme raporları",
+    description:
+      "Yalnızca yetki kapsamındaki kapalı süreçler, anonimlik eşiğine ulaştığında toplu sonuç olarak görüntülenir.",
+    aggregateOnly: "Yalnızca toplu sonuç",
+    loadingTargets: "Erişilebilir raporlar yükleniyor...",
+    targetLabel: "Rapor konusu",
+    actions: {
+      load: "Raporu görüntüle",
+      loading: "Rapor hazırlanıyor...",
+      retry: "Yeniden dene"
+    },
+    empty: {
+      title: "Görüntülenebilir rapor yok",
+      description:
+        "Yetki kapsamınızda kapanmış bir rapor konusu bulunmuyor."
+    },
+    feedback: {
+      targetsFailed: "Rapor listesi şu anda yüklenemedi.",
+      reportFailed: "Rapor güvenli şekilde hazırlanamadı. Yetkinizi ve süreç durumunu kontrol edin."
+    },
+    withheld: {
+      title: "Sonuçlar anonimlik eşiği nedeniyle gizli",
+      description:
+        "Bu rapor, en az {threshold} anonim değerlendirme bulunmadan açılamaz.",
+      countProtected: "Mevcut katılım sayısı anonimliği korumak için gösterilmez."
+    },
+    labels: {
+      submissions: "Toplu yanıt",
+      closedAt: "Süreç kapanışı",
+      answers: "yanıt",
+      average: "Ortalama"
+    },
+    values: {
+      yes: "Evet",
+      no: "Hayır",
+      organizationWide: "Organizasyon geneli"
+    },
+    textWithheld: {
+      title: "Serbest metin içeriği gösterilmez",
+      description:
+        "Bu soruya {count} yanıt verildi. Metinler kimlik çıkarımı riskine karşı ham biçimde rapora dahil edilmez."
+    }
+  },
   dashboard: {
     eyebrow: "Hazırlık görünümü",
     title: "Değerlendirme kontrol paneli",

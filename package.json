@@ -18,6 +18,7 @@
     "smoke:hierarchy": "node scripts/smoke-hierarchy-administration.mjs",
     "smoke:assignments": "node --env-file-if-exists=.env.local scripts/smoke-employee-assignment-access.mjs",
     "smoke:submissions": "node --env-file-if-exists=.env.local scripts/smoke-anonymous-evaluation-submission.mjs",
+    "smoke:reports": "node --env-file-if-exists=.env.local scripts/smoke-thresholded-evaluation-reporting.mjs",
     "smoke:templates": "node --env-file-if-exists=.env.local scripts/smoke-versioned-evaluation-templates.mjs",
     "smoke:project-dates": "node scripts/smoke-project-date-administration.mjs",
     "supabase:migrations": "npx supabase migration list",

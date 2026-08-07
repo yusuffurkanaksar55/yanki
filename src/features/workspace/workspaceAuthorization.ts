@@ -7,6 +7,12 @@ const administrationRoleCodes = [
   "BOARD_REVIEWER"
 ] as const;
 
+const evaluationReportingRoleCodes = [
+  "TEAM_LEADER",
+  "C_LEVEL_REVIEWER",
+  "BOARD_REVIEWER"
+] as const;
+
 export function canAccessAdministration(
   workspaceContext: WorkspaceContext | null | undefined
 ): boolean {
@@ -23,4 +29,18 @@ export function getAdministrationRoles(
 
 export function isAdministrationRole(roleCode: string): boolean {
   return administrationRoleCodes.some((code) => code === roleCode);
+}
+
+export function canAccessEvaluationReports(
+  workspaceContext: WorkspaceContext | null | undefined
+): boolean {
+  const roles = workspaceContext?.roles ?? [];
+
+  if (roles.some((role) => role.roleCode === "SYSTEM_ADMIN")) {
+    return false;
+  }
+
+  return roles.some((role) =>
+    evaluationReportingRoleCodes.some((code) => code === role.roleCode)
+  );
 }

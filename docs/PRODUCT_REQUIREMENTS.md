@@ -42,6 +42,8 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 - Eligible employees receive a one-time submission capability only after server-side assignment and time-window validation.
 - Evaluation answers are encrypted in trusted server code before persistence and cannot be linked directly to the evaluator in the content domain.
 - A successful anonymous redemption completes the identity-domain assignment atomically and cannot be replayed.
+- Report discovery must not reveal whether a closed subject group has zero or some below-threshold participation.
+- Raw free-text answers are not returned in aggregate reports; only their non-empty response count is exposed after threshold enforcement.
 
 ## Roles
 
@@ -99,7 +101,6 @@ No role is a singleton. A tenant may have multiple users with the same role when
 
 ## Remaining Production Scope
 
-- Thresholded aggregate reporting and trusted decryption are not implemented.
 - Production key rotation, recovery, and retention automation are not complete.
 - Real invitation email delivery awaits an approved provider and mailbox.
 - The current one-time credential model provides application-level unlinkability; blind-signature cryptographic anonymity is not claimed.

@@ -68,3 +68,9 @@ The linked test project was authenticated-smoke-tested with a synthetic project 
 | Generated assignment candidates | 12 non-self assignments across four evaluating participants |
 
 These credentials were originally generated before the fixture script included its baseline project records, so the smoke project was created through the production administration boundary. Rerunning `npm run fixture:demo` creates or updates the baseline `YANKI-DEMO` project but also rotates all synthetic account passwords.
+
+## Thresholded Reporting Fixtures
+
+`npm run smoke:reports` creates uniquely named `Threshold reporting smoke ...` projects and cycles in the linked synthetic organization. Each run uses the CEO as reviewer, the team leader as evaluated subject, and the CEO plus three employees as evaluators. Successful runs leave encrypted submissions and safe audit/configuration records because anonymous content is immutable and must not be linked back to evaluators for cleanup.
+
+The accepted live run verified four aggregate submissions, a synthetic rating average of `3.5`, raw-text withholding, and premature/system-admin/self/employee/anonymous denial. A prior run stopped safely before output because required close metadata was absent; its forward-only migration fix is recorded in `docs/ERROR_LOG.md`.

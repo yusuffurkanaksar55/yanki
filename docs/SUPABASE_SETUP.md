@@ -88,7 +88,7 @@ Current baseline rules:
 - `organization-administration` recomputes system-admin scope, returns only authorized organization identity metadata, and delegates all mutations to service-role-only atomic RPCs.
 - `PLATFORM` is the global null-id scope; organization, team, project, and evaluation-cycle roles must use explicit `scope_id` values.
 - No plaintext evaluation scores, comments, lessons learned content, or evaluator-to-response linkage are stored.
-- Sensitive evaluation submission and reporting flows must be implemented through trusted server-side functions later.
+- Sensitive evaluation submission and reporting flows run only through the deployed trusted server-side functions; direct sensitive-table access remains revoked.
 
 ## Demo Fixture
 
@@ -123,3 +123,13 @@ npm run smoke:project-dates
 ```
 
 The script selects an editable project returned to the synthetic project manager, temporarily advances its evaluation close timestamp, verifies employee and unauthenticated denial, and uses the synthetic system administrator to restore and verify the original timestamp.
+
+## Thresholded Reporting Smoke Test
+
+The reusable report smoke script reads public Supabase values plus synthetic admin, reviewer, subject, and three employee credentials from process environment variables. It contains no credentials and must not run against real employee accounts.
+
+```bash
+npm run smoke:reports
+```
+
+The script creates a temporary project and closed evaluation cycle, submits four encrypted evaluations, verifies the expected aggregate, and confirms that raw text is withheld. It also verifies premature, system-admin, self, employee, and anonymous access denial. Required credential variables use the `REPORT_ADMIN_*`, `REPORT_REVIEWER_*`, `REPORT_SUBJECT_*`, and `REPORT_EMPLOYEE_1_*` through `REPORT_EMPLOYEE_3_*` prefixes.
