@@ -1181,6 +1181,10 @@ export type Database = {
         Args: { actor_user_id: string }
         Returns: Json
       }
+      list_referenced_evaluation_encryption_key_versions: {
+        Args: never
+        Returns: string[]
+      }
       redeem_anonymous_submission_credential: {
         Args: {
           credential_digest_hex: string

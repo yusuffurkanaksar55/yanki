@@ -6,6 +6,9 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added backward-compatible additive encryption key rotation with independent per-version server secrets and an active-version selector.
+- Added a service-role-only referenced-key inventory, authenticated content-free key health Edge Function, and Turkish system-administrator status panel.
+- Added a no-stdout key generation tool, ignored transfer-file workflow, rotation tests, ADR-0022, and live old/new-key compatibility verification.
 - Added closed-cycle aggregate reporting with database-enforced role/scope checks, active team-leader relationships, system-admin denial, self-access denial, and a minimum anonymity threshold of four.
 - Added trusted AES-GCM decryption and immutable-question validation in `evaluation-reports`, returning only numeric/categorical aggregates and text response counts.
 - Added a Turkish reviewer report panel with count-free withheld states and no raw-text response model.

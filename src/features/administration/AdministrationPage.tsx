@@ -13,6 +13,8 @@ import type { HierarchyAdministrationService } from "./hierarchyAdministrationSe
 import { ProjectCycleManagementPanel } from "./ProjectCycleManagementPanel";
 import type { ProjectCycleService } from "./projectCycleService";
 import { RoleHierarchyManagementPanel } from "./RoleHierarchyManagementPanel";
+import { SecurityOperationsPanel } from "./SecurityOperationsPanel";
+import type { SecurityOperationsService } from "./securityOperationsService";
 import { UserInvitationManagementPanel } from "./UserInvitationManagementPanel";
 import type { UserAdministrationService } from "./userAdministrationService";
 
@@ -23,6 +25,7 @@ type AdministrationPageProps = {
   readonly onSignOut?: () => Promise<void>;
   readonly profileDisplayName?: string | null;
   readonly projectCycleService?: ProjectCycleService;
+  readonly securityOperationsService?: SecurityOperationsService;
   readonly userAdministrationService?: UserAdministrationService;
   readonly userEmail?: string | null;
   readonly workspaceContext: WorkspaceContext;
@@ -35,6 +38,7 @@ export function AdministrationPage({
   onSignOut,
   profileDisplayName,
   projectCycleService,
+  securityOperationsService,
   userAdministrationService,
   userEmail,
   workspaceContext
@@ -172,6 +176,10 @@ export function AdministrationPage({
           service={projectCycleService}
           workspaceContext={workspaceContext}
         />
+
+        {canManageTemplates ? (
+          <SecurityOperationsPanel service={securityOperationsService} />
+        ) : null}
 
         <section
           aria-label={tr.administration.workflowsSectionLabel}

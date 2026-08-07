@@ -101,6 +101,6 @@ No role is a singleton. A tenant may have multiple users with the same role when
 
 ## Remaining Production Scope
 
-- Production key rotation, recovery, and retention automation are not complete.
+- Additive key rotation and content-free health checks are complete. Production key custody, escrow/recovery acceptance, and retention automation are not complete.
 - Real invitation email delivery awaits an approved provider and mailbox.
 - The current one-time credential model provides application-level unlinkability; blind-signature cryptographic anonymity is not claimed.

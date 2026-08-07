@@ -1,5 +1,100 @@
 # Error Log
 
+## ERR-20260807-041 - Shared keyring dependent was not redeployed before rotation smoke
+
+### Context
+
+The linked synthetic environment had received the additive keyring readers and a new active per-version secret.
+
+### Symptoms
+
+The first post-rotation report smoke stopped at `evaluation-submission-credentials` with HTTP 502 before a new encrypted submission was written.
+
+### Root cause
+
+The credential function imports the shared evaluation module but was omitted from the initial dependent-function deployment set.
+
+### Correct solution
+
+Redeploy every Edge Function that imports the changed shared module before changing the active key, then rerun the complete submission/report flow.
+
+### Prevention
+
+Keep the deployment runbook's dependent-function list complete and treat shared Edge Function code changes as multi-function releases.
+
+### Related files
+
+- `supabase/functions/_shared/encryptionKeyring.ts`
+- `supabase/functions/evaluation-submission-credentials/index.ts`
+- `docs/DEPLOYMENT.md`
+
+### Related tests
+
+- `npm run smoke:reports`
+- `npm run smoke:key-health`
+
+## ERR-20260807-040 - Retained local database lacked the pending lifecycle migration
+
+### Context
+
+Docker Desktop restored the local Supabase database from retained volumes after the new lifecycle migration was created.
+
+### Symptoms
+
+The key lifecycle pgTAP suite could not find `list_referenced_evaluation_encryption_key_versions()`.
+
+### Root cause
+
+Starting a retained local stack did not apply the newly added migration automatically.
+
+### Correct solution
+
+Run `npx supabase migration up --local` before the local pgTAP suite when reusing retained volumes.
+
+### Prevention
+
+Check local migration state after startup and apply pending migrations before tests; use a full reset only when an empty-schema verification is required.
+
+### Related files
+
+- `supabase/migrations/20260807143000_encryption_key_lifecycle.sql`
+- `supabase/tests/database/encryption_key_lifecycle.test.sql`
+
+### Related tests
+
+- `npm run supabase:test:local`
+
+## ERR-20260807-039 - Static keyring boundary test inspected the previous module
+
+### Context
+
+Keyring parsing moved from the submission helper into a dedicated pure module for rotation and health tests.
+
+### Symptoms
+
+One Vitest assertion reported that `EVALUATION_ENCRYPTION_KEYRING` was absent from the old helper source.
+
+### Root cause
+
+The static boundary test asserted the previous file location instead of the key custody invariant.
+
+### Correct solution
+
+Read the dedicated keyring module and assert legacy compatibility, additive per-version secrets, active selection, and server-side nonce/encryption behavior across the two relevant sources.
+
+### Prevention
+
+Keep static security tests bound to ownership boundaries and invariants rather than one implementation file.
+
+### Related files
+
+- `tests/anonymous-submission-boundary.test.mjs`
+- `supabase/functions/_shared/encryptionKeyring.ts`
+
+### Related tests
+
+- `npm test`
+
 ## ERR-20260807-038 - Trusted report batch omitted cycle close metadata
 
 ### Context
@@ -213,98 +308,6 @@ Require executable empty-database migration verification for every new composite
 ### Related tests
 
 - `npm run supabase:test:local`
-
-## ERR-20260806-031 - Full system drive mounted Docker data read-only
-
-### Context
-
-The local Supabase stack was restarted to verify the template immutability hardening migration from a clean database.
-
-### Symptoms
-
-Docker Desktop stopped, WSL reported that its virtual disk was already attached, and Docker logs showed that the distribution disk had been mounted read-only.
-
-### Root cause
-
-The Windows system drive had no free space, which interrupted Docker's WSL filesystem journal and forced a read-only fallback mount.
-
-### Correct solution
-
-Stop Docker and WSL, remove only completed temporary installers and crash dumps, mount the Docker data VHD in bare mode, repair its ext4 filesystem with `e2fsck`, unmount it, and restart Docker. A clean Supabase reset and all database tests then passed.
-
-### Prevention
-
-Keep several gigabytes free on the system drive and check host disk capacity before image-heavy Docker or local Supabase operations.
-
-### Related files
-
-- `supabase/config.toml`
-
-### Related tests
-
-- `npx supabase db reset --local`
-- `npx supabase test db`
-
-## ERR-20260806-030 - Parallel Edge Function deploy lost one registration
-
-### Context
-
-The updated project function and new template function were deployed concurrently after the migration.
-
-### Symptoms
-
-Both commands reported success, but the live template endpoint returned 404 and `supabase functions list` contained only the updated project function.
-
-### Root cause
-
-Concurrent project-level function deployments raced while updating remote function registration state.
-
-### Correct solution
-
-Redeploy `evaluation-templates` sequentially, confirm it appears in the remote list, and rerun the authenticated smoke test.
-
-### Prevention
-
-Deploy Supabase Edge Functions sequentially for the same project and verify the remote function list before smoke testing.
-
-### Related files
-
-- `supabase/functions/evaluation-templates/index.ts`
-- `supabase/functions/admin-project-cycles/index.ts`
-
-### Related tests
-
-- `npm run smoke:templates`
-
-## ERR-20260806-029 - Template version insert trigger fell through to update checks
-
-### Context
-
-The first Docker-backed pgTAP run exercised creation of a new draft version.
-
-### Symptoms
-
-`admin_save_evaluation_template_draft()` raised `TEMPLATE_VERSION_IDENTITY_IMMUTABLE` during the initial insert.
-
-### Root cause
-
-The trigger validated that inserted versions start as drafts but did not return immediately, so it continued into update-only identity comparisons against `OLD`.
-
-### Correct solution
-
-Return `NEW` immediately after successful insert validation and rerun a clean local database reset and all pgTAP suites.
-
-### Prevention
-
-Keep explicit operation branches in multi-operation triggers and retain executable create, update, publish, clone, and immutability tests.
-
-### Related files
-
-- `supabase/migrations/20260806234500_versioned_evaluation_templates.sql`
-
-### Related tests
-
-- `supabase/tests/database/versioned_evaluation_templates.test.sql`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

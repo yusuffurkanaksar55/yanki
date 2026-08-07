@@ -72,7 +72,7 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 ## Known Limitations
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
-- Production key rotation/recovery, endpoint rate limiting, retention automation, production bootstrap, and backup/restore acceptance are not implemented.
+- Additive key rotation and content-free key-health checks are implemented and live-tested with synthetic ciphertext. Independent production key custody, escrow/recovery acceptance, endpoint rate limiting, retention automation, production bootstrap, and backup/restore acceptance remain incomplete.
 - Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
 - Microsoft Entra ID is not implemented. The current anonymous credential model provides reviewed application-level unlinkability, not blind-signature cryptographic anonymity.
 - The Docker delivery foundation exists, but production organization bootstrap, backup automation, release automation, and customer acceptance automation are not implemented.
@@ -81,6 +81,7 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Recent Major Changes
 
+- 2026-08-07: Added and deployed additive encryption-key rotation, content-free system-admin health checks, safe rotation tooling, and live old/new-key compatibility verification.
 - 2026-08-07: Added and deployed closed-cycle thresholded aggregate reporting, trusted AES-GCM decryption, reviewer scope checks, system-admin and self-access denial, Turkish reporting UI, and live synthetic verification.
 - 2026-08-07: Added and deployed one-time anonymous credentials, AES-256-GCM encrypted evaluation persistence, atomic assignment completion, Turkish submission UI, and live replay-denial verification.
 - 2026-08-06: Added and deployed immutable versioned evaluation templates with trusted management UI and exact cycle/assignment binding.
@@ -93,6 +94,6 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Current Development Priorities
 
-1. Replace the development encryption key before production and implement key rotation/recovery, endpoint rate limits, retention, production tenant bootstrap, backup/restore automation, monitoring, and customer acceptance checks.
+1. Complete production key escrow/recovery acceptance, endpoint rate limits, retention, production tenant bootstrap, backup/restore automation, monitoring, and customer acceptance checks.
 2. Configure email delivery when a provider is approved and complete real invitation acceptance verification.
 3. Add broader Playwright workflows and design a separately reviewed disclosure-resistant approach if raw-text themes are ever required.

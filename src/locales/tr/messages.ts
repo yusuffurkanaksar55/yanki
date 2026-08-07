@@ -305,6 +305,27 @@ export const tr = {
         "Edge Function ve RLS kontrolleri eklenmeden üretim işlemi açılmaz."
       ]
     },
+    securityOperations: {
+      sectionLabel: "Şifreleme anahtarı sağlığı",
+      eyebrow: "Güvenlik operasyonları",
+      title: "Şifreleme anahtarı durumu",
+      refresh: "Durumu yenile",
+      refreshing: "Kontrol ediliyor",
+      overall: "Genel durum",
+      activeKey: "Etkin anahtar",
+      historicalCoverage: "Geçmiş kayıt kapsamı",
+      keyCounts: "Anahtar kapsamı",
+      keyCountValue: "{configured} yapılandırılmış / {referenced} kullanımda",
+      healthy: "Sağlıklı",
+      unhealthy: "Müdahale gerekli",
+      feedback: {
+        SECURITY_OPERATIONS_SESSION_REQUIRED:
+          "Oturum doğrulanamadı. Lütfen tekrar giriş yap.",
+        ENCRYPTION_KEY_HEALTH_READ_FAILED:
+          "Şifreleme anahtarı durumu okunamadı.",
+        genericError: "Beklenmeyen bir güvenlik operasyonu hatası oluştu."
+      }
+    },
     users: {
       sectionLabel: "Kullanıcı ve davet yönetimi",
       eyebrow: "Kimlik yönetimi",

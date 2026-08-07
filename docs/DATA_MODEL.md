@@ -121,6 +121,8 @@ Anonymous content-domain tables store encrypted submissions and non-sensitive me
 
 Reporting adds no plaintext or materialized result table. `list_my_evaluation_report_targets()` returns closed configuration targets without reading participation state. `get_encrypted_evaluation_report_batch()` counts within one organization/cycle/subject group and returns no count or content below threshold; at threshold it returns only identity-free ciphertext and immutable question configuration to trusted code. Audit metadata records access status and threshold without the exact submission count.
 
+`list_referenced_evaluation_encryption_key_versions()` is executable only by `service_role`. It returns distinct key-version identifiers required by stored ciphertext, with no ciphertext, content, identity, per-version count, or timestamp. Trusted key-health code compares this inventory to server-only secret configuration and exposes only aggregate health status to system administrators.
+
 ## Expected Constraints
 
 - Foreign keys for hierarchy, memberships, project membership, assignments, templates, cycles, and scopes.

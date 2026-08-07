@@ -1,5 +1,43 @@
 # Development Log
 
+## 2026-08-07 - Additive Encryption Key Rotation And Health
+
+### Objective
+
+Rotate evaluation encryption keys without retrieving or replacing historical Supabase secrets, losing access to existing ciphertext, or exposing key/content data to administrators.
+
+### Changes
+
+- Added backward-compatible merging of the legacy JSON keyring with immutable per-version `EVALUATION_ENCRYPTION_KEY_VERSION_<VERSION>` secrets.
+- Added a service-role-only distinct referenced-version inventory and authenticated `encryption-key-health` Edge Function that returns only booleans and total version counts.
+- Added a Turkish system-administrator health panel, typed service, safe no-stdout rotation-file generator, live health smoke test, focused tests, and ADR-0022.
+- Updated deployment, security, architecture, authorization, data model, product status, and release documentation.
+
+### Database changes
+
+Applied `20260807143000_encryption_key_lifecycle.sql` locally and to project `daxaymcmtbmummrxdyjy`. The inventory function exposes no ciphertext, content, identities, per-version counts, or timestamps and is executable only by `service_role`.
+
+### Security impact
+
+Positive. New key versions can be added without overwriting unreadable historical secret values. The browser receives no key material or version name. Historical coverage is checked against actual ciphertext references, and non-admin users are denied the health endpoint.
+
+### Tests performed
+
+- `npm run lint`, `npm run typecheck`, 125 Vitest cases, `npm run build`, and `npm run check`.
+- Local migration-up, schema lint, and `npm run supabase:test:local`: 94 pgTAP cases across five suites.
+- Remote dry-run/push/list, linked lint, type generation, and four dependent Edge Function deployments.
+- Live `smoke:key-health` before and after rotation, followed by `smoke:reports` under the new active key and a final two-configured/two-referenced health check.
+
+### Result
+
+The linked synthetic project retains its legacy development key, uses additive version `DEV_20260807_01` for new ciphertext, and reports healthy coverage for both referenced versions. Existing and new report decryption passed, and the temporary ignored secret-transfer file was deleted after upload.
+
+### Remaining work
+
+- Establish independent production key custody, approved secret escrow, and database-plus-key recovery acceptance.
+- Add anonymous endpoint rate limiting, retention, production bootstrap, monitoring, and backup/restore automation.
+- Complete approved invitation-email and visual browser verification.
+
 ## 2026-08-07 - Thresholded Trusted Aggregate Reporting
 
 ### Objective
@@ -171,58 +209,3 @@ Vitest passes 20 files and 89 tests. pgTAP passes 8 database authorization cases
 - Implement anonymous credentials and encrypted submission before completion mutation or reporting.
 - Complete invitation email delivery when an approved provider and mailbox are available.
 - Add Playwright visual/end-to-end coverage when browser automation is available.
-
-## 2026-08-06 - Portable Deployment And Multi-Tenant Hardening
-
-### Objective
-
-Support vendor-hosted shared SaaS and customer-managed dedicated installation, strengthen company data isolation, and bound operational repository memory.
-
-### Changes
-
-- Added runtime public Supabase configuration so one Vite build can serve multiple environments without embedding customer-specific values.
-- Added a multi-stage Dockerfile, Nginx SPA/health configuration, Compose package, deployment environment example, and self-host operations guide.
-- Added ADR-0016 for shared/dedicated topology and ADR-0017 for the organization tenant boundary.
-- Added explicit `organization_id` to project memberships and database tenant validation for project managers, project members, manager relationships, evaluators, and subjects.
-- Scoped active direct-manager uniqueness by organization so one Auth identity can participate in multiple companies.
-- Updated trusted project membership writes and the synthetic fixture for explicit tenant ids.
-- Added bounded-memory automation: latest 5 development/test entries and latest 10 errors, while preserving ADRs and current source-of-truth documents.
-- Updated architecture, security, authorization, data model, requirements, assumptions, setup, known issues, README, changelog, and release notes.
-
-### Files affected
-
-- `Dockerfile`, `compose.yaml`, `.dockerignore`, `deploy/*`, `public/app-config.js`
-- `src/config/environment.ts`, `src/vite-env.d.ts`, `index.html`
-- `supabase/migrations/20260806221500_multi_tenant_integrity_hardening.sql`
-- `supabase/functions/admin-project-cycles/index.ts`
-- `src/types/supabase.ts`, `scripts/create-demo-fixture.mjs`
-- `scripts/trim-project-memory.mjs`, `package.json`, `AGENTS.md`
-- `tests/deployment-foundation.test.mjs`, `tests/tenant-isolation.test.mjs`, `tests/project-memory-retention.test.mjs`
-- `docs/*`, `README.md`, `CHANGELOG.md`
-
-### Database changes
-
-Applied `20260806221500_multi_tenant_integrity_hardening.sql` to Supabase project `daxaymcmtbmummrxdyjy`. The migration backfills and requires project membership tenant ids, adds composite tenant/project integrity, validates active tenant identities, and replaces global direct-manager uniqueness with organization-scoped uniqueness. Generated TypeScript database types were refreshed.
-
-### Security impact
-
-Positive. Cross-organization identity relationships receive additional database rejection, while browser configuration remains limited to public Supabase values. Dedicated infrastructure does not bypass tenant authorization. No evaluation content, anonymous credential, encryption key, service-role key, database password, or evaluator-to-response mapping was added to browser assets or tables.
-
-### Tests performed
-
-- Focused deployment, tenant, memory, project boundary, fixture, and environment tests.
-- `npm run lint`, `npm run typecheck`, and `npm run check`.
-- `npm run deployment:config`.
-- Linked Supabase migration dry-run, push, post-migration lint, type generation, and `admin-project-cycles` deployment.
-- Docker client/engine availability check.
-- Local Vite browser verification at `http://127.0.0.1:5173/`.
-
-### Result
-
-The full check passed 18 test files and 81 tests, production build, and memory-retention validation. Compose configuration is valid. The remote migration applied, linked schema lint reports no errors, generated types include project membership organization scope, and `admin-project-cycles` deployed successfully. The local Turkish sign-in UI rendered without console errors or horizontal overflow. Docker Engine was not running, so a real image build and health check remain unverified.
-
-### Remaining work
-
-- Start Docker Desktop and verify the built image and local Supabase stack.
-- Add a reviewed production organization/bootstrap boundary, release image publishing, backup/restore automation, and customer acceptance automation.
-- Continue with employee assignment access, versioned templates, anonymous credentials, encrypted submissions, and scoped reporting before production use.

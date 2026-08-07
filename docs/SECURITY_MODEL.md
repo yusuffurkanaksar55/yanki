@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, server-side AES-256-GCM encryption, atomic assignment completion, trusted thresholded aggregate reporting, and trusted administration boundaries. Production key operations remain unimplemented.
+This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, server-side AES-256-GCM encryption, additive key rotation, content-free key health checks, atomic assignment completion, trusted thresholded aggregate reporting, and trusted administration boundaries. Production key escrow and recovery acceptance remain incomplete.
 
 ## Security Objectives
 
@@ -52,7 +52,9 @@ Each encrypted payload must include:
 
 Encryption keys must not be stored in frontend code, Git, migrations, public environment variables, browser storage, or documentation. Encryption and decryption happen only in trusted server-side code.
 
-The implemented keyring uses `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION` and `EVALUATION_ENCRYPTION_KEYRING`. Every key is exactly 32 random bytes encoded as base64. Encryption uses a fresh 12-byte nonce, a 128-bit authentication tag, and authenticated context containing tenant, cycle, optional project, subject, assignment kind, template version, and context version. The current linked environment key is development-only and must be rotated before production data.
+The implemented keyring selects new encryption with `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION`. It reads the legacy `EVALUATION_ENCRYPTION_KEYRING` for backward compatibility and merges independently managed `EVALUATION_ENCRYPTION_KEY_VERSION_<VERSION>` secrets for additive rotation. Every key is exactly 32 random bytes encoded as base64. Encryption uses a fresh 12-byte nonce, a 128-bit authentication tag, and authenticated context containing tenant, cycle, optional project, subject, assignment kind, template version, and context version. Historical key secrets must remain configured while any ciphertext references them. The linked synthetic environment has exercised additive rotation, but its keys remain development-only and must never be reused for production data.
+
+`encryption-key-health` is available only to authenticated active system administrators. It returns configuration validity, active-key presence, historical coverage, and total configured/referenced version counts. It never returns key material, key version names, ciphertext, evaluation content, identities, per-version usage counts, or timestamps.
 
 ## Decryption
 
@@ -133,6 +135,6 @@ In customer-managed installations, the customer controls the host, database, app
 
 - Complete live invitation email delivery and acceptance verification with an approved test mailbox.
 - Add narrowly scoped Supabase RLS policies only after server-side authorization flows are designed.
-- Replace the development key before production and implement key rotation, escrow, recovery, and ciphertext retention procedures.
+- Configure an independent production key, approved secret-manager escrow, a successful key-plus-database recovery drill, and ciphertext retention procedures before production.
 - Add production abuse controls for anonymous credential preparation/redemption, including gateway rate limits and alerting without sensitive request logging.
 - Add executable cross-tenant database tests against a running local or dedicated Supabase stack.

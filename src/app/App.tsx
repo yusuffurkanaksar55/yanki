@@ -3,6 +3,7 @@ import { AdministrationPage } from "../features/administration/AdministrationPag
 import type { EvaluationTemplateService } from "../features/administration/evaluationTemplateService";
 import type { HierarchyAdministrationService } from "../features/administration/hierarchyAdministrationService";
 import type { ProjectCycleService } from "../features/administration/projectCycleService";
+import type { SecurityOperationsService } from "../features/administration/securityOperationsService";
 import type { UserAdministrationService } from "../features/administration/userAdministrationService";
 import { AuthGate } from "../features/authentication/AuthGate";
 import { AuthProvider } from "../features/authentication/AuthProvider";
@@ -25,6 +26,7 @@ type AppProps = {
   readonly hierarchyAdministrationService?: HierarchyAdministrationService;
   readonly profileService?: ProfileService;
   readonly projectCycleService?: ProjectCycleService;
+  readonly securityOperationsService?: SecurityOperationsService;
   readonly userAdministrationService?: UserAdministrationService;
   readonly workspaceContextService?: WorkspaceContextService;
 };
@@ -39,6 +41,7 @@ export function App({
   hierarchyAdministrationService,
   profileService,
   projectCycleService,
+  securityOperationsService,
   userAdministrationService,
   workspaceContextService
 }: AppProps) {
@@ -67,6 +70,7 @@ export function App({
                         onSignOut={onSignOut}
                         profileDisplayName={profile.display_name}
                         projectCycleService={projectCycleService}
+                        securityOperationsService={securityOperationsService}
                         userAdministrationService={userAdministrationService}
                         userEmail={userEmail}
                         workspaceContext={workspaceContext}

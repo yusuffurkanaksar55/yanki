@@ -1,3 +1,8 @@
+import {
+  parseEvaluationEncryptionKeyring,
+  type EvaluationEncryptionKeyring
+} from "./encryptionKeyring.ts";
+
 export const encryptionAlgorithm = "AES-256-GCM";
 export const encryptionContextVersion = 1;
 export const payloadSchemaVersion = 1;
@@ -148,59 +153,8 @@ export function serializeEncryptionContext(context: EncryptionContext): string {
   });
 }
 
-function readEncryptionKeyring(): {
-  readonly activeVersion: string;
-  readonly keys: ReadonlyMap<string, Uint8Array>;
-} {
-  const activeVersion = readRequiredEnvironmentValue(
-    "EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION"
-  );
-  const serializedKeyring = readRequiredEnvironmentValue(
-    "EVALUATION_ENCRYPTION_KEYRING"
-  );
-
-  if (!/^[A-Za-z0-9._-]{1,64}$/.test(activeVersion)) {
-    throw new Error("EVALUATION_ENCRYPTION_KEY_VERSION_INVALID");
-  }
-
-  let parsed: unknown;
-
-  try {
-    parsed = JSON.parse(serializedKeyring);
-  } catch {
-    throw new Error("EVALUATION_ENCRYPTION_KEYRING_INVALID");
-  }
-
-  if (!isRecord(parsed) || typeof parsed[activeVersion] !== "string") {
-    throw new Error("EVALUATION_ENCRYPTION_KEYRING_INVALID");
-  }
-
-  const keys = new Map<string, Uint8Array>();
-
-  for (const [version, encodedKey] of Object.entries(parsed)) {
-    if (
-      !/^[A-Za-z0-9._-]{1,64}$/u.test(version)
-      || typeof encodedKey !== "string"
-    ) {
-      throw new Error("EVALUATION_ENCRYPTION_KEYRING_INVALID");
-    }
-
-    let keyBytes: Uint8Array;
-
-    try {
-      keyBytes = fromBase64(encodedKey);
-    } catch {
-      throw new Error("EVALUATION_ENCRYPTION_KEYRING_INVALID");
-    }
-
-    if (keyBytes.length !== 32) {
-      throw new Error("EVALUATION_ENCRYPTION_KEY_INVALID");
-    }
-
-    keys.set(version, keyBytes);
-  }
-
-  return { activeVersion, keys };
+function readEncryptionKeyring(): EvaluationEncryptionKeyring {
+  return parseEvaluationEncryptionKeyring(Deno.env.toObject());
 }
 
 function readKeyBytes(

@@ -8,7 +8,7 @@ High
 
 ### Description
 
-One-time anonymous submission and trusted thresholded aggregate reporting are implemented and live-smoke-tested. Production key replacement/rotation/recovery, retention, anonymous-endpoint abuse controls, production bootstrap, monitoring, and backup/restore acceptance are not implemented yet.
+One-time anonymous submission, additive key rotation, content-free key health, and trusted thresholded aggregate reporting are implemented and live-smoke-tested. Independent production key custody, escrow/recovery acceptance, retention, anonymous-endpoint abuse controls, production bootstrap, monitoring, and backup/restore acceptance are not implemented yet.
 
 ### Impact
 
@@ -20,11 +20,11 @@ Continue development and synthetic acceptance testing only. Do not use the linke
 
 ### Planned resolution
 
-Replace/rotate the development key, add key recovery, endpoint rate limits, retention, production bootstrap, monitoring, backup/restore acceptance, and approved invitation-mail verification.
+Create an independent production key, complete approved key escrow/recovery drills, and add endpoint rate limits, retention, production bootstrap, monitoring, backup/restore acceptance, and approved invitation-mail verification.
 
 ### Related tests
 
-`tests/evaluation-reporting-boundary.test.mjs`, `supabase/tests/database/thresholded_evaluation_reporting.test.sql`, `src/features/reporting/EvaluationReportsPanel.test.tsx`, `npm run smoke:reports`
+`tests/encryptionKeyring.test.ts`, `supabase/tests/database/encryption_key_lifecycle.test.sql`, `src/features/administration/SecurityOperationsPanel.test.tsx`, `npm run smoke:key-health`, `npm run smoke:reports`
 
 ## ISSUE-005 - Remaining delegated administration actions are not implemented
 

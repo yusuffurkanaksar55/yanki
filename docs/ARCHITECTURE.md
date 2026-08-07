@@ -83,6 +83,8 @@ Reporting uses the authenticated `evaluation-reports` Edge Function and service-
 
 At or above threshold, the database releases an identity-free ciphertext batch plus immutable question configuration to the trusted function. AES-GCM decryption authenticates tenant, cycle, project, subject, assignment kind, template version, and context version. Every decrypted payload must contain the exact question set and valid answer types before aggregation. The browser receives rating averages/distributions, boolean counts, option counts, and text response counts. Raw short- and long-text values are never returned.
 
+Encryption key rotation is additive. Trusted Functions merge the legacy JSON keyring with immutable per-version environment secrets and use a separate active-version selector for new ciphertext. A service-role-only inventory releases only distinct referenced version identifiers to `encryption-key-health`; the system-administrator UI receives only booleans and total version counts, never versions, keys, ciphertext, or content.
+
 ## Localization
 
 User-facing Turkish strings must be centralized under a future localization module such as `src/locales/tr/`. Code identifiers, internal errors, tests, and technical artifacts remain English.
@@ -121,6 +123,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Authenticated submission preparation Edge Function: `supabase/functions/evaluation-submission-credentials/index.ts`
 - Anonymous encryption and redemption Edge Function: `supabase/functions/anonymous-evaluation-submissions/index.ts`
 - Thresholded decryption and aggregate reporting Edge Function: `supabase/functions/evaluation-reports/index.ts`
+- Content-free encryption key health Edge Function: `supabase/functions/encryption-key-health/index.ts`
 - User onboarding Edge Function: `supabase/functions/user-onboarding/index.ts`
 - Organization administration Edge Function: `supabase/functions/organization-administration/index.ts`
 - Initial migration: `supabase/migrations/20260719132911_initial_security_foundation.sql`
@@ -134,9 +137,11 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Template immutability hardening migration: `supabase/migrations/20260807001500_template_immutability_hardening.sql`
 - Anonymous encrypted submission migration: `supabase/migrations/20260807013000_anonymous_encrypted_evaluation_submissions.sql`
 - Thresholded reporting migrations: `supabase/migrations/20260807103000_thresholded_evaluation_reporting.sql`, `supabase/migrations/20260807111500_reporting_close_metadata_fix.sql`
+- Encryption key lifecycle migration: `supabase/migrations/20260807143000_encryption_key_lifecycle.sql`
 - Database authorization tests: `supabase/tests/database/employee_assignment_access.test.sql`
 - Anonymous submission database tests: `supabase/tests/database/anonymous_encrypted_submission.test.sql`
 - Reporting authorization database tests: `supabase/tests/database/thresholded_evaluation_reporting.test.sql`
+- Encryption key lifecycle database tests: `supabase/tests/database/encryption_key_lifecycle.test.sql`
 - Invitation acceptance migration: `supabase/migrations/20260720232000_user_invitation_acceptance_flow.sql`
 - Invitation acceptance revalidation migration: `supabase/migrations/20260720234500_invitation_acceptance_context_revalidation.sql`
 - Organization administration migration: `supabase/migrations/20260722210000_hierarchy_administration_foundation.sql`

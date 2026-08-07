@@ -8,7 +8,7 @@ Secure company-internal web platform for anonymous employee, team, project, mana
 
 The repository is in application development phase. It contains persistent project memory, a React + TypeScript + Vite application, Supabase Auth onboarding, configurable hierarchy and scoped administration, immutable versioned evaluation templates, authenticated assignment access, a Turkish evaluation form, one-time anonymous credentials, AES-256-GCM encrypted submission persistence, thresholded trusted aggregate reporting, a portable Docker/Nginx frontend package, explicit multi-tenant integrity controls, and executable frontend/database/security tests.
 
-Invitation delivery still needs an approved mailbox smoke test. Production key rotation/recovery, endpoint rate limiting, retention, production bootstrap, and backup/restore acceptance have not been implemented yet.
+Invitation delivery still needs an approved mailbox smoke test. Additive key rotation and content-free health checks are implemented; production key escrow/recovery acceptance, endpoint rate limiting, retention, production bootstrap, and backup/restore acceptance remain incomplete.
 
 ## Target Stack
 
@@ -54,6 +54,7 @@ npm run smoke:hierarchy
 npm run smoke:assignments
 npm run smoke:submissions
 npm run smoke:reports
+npm run smoke:key-health
 npm run smoke:templates
 npm run smoke:project-dates
 npm run supabase:migrations
@@ -62,6 +63,7 @@ npm run supabase:lint:linked
 npm run supabase:push:dry-run
 npm run supabase:test:local
 npm run supabase:types
+npm run encryption:key:prepare -- DEV_YYYYMMDD_01
 ```
 
 These commands currently validate the React application scaffold, documentation foundation, lint rules, type checking, unit/component tests, and production build.

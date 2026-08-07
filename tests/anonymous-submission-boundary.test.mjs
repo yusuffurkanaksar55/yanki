@@ -7,6 +7,7 @@ const migrationSource = read("supabase/migrations/20260807013000_anonymous_encry
 const credentialFunctionSource = read("supabase/functions/evaluation-submission-credentials/index.ts");
 const anonymousFunctionSource = read("supabase/functions/anonymous-evaluation-submissions/index.ts");
 const sharedSource = read("supabase/functions/_shared/evaluationSubmission.ts");
+const keyringSource = read("supabase/functions/_shared/encryptionKeyring.ts");
 const browserServiceSource = read("src/features/evaluations/evaluationAssignmentService.ts");
 const submissionTableSource = migrationSource
   .split("create table public.encrypted_evaluation_submissions")[1]
@@ -57,8 +58,9 @@ describe("anonymous encrypted submission boundary", () => {
   });
 
   it("uses a server-only versioned keyring and random AES-GCM nonces", () => {
-    expect(sharedSource).toMatch(/EVALUATION_ENCRYPTION_KEYRING/);
-    expect(sharedSource).toMatch(/EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION/);
+    expect(keyringSource).toMatch(/EVALUATION_ENCRYPTION_KEYRING/);
+    expect(keyringSource).toMatch(/EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION/);
+    expect(keyringSource).toMatch(/EVALUATION_ENCRYPTION_KEY_VERSION_/);
     expect(sharedSource).toMatch(/crypto\.getRandomValues\(new Uint8Array\(12\)\)/);
     expect(sharedSource).toMatch(/name: "AES-GCM"/);
     expect(sharedSource).not.toMatch(/SUPABASE_ANON_KEY/);

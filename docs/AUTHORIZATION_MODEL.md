@@ -45,6 +45,8 @@ Project date updates are available to platform/matching-organization system admi
 
 `evaluation-reports` binds every request to the authenticated active user. `list_my_evaluation_report_targets()` returns only closed, authorized cycle-plus-subject targets and no participation state. `get_encrypted_evaluation_report_batch()` denies self access, every active `SYSTEM_ADMIN`, unapproved roles, missing active tenant membership, scope mismatch, and open cycles before applying the threshold. It releases ciphertext only at or above threshold. Direct ciphertext-table access remains revoked from `service_role`.
 
+`encryption-key-health` requires an authenticated active `SYSTEM_ADMIN`. Its service-role-only inventory can inspect only distinct key-version identifiers referenced by ciphertext. The browser receives configuration validity, active/historical coverage booleans, and total version counts; it receives no version names, keys, ciphertext, content, identities, or per-version usage.
+
 ## Roles
 
 ### `SYSTEM_ADMIN`

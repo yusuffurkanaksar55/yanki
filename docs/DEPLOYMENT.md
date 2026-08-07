@@ -54,7 +54,7 @@ Vite variables are normally replaced at build time. This application loads `/app
 2. Provision at least the current official Supabase minimum for a small deployment: 2 CPU cores, 4 GB RAM, and 40 GB SSD. Prefer 4 cores, 8 GB or more RAM, and 80 GB or more SSD. Size from measured load before production approval.
 3. Obtain a reviewed, pinned Supabase self-host release from the official repository. Do not assemble independent latest image tags; Supabase tests the release image set together.
 4. Generate unique production secrets with the official Supabase scripts. Replace every sample password and key. Store secret files outside Git with least-privilege filesystem access.
-5. Configure `SUPABASE_PUBLIC_URL`, `API_EXTERNAL_URL`, `SITE_URL`, allowed redirect URLs, the proxy domain, JWT keys, database credentials, Studio credentials, and optional SMTP settings. Generate an independent 32-byte random AES key and configure server-only `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION` plus `EVALUATION_ENCRYPTION_KEYRING`. Never reuse the linked development key.
+5. Configure `SUPABASE_PUBLIC_URL`, `API_EXTERNAL_URL`, `SITE_URL`, allowed redirect URLs, the proxy domain, JWT keys, database credentials, Studio credentials, and optional SMTP settings. Generate an independent 32-byte random AES key and configure it as server-only `EVALUATION_ENCRYPTION_KEY_VERSION_<VERSION>` plus `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION`. Never reuse the linked development key. `EVALUATION_ENCRYPTION_KEYRING` is supported only for backward compatibility.
 6. Put a TLS reverse proxy or customer load balancer in front of the Supabase gateway and application. Expose only required HTTPS endpoints. Keep Postgres, Studio, and internal service ports on restricted networks.
 7. Start Supabase with its official `run.sh start` workflow and wait for healthy services. Inspect failed service logs before continuing.
 8. Apply this repository's migrations to the dedicated database from a trusted release workspace:
@@ -89,15 +89,29 @@ docker compose --env-file .env.deploy up -d --build --wait
 
 ## Production Release Gate
 
-This repository now has deployed anonymous encrypted submission storage and scoped thresholded aggregate reporting, but it is not approved for live employee data. Production encryption-key replacement and rotation, rate limiting, production bootstrap, backup/restore automation, retention policy, monitoring, and broader end-to-end security regression coverage must be completed before production use.
+This repository now has deployed anonymous encrypted submission storage, additive key rotation, key-health validation, and scoped thresholded aggregate reporting, but it is not approved for live employee data. An independent production key, approved key escrow and recovery drill, rate limiting, production bootstrap, backup/restore automation, retention policy, monitoring, and broader end-to-end security regression coverage must be completed before production use.
 
 ## Encryption Key Operations
 
-- Keep every still-referenced key version in the server-only JSON keyring until all ciphertext under that version has been re-encrypted or deleted under an approved retention policy.
+- Keep every still-referenced key version as an independent server-only secret until all ciphertext under that version has been re-encrypted or deleted under an approved retention policy.
 - Report decryption requires the exact historic key version stored with each ciphertext. A key version must not be retired merely because it is no longer active for new submissions.
-- Back up the keyring through the approved secret manager and test recovery separately from database restore. A database backup without its keys is unrecoverable; a key backup without access controls defeats database-at-rest confidentiality.
-- Rotate by adding a new random key version, switching the active version, verifying new submissions, and only then scheduling reviewed re-encryption or retirement work.
-- Never print keyring values in CI logs, shell history, support bundles, browser configuration, or customer handover documents.
+- Back up all key versions through the approved secret manager and test recovery together with a database restore. A database backup without its keys is unrecoverable; a key backup without access controls defeats database-at-rest confidentiality.
+- Never print key values in CI logs, shell history, support bundles, browser configuration, or customer handover documents.
+
+Managed Supabase rotation sequence:
+
+```bash
+npm run encryption:key:prepare -- PROD_20260807_01
+npx supabase functions deploy evaluation-submission-credentials --project-ref "$PROJECT_REF"
+npx supabase functions deploy anonymous-evaluation-submissions --project-ref "$PROJECT_REF"
+npx supabase functions deploy evaluation-reports --project-ref "$PROJECT_REF"
+npx supabase functions deploy encryption-key-health --project-ref "$PROJECT_REF"
+npx supabase secrets set --project-ref "$PROJECT_REF" --env-file .secrets/encryption-key-rotation.env
+```
+
+Deploy the backward-compatible readers before the secret update. Verify `smoke:key-health`, create and aggregate new synthetic ciphertext, verify health again, then securely delete `.secrets/encryption-key-rotation.env`. The application health response must be healthy and its referenced count must not exceed its configured count. In a dedicated installation, place the same two generated variables in the customer-controlled Functions secret environment and restart the Functions service instead of using `supabase secrets set`.
+
+Rollback changes only `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION` back to the previous configured version. Do not delete the newly added or historical key. Deletion requires an approved inventory showing no ciphertext reference, a retention or re-encryption decision, a tested backup, and two-person review.
 
 ## Customer Handover
 

@@ -1,5 +1,52 @@
 # Test Report
 
+## 2026-08-07 - Additive Encryption Key Rotation And Health
+
+### Environment
+
+- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
+- Docker Desktop local Supabase stack with retained local volumes.
+- Linked Supabase project `daxaymcmtbmummrxdyjy` with synthetic users and development-only keys.
+
+### Commands executed
+
+- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run check`
+- `npx supabase migration up --local`, `npm run supabase:test:local`, `npm run supabase:lint:local`
+- Remote migration dry-run/push/list, `npm run supabase:lint:linked`, `npm run supabase:types`
+- Edge Function deploy/list, `npm run encryption:key:prepare -- DEV_20260807_01`
+- `npm run smoke:key-health` before/after rotation and `npm run smoke:reports` under the new active key
+
+### Passed
+
+- Vitest passed 32 files and 125 tests.
+- pgTAP passed 94 cases across five suites, including service-only key inventory grants and browser-role denials.
+- Local and linked schema lint reported no errors; local and remote migration histories include `20260807143000`.
+- Pre-rotation health was healthy with one configured and one referenced version; post-rotation health was healthy with two configured versions.
+- Four new encrypted evaluations produced the expected `3.5` aggregate under the new active key. The final health check was healthy with two configured and two referenced versions, proving historical and new ciphertext coverage.
+- A synthetic employee was denied key health with `403`; no key value or version name appeared in API or browser models.
+
+### Failed And Corrected
+
+- The retained local database had not applied the new migration after startup; migration-up applied it without resetting local data, and all pgTAP suites passed.
+- The first static submission boundary test still inspected the old helper file for keyring environment names; it now inspects the dedicated keyring module.
+- The first post-rotation report smoke received `502` from the credential function because that shared-module dependent had not been redeployed; redeploying every dependent function restored the complete flow.
+- Supabase CLI again could not cache its experimental `pg-delta` catalog after the remote push because the temporary CA file was absent. Migration list and linked lint confirmed successful application.
+
+### Security checks
+
+- Verified additive rotation never overwrote or deleted the historical secret.
+- Verified the generated key was written only to ignored `.secrets/`, never printed, uploaded through an env file, and deleted immediately after success.
+- Verified key-health output contains only aggregate configuration state and version counts.
+- Verified both historical and new ciphertext remain decryptable only through the thresholded trusted reporting boundary.
+
+### Skipped
+
+- Automated visual browser verification could not start because the Codex browser runtime still could not create its kernel asset path. Component tests, production build, database checks, and live API verification passed.
+
+### Remaining risks
+
+- Production key custody/escrow/recovery acceptance, anonymous endpoint rate limiting, retention, production bootstrap, monitoring, backup acceptance, and invitation email remain release blockers.
+
 ## 2026-08-07 - Thresholded Trusted Aggregate Reporting
 
 ### Environment
@@ -207,70 +254,3 @@
 
 - Assignment display does not authorize submission; templates, anonymous credentials, encryption, completion mutation, and reporting remain production blockers.
 - Automated visual and full browser end-to-end coverage remain incomplete.
-
-## 2026-08-06 - Portable Deployment And Multi-Tenant Hardening
-
-### Environment
-
-- Workspace: `D:\Projects\anonim_degerlendirme`
-- Runtime: Node.js v24.14.0
-- Supabase CLI: 2.109.1
-- Docker client: 29.6.1
-- Docker Engine: not running
-- Linked Supabase project: `daxaymcmtbmummrxdyjy`
-
-### Commands executed
-
-- Focused Vitest runs for environment, deployment, tenant, memory, fixture, and trusted project boundaries.
-- `npm run lint`
-- `npm run typecheck`
-- `npm run check`
-- `npm run deployment:config`
-- `npm run supabase:push:dry-run`
-- `npx supabase db push --linked --include-all --yes`
-- `npm run supabase:types`
-- `npx supabase functions deploy admin-project-cycles --no-verify-jwt`
-- `npm run supabase:lint:linked`
-- `docker version --format ...`
-- Local in-app browser verification at `http://127.0.0.1:5173/`.
-
-### Passed
-
-- Full quality check passed lint, typecheck, 18 Vitest files with 81 tests, production build, and memory-retention validation.
-- Runtime configuration tests verify customer values override build values and partial runtime configuration is rejected.
-- Deployment tests verify multi-stage container structure, public-only configuration, required files, both commercial topologies, and the live-data production gate.
-- Tenant tests verify explicit project membership scope, composite tenant/project integrity, active tenant identity guards, and per-organization manager uniqueness.
-- Compose configuration parsed successfully with the deployment example environment.
-- Migration dry-run identified only `20260806221500_multi_tenant_integrity_hardening.sql`.
-- The migration applied successfully and post-migration linked database lint reported no schema errors.
-- Generated types contain required `project_memberships.organization_id` and its tenant foreign keys.
-- Updated `admin-project-cycles` deployed successfully with internal bearer-token validation.
-- The Turkish sign-in UI rendered at the local Vite URL with no browser warnings/errors and no horizontal overflow.
-
-### Failed
-
-- The first focused test rejected a service-role placeholder in the frontend `.env.example`; it was removed.
-- The first lint run required an explicit browser-global declaration in copied `public/app-config.js`; it was added.
-- The first sandboxed Supabase dry-run could not write user-profile telemetry; the narrowly elevated retry passed.
-- Docker Engine connection failed because Docker Desktop was not running. Remote Supabase operations still completed with a non-fatal catalog-cache warning.
-- PowerShell background start first hit the known duplicate `Path`/`PATH` environment issue; a detached process with a normalized environment started the server successfully.
-
-### Skipped
-
-- Docker image build and container health verification were skipped because Docker Engine was not running.
-- Local Supabase reset and executable database tenant tests were skipped for the same reason.
-- Real invitation delivery remains deferred until an email provider and approved mailbox are available.
-
-### Security checks
-
-- Verified frontend and Compose runtime sources contain no service-role, database, or encryption secret.
-- Verified runtime configuration does not mix customer and build-time Supabase values.
-- Verified database tenant guards cover identity-bearing project, hierarchy, and assignment relations.
-- Verified all affected public tables remain RLS-enabled and trusted writes stay behind Edge Functions/service-role functions.
-- Verified no evaluation content or evaluator-to-response linkage was introduced.
-
-### Remaining risks
-
-- Container runtime behavior and local database triggers still need executable Docker-backed verification.
-- Production bootstrap, backup/restore automation, release publishing, and customer acceptance automation are incomplete.
-- Sensitive evaluation submission, anonymous credentials, encryption, and reporting remain unimplemented production blockers.
