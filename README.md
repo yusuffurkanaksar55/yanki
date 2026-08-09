@@ -6,9 +6,9 @@ Secure company-internal web platform for anonymous employee, team, project, mana
 
 ## Current Status
 
-The repository is in application development phase. It contains persistent project memory, a React + TypeScript + Vite application, Supabase Auth onboarding, configurable hierarchy and scoped administration, immutable versioned evaluation templates, authenticated assignment access, a Turkish evaluation form, one-time anonymous credentials, AES-256-GCM encrypted submission persistence, privacy-preserving anonymous endpoint quotas, thresholded trusted aggregate reporting, a portable Docker/Nginx frontend package, explicit multi-tenant integrity controls, and executable frontend/database/security tests.
+The repository is in application development phase. It contains persistent project memory, a React + TypeScript + Vite application, Supabase Auth onboarding, configurable hierarchy and scoped administration, immutable versioned evaluation templates, authenticated assignment access, a Turkish evaluation form, one-time anonymous credentials, AES-256-GCM encrypted submission persistence, privacy-preserving anonymous endpoint quotas, thresholded trusted aggregate reporting, a portable Docker/Nginx frontend package, signed digest-pinned container release automation, explicit multi-tenant integrity controls, and executable frontend/database/security tests.
 
-Invitation delivery still needs an approved mailbox smoke test. Additive key rotation, content-free key health, anonymous endpoint application quotas, and aggregate abuse monitoring are implemented. Production key escrow/recovery acceptance, outer gateway/WAF limits and alert delivery, retention, production bootstrap, and backup/restore acceptance remain incomplete.
+Invitation delivery still needs an approved mailbox smoke test. Key rotation/health, anonymous quotas, same-origin gateway limits, content-free alerting, retention, tenant bootstrap, encrypted off-site backup/restore, and release supply-chain automation are implemented. Real production providers, the first hosted version-tag release, and environment-specific signed acceptance remain incomplete.
 
 ## Target Stack
 
@@ -51,6 +51,8 @@ npm run check
 npm run memory:trim
 npm run memory:check
 npm run deployment:config
+YANKI_RELEASE_TAG=v0.1.0 npm run release:validate-tag
+npm run release:acceptance
 npm run smoke:hierarchy
 npm run smoke:assignments
 npm run smoke:submissions
@@ -78,7 +80,7 @@ The applied migrations create default-deny onboarding, hierarchy, template, proj
 
 ## Deployment
 
-The same application supports a vendor-hosted shared SaaS topology and a customer-managed dedicated topology. The frontend image reads only public Supabase configuration at container startup, so one immutable image can target managed or self-hosted Supabase without rebuilding. See `docs/DEPLOYMENT.md` for tools, topology, installation, backup, update, and production-gate requirements.
+The same application supports a vendor-hosted shared SaaS topology and a customer-managed dedicated topology. The frontend image reads only public Supabase configuration at container startup, so one signed digest-pinned image can target managed or self-hosted Supabase without rebuilding. See `docs/DEPLOYMENT.md` and `docs/INSTALLATION_ACCEPTANCE.md` for tools, verification, installation, backup, update, and production-gate requirements.
 
 ## Demo Fixtures
 

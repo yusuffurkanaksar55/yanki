@@ -169,11 +169,11 @@ Medium
 
 ### Description
 
-The repository now contains a portable frontend image, customer Compose example, self-host deployment runbook, tenant-integrity migration, encrypted evaluation workflows, production tenant bootstrap, pinned encrypted off-site backup scheduling, and environment-scoped restore automation. Real provider/systemd acceptance, immutable release publishing, and broader customer acceptance automation are not complete.
+The repository now contains a portable frontend image, signed digest-pinned GHCR release workflow, no-build customer Compose package, standalone container acceptance, self-host deployment runbook, tenant-integrity migration, encrypted evaluation workflows, production tenant bootstrap, pinned encrypted off-site backup scheduling, and environment-scoped restore automation. The hosted workflow has not yet been exercised with a real version tag, air-gapped/customer-registry transfer is not approved, and real provider/systemd plus broader application acceptance are not complete.
 
 ### Impact
 
-The deployment package can be tested as infrastructure foundation but must not be handed over for live evaluation content.
+The release and deployment packages can be tested as infrastructure foundations but must not be handed over for live evaluation content until the first hosted release and all environment gates pass.
 
 ### Workaround
 
@@ -181,11 +181,12 @@ None for production. Use managed development and synthetic fixture environments 
 
 ### Planned resolution
 
-Add immutable image publishing with checksums, run the implemented timer against the approved customer provider, complete signed production-like restore drills, add deployment smoke tests, and finish the operator acceptance checklist.
+Create the first reviewed version tag and verify GHCR/signature/release permissions end to end, run the implemented timers against approved customer providers, complete signed production-like restore drills, add authenticated application deployment smoke tests, and finish the operator acceptance checklist.
 
 ### Related tests
 
 - `tests/deployment-foundation.test.mjs`
+- `tests/container-release.test.mjs`
 - `tests/tenant-isolation.test.mjs`
 - `tests/production-tenant-bootstrap.test.mjs`
 - `tests/offsite-backup.test.ts`

@@ -155,6 +155,16 @@ Restic encrypts and authenticates off-site snapshots before remote persistence. 
 
 In customer-managed installations, the customer controls the host, database, application code, and secrets. The operator is responsible for TLS, network isolation, patching, backups, restore drills, availability, monitoring, SMTP, and secret rotation. The product must not claim protection from an operator that controls both ciphertext and encryption keys. Browser runtime configuration still contains public values only.
 
+## Release Supply Chain
+
+Production installation must use the exact signed OCI digest from `release-manifest.json`; mutable tags are not deployment authority. The manifest signature is accepted only from the repository's release workflow at the exact version-tag ref through the GitHub Actions OIDC issuer. Manifest-bound SHA-256 values cover Compose, environment template, acceptance command, installation guide, SBOM, and provenance. Checksums alone are not a trust root.
+
+Before executing the downloaded acceptance command, the operator must verify the manifest signature with an independently installed Cosign client and compare the command's hash against that verified manifest. A program cannot establish initial trust by checking its own hash after it has already started.
+
+Docker base images and GitHub Action dependencies are pinned by immutable identifiers. Build arguments contain source metadata only and must never carry credentials because max-mode provenance can expose build parameters. The release workflow receives only GitHub's scoped package/release/OIDC authority and no Supabase service role, database URL, SMTP secret, gateway token, webhook credential, or evaluation-encryption key.
+
+Cosign keyless signing records repository/workflow/tag identity in Sigstore transparency infrastructure. A private-source customer that cannot accept that disclosure requires a separately reviewed private Sigstore or customer-signing policy. A valid release signature does not protect against an authorized operator who later modifies the running image, proxy, Supabase stack, or encryption-key environment; runtime digest inventory, host controls, and monitoring remain required.
+
 ## Remaining Security Work
 
 - Complete live invitation email delivery and acceptance verification with an approved test mailbox.

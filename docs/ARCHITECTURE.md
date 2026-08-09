@@ -26,6 +26,12 @@ Both topologies use the same migrations, Edge Functions, and tenant authorizatio
 
 `/app-config.js` is loaded before the Vite bundle. A container entrypoint writes only the public Supabase URL and anon or publishable key. Local Vite development falls back to `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. A partial runtime configuration is rejected to prevent accidental mixing between customer and build-time environments.
 
+## Container Release Architecture
+
+The application release is a multi-platform OCI index in GHCR. GitHub Actions runs only from an exact stable SemVer tag matching package metadata. Docker base images are pinned by registry digest and every external Action is pinned by full commit SHA. BuildKit attaches max-mode provenance and an SPDX SBOM; Cosign keyless signing binds both the image digest and release manifest to the exact repository, workflow, tag ref, and GitHub Actions OIDC issuer.
+
+The signed manifest binds the full source commit, OCI digest, supported platforms, required source/revision/version labels, and SHA-256 digest of every customer file. The customer Compose package contains no build section and pins the image by digest. A standalone acceptance command verifies signatures and files before pulling the digest, then validates labels, generated Nginx configuration, public-only runtime configuration, and health in a disposable container. GitHub artifact attestations are an additional plan-dependent verification route; Cosign remains the portable required route.
+
 ## Module Boundaries
 
 Planned source layout:

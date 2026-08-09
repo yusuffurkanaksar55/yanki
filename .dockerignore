@@ -11,5 +11,6 @@ supabase/.branches
 supabase/.temp
 playwright-report
 test-results
+release
 vite-dev-server*.log
 *.tsbuildinfo

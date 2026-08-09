@@ -1,5 +1,44 @@
 # Development Log
 
+## 2026-08-09 - Signed Digest-Pinned Container Release Automation
+
+### Objective
+
+Publish one verifiable application image for shared SaaS and customer-managed installations, bind it to exact source and build evidence, and let a customer acceptance-test the package without rebuilding source or receiving vendor secrets.
+
+### Changes
+
+- Added a stable-tag-only GitHub Actions workflow that runs the full quality gate, builds `linux/amd64` and `linux/arm64`, publishes to GHCR, attaches max-mode provenance and SPDX SBOM, signs the image/manifest with Cosign OIDC, conditionally adds GitHub attestations, and refuses to mutate an existing release.
+- Pinned Node/Nginx base images by registry digest and every workflow Action by full commit SHA; no `latest` image is produced or accepted.
+- Added a signed manifest binding source commit, OCI digest/platforms/labels, signer identity, and every customer artifact hash, plus `SHA256SUMS`, no-build Compose, generated digest-pinned environment example, SBOM, provenance, and installation guide.
+- Added an independent pre-execution manifest/verifier bootstrap and a standalone acceptance command that re-verifies signatures, hashes, pulled digest, OCI labels, Nginx, public-only runtime configuration, health, and temporary-container cleanup.
+- Added ADR-0029, container release/customer acceptance documentation, package scripts, and focused static/runtime metadata tests.
+
+### Database changes
+
+None. The release workflow has no Supabase service role, database URL, gateway token, webhook credential, SMTP secret, or evaluation-encryption key.
+
+### Security impact
+
+Positive. Customers deploy an immutable digest rather than trusting a tag, package hashes are anchored by an identity-bound signature, build inputs and Actions are immutable, and the acceptance path fails closed on signer, file, image, label, Nginx, runtime-config, or health mismatch. Keyless transparency identity disclosure remains documented for private-source customers.
+
+### Tests performed
+
+- Full `npm run check`: 49 Vitest files and 214 tests, lint, typecheck, production build, and bounded-memory verification.
+- Focused release, deployment, and project-memory suites passed 16 tests, including tag/version, digest, signer identity, artifact tampering, package preparation, checksum inventory, full-SHA Action pins, and no-build Compose boundaries.
+- `npm run deployment:config` passed against Docker Desktop.
+- A real local image built from the pinned Node 22 and Nginx 1.28 manifest digests. OCI source/revision/version labels matched, the container became healthy, `nginx -t` and `/healthz` passed, and `/app-config.js` contained only the synthetic public URL/key. The temporary container and image tag were removed.
+
+### Result
+
+The repository can produce and verify one signed digest-pinned customer package for both deployment topologies. No product version tag was created, so the first hosted GHCR/Cosign/GitHub Release execution remains an explicit release gate.
+
+### Remaining work
+
+- Enable immutable GitHub Releases and version-tag protection, then exercise the first reviewed version tag in the hosted workflow.
+- Configure real production custody/off-site and alert providers and complete signed environment acceptance.
+- Configure approved invitation email delivery and broader authenticated end-to-end workflows.
+
 ## 2026-08-09 - Same-Origin Gateway And Content-Free Alert Delivery
 
 ### Objective
@@ -152,42 +191,3 @@ The tenant bootstrap foundation is active in the linked synthetic project for sh
 ### Remaining work
 
 - Complete approved SMTP/mailbox acceptance, independent production key recovery, gateway/WAF alerts, scheduled encrypted off-host backups, and environment-specific restore acceptance.
-
-## 2026-08-09 - Tenant Evaluation Retention And Restore Acceptance
-
-### Objective
-
-Expire encrypted evaluation content under tenant control without exposing participation or allowing browser-triggered deletion, and prove that a backup can be restored into a disposable database without weakening reviewed privileges.
-
-### Changes
-
-- Added tenant-scoped 30-to-3650-day retention policies with a 730-day default, disabled-by-default automation, legal hold, policy versioning, and content-free run metadata.
-- Added scoped retention administration in PostgreSQL, an authenticated Edge Function, typed frontend service, and Turkish system-administrator panel.
-- Added a service-role-only scheduled operator boundary with advisory locking, count-free audit metadata, and no browser deletion action.
-- Added explicit-confirmation retention and disposable Docker backup/restore commands, a separate server-only environment example, ADR-0024, and deployment/recovery documentation.
-- Added 21 pgTAP retention cases plus service, component, static security, and backup/restore acceptance tests.
-
-### Database changes
-
-Applied `20260808120000_evaluation_content_retention.sql` locally and to project `daxaymcmtbmummrxdyjy`. Retention configuration has RLS and no direct privileges, including for `service_role`; destructive execution is available only through the narrow service-role function.
-
-### Security impact
-
-Positive. Legal hold blocks deletion, tenant administrators manage configuration without reading content, browsers cannot invoke cleanup, and no submission/deletion count leaves the operator boundary. Live-database deletion is explicitly separated from backup expiry and historical-key retirement.
-
-### Tests performed
-
-- `npm run lint`, `npm run typecheck`, 153 Vitest cases, production build, and full `npm run check`.
-- Local migration-up, local/linked schema lint, and `npm run supabase:test:local`: 134 pgTAP cases across six suites.
-- Disposable Docker dump/restore drill with migration, table, function, and restored privilege verification. The final 640,718-byte compressed stream was hashed while flowing directly into restore, no host dump file was written, and a separate catalog query confirmed the disposable database was removed.
-- Remote dry-run/push/list, linked type generation, Edge Function deployment, and live admin/non-admin/anonymous smoke verification.
-
-### Result
-
-Tenant retention administration is active in the linked synthetic project with the 730-day policy and automatic purge disabled. The live Edge Function allowed the scoped HR administrator, denied the employee and unauthenticated caller, and exposed no evaluation-domain data. The destructive live operator command was intentionally not executed; deletion behavior is proven with disposable local ciphertext fixtures.
-
-### Remaining work
-
-- Configure production scheduling only after approved retention contracts, backup expiry, monitoring, and change control exist.
-- Complete independent production key escrow/recovery, gateway/WAF limits and alerts, tenant bootstrap, and environment-specific backup recovery acceptance.
-- Complete approved invitation-email and visual browser verification.

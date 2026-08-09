@@ -38,6 +38,7 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 - The product supports both vendor-hosted multi-company SaaS and customer-managed dedicated installation.
 - Company data is isolated by an explicit tenant boundary even when multiple companies share one database.
 - Deployment artifacts must not contain customer server secrets.
+- Customer deployments must consume a signed OCI image by immutable digest and must verify source provenance, SBOM, release-file integrity, and container health before installation.
 - Durable decisions are preserved; operational history is retained within documented bounded limits.
 - Eligible employees receive a one-time submission capability only after server-side assignment and time-window validation.
 - Evaluation answers are encrypted in trusted server code before persistence and cannot be linked directly to the evaluator in the content domain.

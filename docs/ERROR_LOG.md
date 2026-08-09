@@ -1,5 +1,67 @@
 # Error Log
 
+## ERR-20260809-055 - Checksum test sorted hash-prefixed lines instead of file names
+
+### Context
+
+The release package test verified that `SHA256SUMS` is emitted in a deterministic order across environments.
+
+### Symptoms
+
+The checksum generator produced the intended file-name order, but the first assertion failed by sorting entire lines beginning with unrelated hash values. A second assertion used default case ordering, which placed the upper-case installation file differently from the generator's locale ordering.
+
+### Root cause
+
+The test compared a property of checksum text that the release contract does not define instead of comparing extracted file names with the generator's documented ordering function.
+
+### Correct solution
+
+Extract the file-name suffix from every checksum line and compare it with a copy sorted through the same `localeCompare` contract used by the generator.
+
+### Prevention
+
+Keep deterministic-output assertions focused on the semantic sort key rather than hash bytes or runtime-default string ordering.
+
+### Related files
+
+- `tests/container-release.test.mjs`
+- `scripts/create-release-checksums.mjs`
+
+### Related tests
+
+- `npx vitest run tests/container-release.test.mjs`
+
+## ERR-20260809-054 - Initial release lint found a stale import and ambiguous separator regex
+
+### Context
+
+The first focused quality pass inspected the standalone release verifier and its package tests.
+
+### Symptoms
+
+ESLint rejected an unused `copyFileSync` import and a regular expression containing two visually countable literal spaces.
+
+### Root cause
+
+The test import remained after fixture construction changed, and the checksum parser expressed its required two-space delimiter as literal whitespace instead of an explicit quantifier.
+
+### Correct solution
+
+Remove the stale import and express the checksum delimiter as ` {2}` while preserving the standard SHA-256 inventory format.
+
+### Prevention
+
+Run focused lint immediately after adding standalone operator scripts and keep machine-significant whitespace explicit in parsers.
+
+### Related files
+
+- `scripts/verify-release-installation.mjs`
+- `tests/container-release.test.mjs`
+
+### Related tests
+
+- `npm run lint`
+
 ## ERR-20260809-053 - Sensitive-route map exceeded the default Nginx hash bucket
 
 ### Context
@@ -248,70 +310,6 @@ Treat injectable service contracts as immutable in tests and configure scenario-
 
 - `npm run typecheck`
 - `npm run check`
-
-## ERR-20260809-045 - Local Supabase status parsing assumed a clean output stream
-
-### Context
-
-A side-effect-free bootstrap readiness check needed local URL and service-role values without writing them to disk or command output.
-
-### Symptoms
-
-The first helper read no service key from `status -o env`; a JSON retry then encountered CLI diagnostics and sandbox telemetry mixed into the captured stream.
-
-### Root cause
-
-The local verification helper treated Supabase CLI status output as a clean machine-only stdout contract. On this Windows runtime, service diagnostics and telemetry failures can use the same captured process stream.
-
-### Correct solution
-
-Run the local-only status command with approved CLI profile access, isolate the JSON object in process, and pass values only through child-process environment variables. The production bootstrap command itself reads approved environment variables directly and never parses CLI status.
-
-### Prevention
-
-Do not derive production secrets from human/status command output. Inject operator secrets from the approved secret manager and keep local status parsing confined to disposable verification helpers.
-
-### Related files
-
-- `scripts/bootstrap-production-tenant.mjs`
-- `.env.operator.example`
-
-### Related tests
-
-- `npm run tenant:bootstrap:check`
-
-## ERR-20260808-044 - Disposable full restore used a non-superuser role
-
-### Context
-
-The first executable backup/restore acceptance drill dumped the complete local Supabase database and restored it into a guarded disposable database.
-
-### Symptoms
-
-`pg_restore` stopped at `realtime.list_changes` because the local `postgres` role could not set the protected `log_min_messages` function parameter.
-
-### Root cause
-
-Supabase's local `postgres` role can create databases but is intentionally not a superuser. A full Supabase schema contains platform-owned functions whose settings require the local `supabase_admin` management role during restore.
-
-### Correct solution
-
-Make the restore user explicit and default the local drill to `supabase_admin`. Keep `--no-owner`, preserve grants, stream directly into a protected `_restore_acceptance` target without a host dump file, verify application security invariants, and always remove the target.
-
-### Prevention
-
-Run the disposable restore drill after schema/security changes and before release. Production restores must use the deployment's approved Supabase recovery role and isolated infrastructure rather than assuming a role named `postgres` is privileged.
-
-### Related files
-
-- `scripts/verify-backup-restore-acceptance.mjs`
-- `.env.operator.example`
-- `docs/DEPLOYMENT.md`
-
-### Related tests
-
-- `tests/backup-restore-acceptance.test.mjs`
-- `npm run backup:restore:acceptance`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

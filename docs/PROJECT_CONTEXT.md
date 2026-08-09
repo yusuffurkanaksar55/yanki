@@ -33,6 +33,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Off-site backups: pinned Restic tooling runs `pg_dump` through fail-aware source-command mode, creates no plaintext host dump, rejects local production repositories, verifies encrypted repository data, applies exact-environment retention, and restores one full snapshot id into a guarded disposable database with key-canary acceptance.
 - Delegated project date administration: system administrators and assigned project managers can atomically update project completion and evaluation close dates through a trusted boundary.
 - Deployment portability: one frontend image can receive public Supabase runtime configuration at container startup and run against managed or self-hosted Supabase.
+- Release integrity: exact SemVer tags publish a multi-platform GHCR image by immutable digest with pinned build inputs, BuildKit SBOM/provenance, Cosign keyless signatures, a signed artifact manifest, checksum inventory, no-build customer Compose, and disposable container acceptance.
 - Multi-tenant integrity: `organizations.id` is the company boundary; project memberships carry explicit organization scope and identity-bearing relationships require active matching organization membership.
 - Bounded repository memory: development and test logs retain 5 entries, error logs retain 10 entries, and durable decisions remain in ADRs and focused context documents.
 - Authenticated integration verification: synthetic admin, project-manager, and employee accounts have been exercised against the deployed Auth, project, onboarding, and organization-administration boundaries.
@@ -82,12 +83,13 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 - Additive key rotation, content-free key health, custody-manifest validation, encrypted recovery canaries, scheduled off-site backup tooling, exact-snapshot database-plus-key recovery automation, anonymous endpoint quotas, same-origin gateway limits with direct-bypass enforcement, transition-based alert delivery, aggregate abuse monitoring, tenant retention automation, and production tenant bootstrap are implemented. Real production custody/off-site provider configuration, gateway-token activation/direct-denial, signed production-like recovery acceptance, real alert-receiver/capacity acceptance, and infrastructure availability monitoring remain incomplete.
 - Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
 - Microsoft Entra ID is not implemented. The current anonymous credential model provides reviewed application-level unlinkability, not blind-signature cryptographic anonymity.
-- The Docker delivery, production tenant bootstrap, scheduled encrypted off-site backup tooling, and exact-snapshot restore-test foundations exist, but real remote-provider/systemd acceptance, release automation, and broader customer acceptance automation are not complete.
+- Docker delivery, signed digest-pinned release automation, production tenant bootstrap, scheduled encrypted off-site backup tooling, and exact-snapshot restore-test foundations exist. The first real version-tag workflow, real remote-provider/systemd acceptance, and broader application workflow acceptance are not complete.
 - Docker Desktop is available and the local Supabase stack is verified; local migration reset, database lint, and pgTAP authorization tests pass.
 - Synthetic test users were created by running `npm run fixture:demo`. Authenticated administration, project-manager visibility, employee denial, project membership, and assignment-generation smoke checks have been verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
 
+- 2026-08-09: Added digest-pinned multi-platform GHCR releases, pinned build dependencies, SBOM/provenance, keyless signatures, signed manifests, and standalone customer installation acceptance.
 - 2026-08-09: Added same-origin Supabase gateway limits, sensitive endpoint log suppression, service-role-only aggregate alert summaries, authenticated webhook transitions, and hardened scheduling.
 - 2026-08-09: Added pinned Restic encrypted off-site snapshots, integrity/retention scheduling, and full-id environment-scoped database-plus-key restore automation.
 - 2026-08-09: Added provider-neutral independent key custody validation, encrypted synthetic recovery canaries, and a content-free combined database/key restore acceptance drill.
@@ -101,6 +103,6 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Current Development Priorities
 
-1. Configure real production custody/off-site providers, alert receiver, capacity thresholds, and infrastructure monitoring; complete signed recovery and customer acceptance checks.
+1. Exercise the first version-tag release, then configure real production custody/off-site providers, alert receiver, capacity thresholds, and infrastructure monitoring; complete environment-signed recovery and customer acceptance checks.
 2. Configure email delivery when a provider is approved and complete real invitation acceptance verification.
 3. Add broader Playwright workflows and design a separately reviewed disclosure-resistant approach if raw-text themes are ever required.

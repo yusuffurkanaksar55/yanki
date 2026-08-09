@@ -1,5 +1,47 @@
 # Test Report
 
+## 2026-08-09 - Signed Container Release And Customer Acceptance
+
+### Environment
+
+- Windows 11, Node.js 24, npm, Docker Desktop, and the repository's pinned Node 22/Nginx 1.28 Alpine image manifests.
+- Synthetic source commit, release version, public runtime URL/key, and gateway token only; no Supabase, signing, database, or customer secret was used.
+
+### Commands executed
+
+- Focused container-release, deployment-foundation, and project-memory Vitest suites
+- `npm run lint`, `npm run check`, and `npm run deployment:config`
+- Real Docker build with release OCI build arguments
+- Real temporary container label, health, `nginx -t`, `/healthz`, and `/app-config.js` inspection
+
+### Passed
+
+- Full application checks passed 49 Vitest files and 214 tests, lint, typecheck, production build, and bounded-memory verification.
+- Seven release-contract tests covered exact package-version tags, digest-only references, trusted workflow identity, two-platform metadata, manifest tampering, standalone metadata validation, complete package generation, deterministic checksum inventory, pinned bases/Actions, SBOM/provenance configuration, signatures, and existing-release mutation denial.
+- Docker Compose configuration validation passed.
+- The real image resolved the exact pinned base manifests and built successfully. OCI source, full revision, and version labels matched expected values; the temporary container reported `healthy`; Nginx syntax and health endpoint passed; browser runtime output contained the synthetic public URL/key and no server-only value.
+- Test container and image tag cleanup succeeded, limiting local Docker disk use.
+
+### Failed And Corrected
+
+- The first lint run found one unused test import and requested the explicit `{2}` form for the checksum separator regex; both were corrected without changing behavior.
+- The first checksum-order assertion sorted complete hash-prefixed lines, then used default lexical case ordering. It now compares extracted file names with the same locale ordering as the generator.
+
+### Security checks
+
+- Verified the workflow publishes no `latest` tag, deploys by `image@sha256`, pins every external Action/full base-image manifest, and exposes no application secret.
+- Verified the signed manifest requires the exact repository/workflow/tag/OIDC identity and binds every customer artifact hash plus required OCI source labels.
+- Verified customer instructions independently validate the manifest signature and verifier hash before executing downloaded code.
+- Verified the release Compose file has no build section and the standalone acceptance command has no production signature bypass; `--metadata-only` is explicitly non-production.
+
+### Skipped
+
+- No real product tag, GHCR image, Sigstore certificate, GitHub Release, or GitHub artifact attestation was created. Those actions intentionally wait for the first approved release version.
+
+### Remaining risks
+
+- Repository settings must enable immutable Releases and tag protection. The first hosted run must prove package visibility, OIDC/Cosign, optional private-repository attestation plan support, and clean-machine customer acceptance.
+
 ## 2026-08-09 - Gateway Limits And Security Alert Delivery
 
 ### Environment
@@ -185,51 +227,3 @@
 ### Remaining risks
 
 - Production SMTP, redirect allow-list, Auth password policy, and mailbox acceptance remain release gates alongside key recovery, WAF/alerts, scheduled backups, and environment-specific restore acceptance.
-
-## 2026-08-09 - Tenant Evaluation Retention And Restore Acceptance
-
-### Environment
-
-- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
-- Docker Desktop local Supabase PostgreSQL stack and disposable restore database.
-- Linked Supabase project `daxaymcmtbmummrxdyjy` with synthetic users only.
-
-### Commands executed
-
-- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run check`
-- Local migration-up, `npm run supabase:test:local`, and local/linked database lint
-- `npm run backup:restore:acceptance` with explicit disposable-target confirmation
-- Remote migration dry-run/push/list, `npm run supabase:types`, Edge Function deployment
-- `npm run smoke:retention` with process-only synthetic HR-admin and employee credentials
-
-### Passed
-
-- Vitest passed 38 files and 153 tests, including retention service/component boundaries and backup/restore safeguards.
-- pgTAP passed 134 cases across six suites; 21 new cases verify default policy, tenant scope, grants, legal hold, expiry deletion, retained current content, count-free audit metadata, and idempotency.
-- Local and linked schema lint reported no errors; local and remote migration histories include `20260808120000`.
-- The final disposable restore streamed 640,718 compressed bytes directly from `pg_dump` into `pg_restore`, wrote no host dump file, verified migration history, encrypted-content and retention tables, operator function presence, ciphertext browser-read denial, and browser retention-execution denial, then removed the target database. A separate catalog query returned zero matching disposable databases.
-- The live scoped administrator listed and updated the 730-day disabled policy; the employee received `403`, the unauthenticated caller received `401`, and no evaluation-domain data was returned.
-
-### Failed And Corrected
-
-- The first full restore used local Supabase's non-superuser `postgres` role and failed on a protected `realtime.list_changes` function setting. The drill now uses `supabase_admin`; the complete restore and cleanup passed.
-- The first full Vitest run found server-only placeholders in the frontend `.env.example` and a multiline RLS statement outside the repository's canonical assertion. Server variables moved to `.env.operator.example`, and the migration now uses the canonical RLS form.
-- The first live anonymous smoke expected the function's JSON error, but hosted JWT verification rejected the missing token at the gateway. The smoke now asserts the security-relevant `401` status for that path.
-- Supabase CLI profile telemetry writes were sandbox-denied on first local/linked checks; approved reruns passed. The first linked type-generation attempt therefore produced an empty redirected file; the approved rerun regenerated all 1,464 lines from the live schema.
-- The migration push repeated the known non-fatal `pg-delta` temporary CA warning. Migration list and linked lint independently confirmed successful application.
-
-### Security checks
-
-- Verified policy tables and destructive functions are inaccessible to browser roles and direct `service_role` table access.
-- Verified legal hold prevents deletion and cleanup removes only ciphertext older than the date-only tenant cutoff.
-- Verified no subject, evaluator, content, participation, submission count, or deleted-row count appears in policy, audit, operator, or frontend output.
-- Verified live deletion and backup expiry are documented as separate controls.
-
-### Skipped
-
-- The destructive operator RPC was not called against the live project; a safety review correctly rejected a production-capable deletion test. Equivalent behavior passed with disposable local ciphertext fixtures.
-- Automated visual browser verification remains subject to the existing Codex browser runtime kernel-path issue.
-
-### Remaining risks
-
-- Production backup scheduling, key-plus-database recovery, retention scheduler monitoring, gateway/WAF controls, alert delivery, bootstrap, and approved invitation email remain release blockers.

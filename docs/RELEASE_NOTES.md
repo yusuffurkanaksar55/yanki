@@ -1,5 +1,13 @@
 # Release Notes
 
+## 2026-08-09 - Signed Digest-Pinned Container Release Foundation
+
+This is not a product release. Exact stable version tags now build one `linux/amd64` and `linux/arm64` OCI image index in GitHub Actions, publish it to GHCR, attach BuildKit SPDX SBOM and max-mode provenance, and sign both the image digest and release manifest through the exact GitHub Actions OIDC workflow identity.
+
+Docker base images and external Actions are pinned by immutable identifiers. The generated customer package contains a no-build Compose file whose image is pinned by digest, manifest-bound SHA-256 values, a checksum inventory, exported SBOM/provenance, and a standalone acceptance command. Customer instructions verify the manifest signature and command hash before executing downloaded code; acceptance then re-verifies signatures, files, OCI source labels, Nginx configuration, public-only runtime configuration, container health, and temporary-container cleanup.
+
+The hosted workflow has not been triggered because no product version tag was created. Before production, GitHub immutable releases and version-tag protection must be enabled, then the first reviewed tag must prove GHCR, OIDC, Cosign, release-asset, and optional GitHub-attestation permissions end to end. Real production providers and the existing live-data gates remain required.
+
 ## 2026-08-09 - Production Tenant Bootstrap Foundation
 
 This is not a product release. Shared SaaS and dedicated operators can now create a company and its first organization-scoped administrator through one explicit-confirmation command. A stable request UUID and SHA-256 fingerprint make exact retries idempotent; existing unmarked Auth identities are rejected, and a failed database transaction removes only the Auth identity created by that command.

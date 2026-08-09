@@ -25,6 +25,9 @@ Supabase documents Docker Compose as the recommended self-hosting route and make
 | --- | --- |
 | Linux server or supported customer infrastructure | Production host; Linux is the preferred baseline |
 | Docker Engine and Docker Compose v2 | Run the application and official Supabase services |
+| Node.js 20 or newer | Run reviewed release, bootstrap, backup, retention, and acceptance commands |
+| Cosign 3.0.6 | Verify the release manifest and exact OCI image digest against the trusted workflow identity |
+| GHCR access or approved OCI registry path | Pull the exact digest; private packages require a customer-specific read-only credential outside deployment files |
 | Git | Obtain reviewed application and Supabase deployment sources |
 | OpenSSL and `jq` | Generate and inspect self-hosted secrets using the official Supabase tooling |
 | Supabase CLI | Apply versioned migrations and validate database state |
@@ -46,6 +49,9 @@ The repository contains:
 - `deploy/nginx.conf`: SPA routing, immutable asset caching, no-store runtime configuration, and security headers.
 - `deploy/40-write-runtime-config.sh`: writes public Supabase configuration when the container starts.
 - `deploy/compose.env.example`: customer-specific public configuration template.
+- `.github/workflows/container-release.yml`: tag-only multi-platform GHCR publication with pinned Actions, SBOM/provenance, signatures, and release assets.
+- `deploy/release/`: no-build digest-pinned customer Compose templates.
+- `scripts/verify-release-installation.mjs`: standalone signature, integrity, image-label, Nginx, runtime-config, and health acceptance.
 
 Vite variables are normally replaced at build time. This application loads `/app-config.js` before the bundle, so one reviewed image can run against different managed or self-hosted Supabase installations without rebuilding. Only the public Supabase URL and anon or publishable key are written to this file. Service-role, database, SMTP, JWT, and encryption secrets must never enter the frontend container.
 
@@ -67,10 +73,10 @@ npx supabase db push --db-url "$DATABASE_URL" --include-all --yes
 The database URL is a server secret and must be percent-encoded where required. Do not place it in frontend configuration or command logs retained by CI.
 
 9. Copy each reviewed directory from `supabase/functions/` to the self-hosted stack's `volumes/functions/`, configure server-only values in the Functions environment file, preserve `verify_jwt = false` for `anonymous-evaluation-submissions`, and recreate or restart the Functions service. The function performs credential authorization itself and must remain callable without a user session. Follow the official [self-hosted Functions guide](https://supabase.com/docs/guides/self-hosting/self-hosted-functions).
-10. Copy `deploy/compose.env.example` to an ignored deployment environment file, set the customer public URL/key, and start the application:
+10. Download every asset from one reviewed versioned GitHub Release. Run the full command in `docs/INSTALLATION_ACCEPTANCE.md`, copy the release `compose.env.example` to a protected deployment environment file, set the customer public URL/key and server-only gateway token, keep `YANKI_IMAGE` unchanged, and start the digest-pinned image without building source:
 
 ```bash
-docker compose --env-file .env.deploy up -d --build --wait
+docker compose --env-file .env.deploy -f compose.yaml up -d --wait --no-build
 ```
 
 11. Route the public application domain to the frontend container, verify `/healthz`, sign-in redirects, password reset, invitation delivery when enabled, and all role-denial scenarios. Run synthetic submission and report acceptance, including 413/429 behavior, threshold, self, system-admin, employee, and anonymous denial checks.
@@ -79,18 +85,29 @@ docker compose --env-file .env.deploy up -d --build --wait
 14. Configure capacity, availability, certificate, backup, database, Auth, Functions, application health, and anonymous abuse-counter alerts. Acceptance-test the included Nginx limits or reproduce them in the selected CDN/WAF, then connect the content-free alert timer and infrastructure failures to approved receivers. Never collect scores, comments, decrypted payloads, credentials, tokens, request bodies, or evaluator-to-response mappings in logs.
 15. Run the release acceptance checklist and obtain customer security/operations sign-off.
 
+## Signed Container Release
+
+The release workflow runs only when a stable `vMAJOR.MINOR.PATCH` tag exactly matches `package.json`. It builds one `linux/amd64` plus `linux/arm64` OCI index, publishes only a source-commit locator tag, and records the immutable image digest in the signed release manifest and generated customer environment file. No `latest` image is published or accepted.
+
+Docker base images are pinned by manifest digest and every GitHub Action is pinned by a full commit SHA. BuildKit attaches max-mode provenance and an SPDX SBOM. Cosign signs both the exact OCI digest and `release-manifest.json` through the GitHub Actions OIDC identity. GitHub artifact attestations are added for public repositories and explicitly enabled supported private-repository plans; customer acceptance does not depend on that optional route.
+
+Before the first production release, enable GitHub immutable releases and version-tag protection in repository settings. Do not delete and recreate a published version tag. A failed workflow may be rerun only while no GitHub Release exists; the workflow refuses to mutate an existing release. See `docs/INSTALLATION_ACCEPTANCE.md` for publisher and customer commands, expected signer identity, failure rules, and release contents.
+
+Public GHCR packages can be pulled anonymously. Private packages require prior registry authentication through the customer's approved credential store; release and Compose files must contain no registry credential. Direct GHCR pull is the current baseline. Air-gapped transfer or mirroring into a customer registry is not production-approved until a reviewed process proves preservation and verification of the exact image digest, Cosign signatures, SBOM, and provenance.
+
 ## Updates And Rollback
 
-- Build and tag application images with immutable release versions and source commit identifiers.
+- Publish through the reviewed tag-only workflow and deploy the exact `image@sha256:...` reference from its signed manifest. Registry tags are locators only.
+- Verify Cosign identity, release-file hashes, OCI labels, generated Nginx configuration, runtime public-config boundary, and container health before every environment update.
 - Pin the Supabase self-host release; review its changelog before updating the tested image set.
 - Back up the database before migrations and validate restore procedures regularly.
 - Run migration dry-run and staging acceptance checks before production.
 - Database migrations are forward-only by default. A rollback plan must use a reviewed corrective migration or database restore, never an unreviewed destructive command.
-- Keep the previous application image available for immediate frontend rollback when no incompatible migration has been applied.
+- Keep the previous signed image digest and release package available for immediate frontend rollback when no incompatible migration has been applied.
 
 ## Production Release Gate
 
-This repository now has anonymous encrypted submission storage, additive key rotation, key-health validation, application-level anonymous quotas, same-origin gateway limits, content-free aggregate monitoring and webhook alert transitions, scoped thresholded reporting, tenant content-retention controls, production tenant bootstrap, scheduled encrypted off-site backup tooling, and exact-snapshot restore acceptance, but it is not approved for live employee data. An independent production key, approved key escrow, real remote backup and alert providers, monitored systemd/infrastructure execution, production capacity tuning, signed environment-specific recovery drill, approved invitation-mail acceptance, and broader end-to-end security regression coverage must be completed before production use.
+This repository now has anonymous encrypted submission storage, additive key rotation, key-health validation, application-level anonymous quotas, same-origin gateway limits, content-free aggregate monitoring and webhook alert transitions, scoped thresholded reporting, tenant content-retention controls, production tenant bootstrap, scheduled encrypted off-site backup tooling, exact-snapshot restore acceptance, and signed digest-pinned container release automation, but it is not approved for live employee data. The first real hosted release, an independent production key, approved key escrow, real remote backup and alert providers, monitored systemd/infrastructure execution, production capacity tuning, signed environment-specific recovery drill, approved invitation-mail acceptance, and broader end-to-end security regression coverage must be completed before production use.
 
 ## Production Tenant Bootstrap Operations
 
@@ -291,4 +308,4 @@ Rollback changes only `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION` back to the pre
 
 ## Customer Handover
 
-The handover package must include the architecture diagram, data inventory, ports and DNS, secret ownership, SMTP configuration, backup and restore runbook, monitoring alerts, update cadence, incident contacts, vulnerability response, license inventory, release checksums, and signed acceptance results. Secret values and live credentials are delivered only through the customer's approved secure channel.
+The handover package must include the architecture diagram, data inventory, ports and DNS, secret ownership, SMTP configuration, backup and restore runbook, monitoring alerts, update cadence, incident contacts, vulnerability response, license inventory, signed release manifest, exact image digest, SBOM, provenance, release checksums, and signed acceptance results. Secret values and live credentials are delivered only through the customer's approved secure channel.

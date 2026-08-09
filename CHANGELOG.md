@@ -6,6 +6,9 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added a tag-only multi-platform GHCR release workflow with full-SHA Action pins, digest-pinned Node/Nginx bases, max-mode provenance, SPDX SBOM, Cosign keyless image/manifest signatures, and optional GitHub artifact attestations.
+- Added a signed release manifest, SHA-256 inventory, no-build customer Compose package, and standalone installation acceptance that verifies origin, integrity, OCI labels, Nginx, runtime public configuration, health, and cleanup.
+- Added ADR-0029 plus publisher/customer release and rollback operations documentation.
 - Added a same-origin Nginx Supabase gateway with dynamic upstream DNS, matching sensitive body limits, per-source/global request zones, bounded connections, and request-level log suppression.
 - Added an environment-specific server token that prevents direct managed-Supabase calls from bypassing sensitive gateway limits, with fail-closed production configuration and constant-work Edge Function verification.
 - Added a service-role-only identifier-free operator summary, authenticated HTTPS webhook alert/recovery transitions, daily reminders, atomic deduplication state, and a hardened five-minute systemd schedule.

@@ -16,6 +16,10 @@ describe("portable deployment foundation", () => {
       "deploy/nginx.conf",
       "deploy/40-write-runtime-config.sh",
       "deploy/compose.env.example",
+      "deploy/release/compose.yaml",
+      "deploy/release/compose.env.example",
+      "scripts/verify-release-installation.mjs",
+      ".github/workflows/container-release.yml",
       "docs/DEPLOYMENT.md"
     ];
 
