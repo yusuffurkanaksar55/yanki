@@ -4,6 +4,10 @@ import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const scriptSource = read("scripts/verify-backup-restore-acceptance.mjs");
+const restoreLibrarySource = read(
+  "scripts/lib/database-restore-acceptance.mjs"
+);
+const streamLibrarySource = read("scripts/lib/stream-processes.mjs");
 const packageJson = JSON.parse(read("package.json"));
 
 describe("backup and restore acceptance foundation", () => {
@@ -11,35 +15,35 @@ describe("backup and restore acceptance foundation", () => {
     expect(scriptSource).toMatch(
       /RUN_DISPOSABLE_BACKUP_RESTORE_ACCEPTANCE/u
     );
-    expect(scriptSource).toContain("_restore_acceptance$/u");
-    expect(scriptSource).toMatch(/sourceDatabase === targetDatabase/u);
+    expect(scriptSource).toContain('"_restore_acceptance"');
+    expect(restoreLibrarySource).toMatch(/sourceDatabase === targetDatabase/u);
   });
 
   it("creates a compressed dump and restores it with fail-fast behavior", () => {
     expect(scriptSource).toMatch(/pg_dump/u);
     expect(scriptSource).toMatch(/--format=custom/u);
     expect(scriptSource).toMatch(/--compress=9/u);
-    expect(scriptSource).toMatch(/pg_restore/u);
-    expect(scriptSource).toMatch(/--exit-on-error/u);
+    expect(restoreLibrarySource).toMatch(/pg_restore/u);
+    expect(restoreLibrarySource).toMatch(/--exit-on-error/u);
   });
 
   it("verifies restored security boundaries without reading evaluation content", () => {
-    expect(scriptSource).toMatch(/encryptedSubmissionsPresent/u);
-    expect(scriptSource).toMatch(/browserCiphertextReadDenied/u);
-    expect(scriptSource).toMatch(/browserRetentionExecutionDenied/u);
-    expect(scriptSource).toMatch(/browserRecoveryCanaryReadDenied/u);
-    expect(scriptSource).toMatch(/serviceRecoveryCanaryReadDenied/u);
-    expect(scriptSource).not.toMatch(/select encrypted_payload/u);
+    expect(restoreLibrarySource).toMatch(/encryptedSubmissionsPresent/u);
+    expect(restoreLibrarySource).toMatch(/browserCiphertextReadDenied/u);
+    expect(restoreLibrarySource).toMatch(/browserRetentionExecutionDenied/u);
+    expect(restoreLibrarySource).toMatch(/browserRecoveryCanaryReadDenied/u);
+    expect(restoreLibrarySource).toMatch(/serviceRecoveryCanaryReadDenied/u);
+    expect(restoreLibrarySource).not.toMatch(/select encrypted_payload/u);
   });
 
   it("streams the dump without writing it to host storage", () => {
-    expect(scriptSource).toMatch(/pipeline\(dumpProcess\.stdout/u);
+    expect(streamLibrarySource).toMatch(/pipeline\(sourceProcess\.stdout/u);
     expect(scriptSource).toMatch(/temporaryDumpWritten: false/u);
-    expect(scriptSource).not.toMatch(/createWriteStream|mkdtempSync/u);
+    expect(streamLibrarySource).not.toMatch(/createWriteStream|mkdtempSync/u);
   });
 
   it("always removes the disposable database", () => {
-    expect(scriptSource).toMatch(/finally \{[\s\S]*dropdb/u);
+    expect(scriptSource).toMatch(/finally \{[\s\S]*dropDisposableDatabase/u);
   });
 
   it("is exposed through the project command surface", () => {

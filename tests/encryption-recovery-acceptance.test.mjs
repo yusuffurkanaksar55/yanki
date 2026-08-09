@@ -11,6 +11,9 @@ const acceptanceSource = read(
   "scripts/verify-key-database-recovery-acceptance.mjs"
 );
 const restoreSource = read("scripts/verify-backup-restore-acceptance.mjs");
+const restoreLibrarySource = read(
+  "scripts/lib/database-restore-acceptance.mjs"
+);
 const migrationSource = read(
   "supabase/migrations/20260809153000_encryption_recovery_canaries.sql"
 );
@@ -36,9 +39,9 @@ describe("combined key and database recovery acceptance", () => {
   });
 
   it("decrypts canaries inside the disposable restore window", () => {
-    expect(restoreSource).toMatch(/verifyEncryptionRecoveryCanaries/u);
-    expect(restoreSource).toMatch(/evaluation_encryption_recovery_canaries/u);
-    expect(restoreSource).toMatch(/finally \{[\s\S]*dropdb/u);
+    expect(restoreLibrarySource).toMatch(/verifyEncryptionRecoveryCanaries/u);
+    expect(restoreLibrarySource).toMatch(/evaluation_encryption_recovery_canaries/u);
+    expect(restoreSource).toMatch(/finally \{[\s\S]*dropDisposableDatabase/u);
     expect(restoreSource).not.toMatch(/createWriteStream|mkdtempSync/u);
   });
 

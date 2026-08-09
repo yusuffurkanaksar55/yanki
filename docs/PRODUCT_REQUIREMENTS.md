@@ -112,7 +112,7 @@ No role is a singleton. A tenant may have multiple users with the same role when
 
 ## Remaining Production Scope
 
-- Additive key rotation, content-free health checks, provider-neutral custody validation, encrypted synthetic recovery canaries, tenant retention automation, and a disposable local database-plus-key restore drill are complete. Real production custody-provider/offline-escrow configuration, scheduled encrypted backups, and environment-specific recovery acceptance are not complete.
+- Additive key rotation, content-free health checks, provider-neutral custody validation, encrypted synthetic recovery canaries, tenant retention automation, pinned encrypted off-site backup scheduling, bounded retention/integrity commands, and exact-snapshot database-plus-key restore automation are complete. Real production custody/off-site provider configuration and a signed production-like isolated recovery acceptance remain deployment gates.
 - Application-level anonymous submission quotas and content-free monitoring are complete. Production gateway/WAF limits and alert delivery are not complete.
 - Real invitation email delivery awaits an approved provider and mailbox.
 - Production bootstrap is implemented; each environment still requires approved SMTP, redirect allow-list, password policy, and first-administrator mailbox acceptance verification.

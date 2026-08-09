@@ -1,5 +1,43 @@
 # Development Log
 
+## 2026-08-09 - Encrypted Off-Site Backup And Environment Restore Automation
+
+### Objective
+
+Create scheduled, independently stored encrypted PostgreSQL snapshots for SaaS and dedicated installations, detect failed exports, apply bounded retention/integrity checks, and prove exact-snapshot recovery with every separately custodied evaluation key without writing a plaintext host dump.
+
+### Changes
+
+- Added pinned Restic `0.19.1` tooling, a checksum-verified Windows installer under ignored `.tools`, remote-repository enforcement, and Docker/native database source modes that keep database URLs out of process arguments.
+- Added explicit-confirmation repository initialization, fail-aware encrypted snapshot creation, configurable repository data-subset checking, exact-environment retention/prune, and full-snapshot-id restore acceptance.
+- Extracted shared streaming and restored-database security/key-canary verification for local and off-site drills.
+- Added a fail-fast hardened systemd oneshot service plus persistent daily timer, ADR-0027, focused tests, and managed/dedicated operations documentation.
+
+### Database changes
+
+None. This change operates entirely in the trusted deployment/backup boundary and adds no browser or service-role database access.
+
+### Security impact
+
+Positive. Restic observes the `pg_dump` exit status, encrypts before remote persistence, and returns no repository locator or credential. Production rejects local repositories, retention is scoped to exact environment metadata, restore rejects `latest`, and every drill revalidates database privileges plus independently recovered keys.
+
+### Tests performed
+
+- Full `npm run check`: 45 Vitest files and 190 tests, lint, typecheck, production build, and bounded-memory verification; Docker Compose configuration validation also passed.
+- 24 focused Vitest cases plus a final 13-case rerun after normalizing cross-platform Restic snapshot paths.
+- Checksum-verified Restic `0.19.1` installation on the D: project drive.
+- Full local encrypted repository lifecycle with process-only random credentials: one 869,602-byte dump created an encrypted snapshot, a 100% repository data check passed, scoped retention/prune passed, and the exact snapshot restored with all security and key-canary checks before target/repository cleanup.
+
+### Result
+
+The repository has executable scheduling and environment-scoped restore automation for both deployment topologies. A real remote provider, production systemd host, alert route, and signed isolated recovery evidence remain environment acceptance work.
+
+### Remaining work
+
+- Configure approved production secret/off-site providers and run a timed isolated recovery drill.
+- Add outer gateway/WAF limits and alert delivery without sensitive request logging.
+- Complete approved invitation-email and immutable release/customer acceptance work.
+
 ## 2026-08-09 - Independent Key Custody And Combined Recovery Acceptance
 
 ### Objective
@@ -152,42 +190,4 @@ The migration and all three Edge Functions are active in the linked project. The
 
 - Establish production gateway/WAF limits and alert delivery without sensitive logging.
 - Complete independent production key escrow/recovery, retention, bootstrap, and backup/restore acceptance.
-- Complete approved invitation-email and visual browser verification.
-
-## 2026-08-07 - Additive Encryption Key Rotation And Health
-
-### Objective
-
-Rotate evaluation encryption keys without retrieving or replacing historical Supabase secrets, losing access to existing ciphertext, or exposing key/content data to administrators.
-
-### Changes
-
-- Added backward-compatible merging of the legacy JSON keyring with immutable per-version `EVALUATION_ENCRYPTION_KEY_VERSION_<VERSION>` secrets.
-- Added a service-role-only distinct referenced-version inventory and authenticated `encryption-key-health` Edge Function that returns only booleans and total version counts.
-- Added a Turkish system-administrator health panel, typed service, safe no-stdout rotation-file generator, live health smoke test, focused tests, and ADR-0022.
-- Updated deployment, security, architecture, authorization, data model, product status, and release documentation.
-
-### Database changes
-
-Applied `20260807143000_encryption_key_lifecycle.sql` locally and to project `daxaymcmtbmummrxdyjy`. The inventory function exposes no ciphertext, content, identities, per-version counts, or timestamps and is executable only by `service_role`.
-
-### Security impact
-
-Positive. New key versions can be added without overwriting unreadable historical secret values. The browser receives no key material or version name. Historical coverage is checked against actual ciphertext references, and non-admin users are denied the health endpoint.
-
-### Tests performed
-
-- `npm run lint`, `npm run typecheck`, 125 Vitest cases, `npm run build`, and `npm run check`.
-- Local migration-up, schema lint, and `npm run supabase:test:local`: 94 pgTAP cases across five suites.
-- Remote dry-run/push/list, linked lint, type generation, and four dependent Edge Function deployments.
-- Live `smoke:key-health` before and after rotation, followed by `smoke:reports` under the new active key and a final two-configured/two-referenced health check.
-
-### Result
-
-The linked synthetic project retains its legacy development key, uses additive version `DEV_20260807_01` for new ciphertext, and reports healthy coverage for both referenced versions. Existing and new report decryption passed, and the temporary ignored secret-transfer file was deleted after upload.
-
-### Remaining work
-
-- Establish independent production key custody, approved secret escrow, and database-plus-key recovery acceptance.
-- Add anonymous endpoint rate limiting, retention, production bootstrap, monitoring, and backup/restore automation.
 - Complete approved invitation-email and visual browser verification.

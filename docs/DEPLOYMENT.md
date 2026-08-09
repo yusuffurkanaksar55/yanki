@@ -29,7 +29,8 @@ Supabase documents Docker Compose as the recommended self-hosting route and make
 | OpenSSL and `jq` | Generate and inspect self-hosted secrets using the official Supabase tooling |
 | Supabase CLI | Apply versioned migrations and validate database state |
 | Nginx, Caddy, or customer load balancer | TLS termination, public routing, and certificate renewal |
-| PostgreSQL backup tooling | Scheduled backups, restore drills, and optional WAL archiving |
+| PostgreSQL client matching the source major version | Stream logical custom-format backups and run restore drills |
+| Restic 0.19.1 | Encrypt, authenticate, retain, verify, and retrieve off-site database snapshots |
 | Customer secret manager | Store database, JWT, SMTP, service-role, and encryption keys |
 | Monitoring and log collection | Service health, capacity, audit metadata, and alerting without sensitive payloads |
 | SMTP relay | Production Auth invitation and password-reset delivery when email is enabled |
@@ -74,7 +75,7 @@ docker compose --env-file .env.deploy up -d --build --wait
 
 11. Route the public application domain to the frontend container, verify `/healthz`, sign-in redirects, password reset, invitation delivery when enabled, and all role-denial scenarios. Run synthetic submission and report acceptance, including 413/429 behavior, threshold, self, system-admin, employee, and anonymous denial checks.
 12. Create the initial organization and administrator with the production tenant bootstrap procedure below. Verify that the administrator receives the message, sets a strong password, accepts the invitation, and sees only the new organization scope. Manual service-role table writes are not an approved workaround.
-13. Configure each tenant's evaluation-content policy, schedule `npm run retention:run` in the trusted operator environment, schedule encrypted backups, define backup retention, and perform an environment-specific restore drill before accepting live data. Document recovery time and recovery point objectives.
+13. Configure each tenant's evaluation-content policy, schedule `npm run retention:run` in the trusted operator environment, enable the encrypted off-site backup timer below, define aligned backup retention, and perform an environment-specific database-plus-key restore drill before accepting live data. Document recovery time and recovery point objectives.
 14. Configure capacity, availability, certificate, backup, database, Auth, Functions, application health, and anonymous abuse-counter alerts. Apply reverse-proxy/WAF connection and request limits outside the application without collecting IP/device identifiers in the product database. Never collect scores, comments, decrypted payloads, credentials, tokens, or evaluator-to-response mappings in logs.
 15. Run the release acceptance checklist and obtain customer security/operations sign-off.
 
@@ -89,7 +90,7 @@ docker compose --env-file .env.deploy up -d --build --wait
 
 ## Production Release Gate
 
-This repository now has anonymous encrypted submission storage, additive key rotation, key-health validation, application-level anonymous quotas, content-free aggregate abuse monitoring, scoped thresholded reporting, tenant content-retention controls, production tenant bootstrap, and a disposable local restore drill, but it is not approved for live employee data. An independent production key, approved key escrow and environment-specific recovery drill, outer gateway/WAF limits and alert delivery, approved invitation-mail acceptance, scheduled encrypted off-host backups, and broader end-to-end security regression coverage must be completed before production use.
+This repository now has anonymous encrypted submission storage, additive key rotation, key-health validation, application-level anonymous quotas, content-free aggregate abuse monitoring, scoped thresholded reporting, tenant content-retention controls, production tenant bootstrap, scheduled encrypted off-site backup tooling, and exact-snapshot restore acceptance, but it is not approved for live employee data. An independent production key, approved key escrow, real remote backup provider, monitored systemd execution, signed environment-specific recovery drill, outer gateway/WAF limits and alert delivery, approved invitation-mail acceptance, and broader end-to-end security regression coverage must be completed before production use.
 
 ## Production Tenant Bootstrap Operations
 
@@ -132,7 +133,58 @@ The recovery command refuses accepted, revoked, unknown, or fingerprint-mismatch
 - Set `BACKUP_RESTORE_ACCEPTANCE_CONFIRM=RUN_DISPOSABLE_BACKUP_RESTORE_ACCEPTANCE`, then run `npm run backup:restore:acceptance`.
 - The default drill uses `supabase_admin` inside `supabase_db_anonim_degerlendirme`, creates only `yanki_restore_acceptance`, streams a compressed custom-format dump directly into restore without writing it to host storage, verifies migration and security invariants, and removes the temporary database.
 - Override the container, database user, source, or target only in a reviewed disposable environment. The target name must end in `_restore_acceptance` and must never equal the source database.
-- This local drill validates mechanics, schema, and restored privileges. Every SaaS or dedicated production environment still needs scheduled encrypted off-host backups, key escrow, documented RPO/RTO, and a restore into isolated infrastructure using its approved Supabase recovery procedure.
+- This local drill validates mechanics, schema, and restored privileges. Every SaaS or dedicated production environment must configure the provided scheduler against an approved remote repository, escrow its keys, document RPO/RTO, and restore into isolated infrastructure using its approved Supabase recovery procedure.
+
+## Scheduled Encrypted Off-Site Backups
+
+Managed Supabase backups remain useful but are not the independent repository controlled by this workflow. Self-hosted operators are responsible for all backup and disaster recovery. The Restic workflow is a logical same-version disaster-recovery export; platform-to-self-hosted or cross-major-version migration may require Supabase's separate portable roles/schema/data dump procedure. Database snapshots do not contain Supabase Storage object bytes, Edge Function source/secrets, SMTP settings, DNS, or runtime deployment configuration; back those up through their reviewed infrastructure channels.
+
+### Operator configuration
+
+1. Provision an object-storage bucket or remote backend in a different failure/account boundary from the database host. Enable provider-side immutability/versioning where approved, restrict credentials to the repository path, and block public access.
+2. Generate a strong independent Restic repository password. Store it and backend credentials in the approved secret manager/recovery escrow, separate from repository data and evaluation-encryption keys.
+3. Install exactly Restic `0.19.1` and a PostgreSQL client compatible with the source server. Windows development can run `npm run backup:tool:install`; the checksum-verified binary stays under ignored `.tools/` on the project drive rather than using a system-wide installation.
+4. Copy `deploy/backup/operator.env.example` to `/etc/yanki/backup.env`, set owner/root access and mode `0600`, replace every placeholder, and remove variables for the unused source mode. `DATABASE_URL` keeps the connection in `PGDATABASE`; `DOCKER` runs `pg_dump` inside the named database container.
+5. Set `RESTIC_REPOSITORY` to an approved remote backend or use `RESTIC_REPOSITORY_FILE`. Local paths are rejected unless `OFFSITE_BACKUP_ALLOW_LOCAL_REPOSITORY=ALLOW_LOCAL_ENCRYPTED_REPOSITORY_FOR_ACCEPTANCE`, which is never valid for production evidence.
+
+Initialize each new remote repository once:
+
+```bash
+OFFSITE_BACKUP_REPOSITORY_INIT_CONFIRM=INITIALIZE_ENCRYPTED_OFFSITE_REPOSITORY \
+  npm run backup:offsite:init
+```
+
+Run one controlled snapshot, integrity check, and retention preview/acceptance before scheduling:
+
+```bash
+npm run backup:offsite:create
+npm run backup:offsite:check
+npm run backup:offsite:retention
+```
+
+Snapshot creation uses `--stdin-from-command`, so a failed `pg_dump` cancels the snapshot. The report returns only the full snapshot id, source/repository byte totals, source mode, and safe booleans. Integrity defaults to a random 5% data subset; schedule periodic `100%` checks according to repository size and bandwidth budget. Retention values are mandatory and scoped to exact environment host/path/tags. Align them with tenant contracts, legal holds, database retention, and historical encryption-key custody before enabling prune.
+
+Install the reviewed systemd files on a Linux operator host:
+
+```bash
+sudo install -m 0644 deploy/backup/yanki-offsite-backup.service /etc/systemd/system/
+sudo install -m 0644 deploy/backup/yanki-offsite-backup.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now yanki-offsite-backup.timer
+```
+
+The timer runs daily with randomized delay and persists missed executions. Monitor `yanki-offsite-backup.service` failure, stale last-success age, remote capacity, and provider access errors without logging database URLs, repository locators, credentials, dump output, or content.
+
+### Environment-specific restore acceptance
+
+1. Provision a compatible isolated Supabase/PostgreSQL environment. Never test by overwriting production.
+2. Recover the Restic password/backend credentials and every key in the environment's custody manifest through their independent approved channels.
+3. Select and record one full 64-character snapshot id from the intended environment. The command rejects `latest`, host/tag/path mismatches, and an unguarded target name.
+4. Configure `OFFSITE_RESTORE_*`, `EVALUATION_KEY_CUSTODY_MANIFEST_PATH`, and the versioned encryption keys. Set `OFFSITE_RESTORE_ACCEPTANCE_CONFIRM=RUN_ENCRYPTED_OFFSITE_RESTORE_ACCEPTANCE`.
+5. Run `npm run backup:offsite:restore:acceptance`. Accept only when the snapshot scope, streamed restore, reviewed database privileges, every recovery canary, and disposable target removal pass.
+6. Record measured backup age, RPO, RTO, snapshot id, release/version compatibility, byte/hash report, operator approvals, and remediation. Archive no secret values or restored content.
+
+Run an isolated drill at least quarterly and after backup-tool, PostgreSQL-major-version, key-custody, retention, or topology changes. A local repository drill proves mechanics only; production readiness requires the real remote backend and production-like isolated infrastructure.
 
 ## Anonymous Abuse-Control Operations
 
@@ -160,7 +212,7 @@ Custody and recovery sequence:
 5. Restore the approved database backup into isolated Supabase/PostgreSQL infrastructure. Configure the Docker container/source/guarded target values for that isolated environment, recover all manifest keys through the approved custody channels, set `KEY_DATABASE_RECOVERY_ACCEPTANCE_CONFIRM=RUN_KEY_DATABASE_RECOVERY_ACCEPTANCE`, and run `npm run encryption:recovery:acceptance`.
 6. Accept the drill only when every custodied key decrypts its restored canary, all restored privilege checks pass, no host dump is written, and the disposable target is removed. Archive only the count/boolean/hash report through the approved evidence channel.
 
-Repeat manifest validation, canary refresh, backup creation, and combined recovery acceptance after every key-version addition and at the documented disaster-recovery cadence. The command proves database/key compatibility but does not create scheduled backups or prove that a provider is geographically or administratively independent. SaaS operations and each dedicated customer must separately approve secret-provider access, encrypted off-host backup scheduling, retention, isolated restore infrastructure, RPO/RTO, and signed two-person evidence.
+Repeat manifest validation, canary refresh, backup creation, and combined recovery acceptance after every key-version addition and at the documented disaster-recovery cadence. The repository provides scheduled backup tooling, but it cannot prove that the configured provider is geographically or administratively independent. SaaS operations and each dedicated customer must separately approve secret-provider access, encrypted off-site storage, timer monitoring, retention, isolated restore infrastructure, RPO/RTO, and signed two-person evidence.
 
 Managed Supabase rotation sequence:
 

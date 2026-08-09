@@ -29,6 +29,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Production tenant bootstrap: a service-role-only, fingerprinted, idempotent operator command creates an organization, initial unit, first administrator invitation, default retention policy, and content-free audit trail for shared SaaS or dedicated installations. Failed database creation compensates only the Auth identity created by that command, and an explicit recovery command can renew an incomplete initial invitation without printing an action link.
 - Recovery acceptance: a Docker-backed disposable restore drill streams a compressed dump into a protected temporary database without a host dump file, verifies migration and security invariants, optionally decrypts identity-free synthetic canaries with independently recovered keys, and always removes the target.
 - Key custody: a provider-neutral, credential-free manifest requires independent primary/recovery references and two custodian roles for every version. A service-role-only RPC stores encrypted random canaries; combined restore acceptance verifies every manifest key without reading evaluation content or logging key/version details.
+- Off-site backups: pinned Restic tooling runs `pg_dump` through fail-aware source-command mode, creates no plaintext host dump, rejects local production repositories, verifies encrypted repository data, applies exact-environment retention, and restores one full snapshot id into a guarded disposable database with key-canary acceptance.
 - Delegated project date administration: system administrators and assigned project managers can atomically update project completion and evaluation close dates through a trusted boundary.
 - Deployment portability: one frontend image can receive public Supabase runtime configuration at container startup and run against managed or self-hosted Supabase.
 - Multi-tenant integrity: `organizations.id` is the company boundary; project memberships carry explicit organization scope and identity-bearing relationships require active matching organization membership.
@@ -77,15 +78,16 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 ## Known Limitations
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
-- Additive key rotation, content-free key health, custody-manifest validation, encrypted recovery canaries, local database-plus-key recovery acceptance, anonymous endpoint quotas, aggregate abuse monitoring, tenant retention automation, and production tenant bootstrap are implemented. Real production custody-provider configuration, outer gateway/WAF limits and alert delivery, scheduled production backups, and environment-specific restore acceptance remain incomplete.
+- Additive key rotation, content-free key health, custody-manifest validation, encrypted recovery canaries, scheduled off-site backup tooling, exact-snapshot database-plus-key recovery automation, anonymous endpoint quotas, aggregate abuse monitoring, tenant retention automation, and production tenant bootstrap are implemented. Real production custody/off-site provider configuration, signed production-like recovery acceptance, and outer gateway/WAF limits with alert delivery remain incomplete.
 - Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
 - Microsoft Entra ID is not implemented. The current anonymous credential model provides reviewed application-level unlinkability, not blind-signature cryptographic anonymity.
-- The Docker delivery, production tenant bootstrap, and disposable restore-test foundations exist, but scheduled encrypted off-host backups, release automation, and customer acceptance automation are not implemented.
+- The Docker delivery, production tenant bootstrap, scheduled encrypted off-site backup tooling, and exact-snapshot restore-test foundations exist, but real remote-provider/systemd acceptance, release automation, and broader customer acceptance automation are not complete.
 - Docker Desktop is available and the local Supabase stack is verified; local migration reset, database lint, and pgTAP authorization tests pass.
 - Synthetic test users were created by running `npm run fixture:demo`. Authenticated administration, project-manager visibility, employee denial, project membership, and assignment-generation smoke checks have been verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
 
+- 2026-08-09: Added pinned Restic encrypted off-site snapshots, integrity/retention scheduling, and full-id environment-scoped database-plus-key restore automation.
 - 2026-08-09: Added provider-neutral independent key custody validation, encrypted synthetic recovery canaries, and a content-free combined database/key restore acceptance drill.
 - 2026-08-09: Added idempotent production tenant bootstrap, compensated Auth creation, initial-invitation recovery, and strong password setup for invitation/recovery sessions.
 - 2026-08-08: Added tenant-scoped encrypted evaluation-content retention, legal hold, trusted scheduled cleanup, Turkish policy administration, and a disposable Docker backup/restore acceptance drill.
@@ -97,6 +99,6 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Current Development Priorities
 
-1. Configure a real production secret manager/offline escrow, then complete outer gateway/WAF limits and alert delivery, scheduled encrypted backups, environment-specific recovery acceptance, and customer acceptance checks.
+1. Configure real production custody/off-site providers and complete a signed isolated recovery acceptance, then implement outer gateway/WAF limits and alert delivery plus remaining customer acceptance checks.
 2. Configure email delivery when a provider is approved and complete real invitation acceptance verification.
 3. Add broader Playwright workflows and design a separately reviewed disclosure-resistant approach if raw-text themes are ever required.

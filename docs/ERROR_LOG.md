@@ -1,5 +1,37 @@
 # Error Log
 
+## ERR-20260809-049 - Restic stdin snapshot path differed on Windows
+
+### Context
+
+The first full encrypted off-site restore acceptance selected the exact newly created Restic snapshot after snapshot creation, integrity checking, and retention passed.
+
+### Symptoms
+
+The restore command stopped before creating the disposable database because snapshot metadata did not match the expected root-relative stdin filename.
+
+### Root cause
+
+Restic records `--stdin-filename` under the current Windows drive path, while the validator assumed Unix-style root-relative or bare paths. Snapshot id, hostname, and all tags were correct.
+
+### Correct solution
+
+Normalize Windows and Unix path separators and compare the final filename, while continuing to require one full snapshot id, the exact environment hostname, and every purpose/environment/format tag.
+
+### Prevention
+
+Treat backup-tool metadata as a cross-platform contract and test it with the real pinned binary on every supported operator OS. Keep identity checks independent of harmless platform path prefixes.
+
+### Related files
+
+- `scripts/lib/offsite-backup.mjs`
+- `scripts/verify-offsite-backup-restore-acceptance.mjs`
+
+### Related tests
+
+- `tests/offsite-backup.test.ts`
+- `npm run backup:offsite:restore:acceptance`
+
 ## ERR-20260809-048 - RLS migration form did not match the repository guard
 
 ### Context
@@ -287,37 +319,6 @@ Check local migration state after startup and apply pending migrations before te
 ### Related tests
 
 - `npm run supabase:test:local`
-
-## ERR-20260807-039 - Static keyring boundary test inspected the previous module
-
-### Context
-
-Keyring parsing moved from the submission helper into a dedicated pure module for rotation and health tests.
-
-### Symptoms
-
-One Vitest assertion reported that `EVALUATION_ENCRYPTION_KEYRING` was absent from the old helper source.
-
-### Root cause
-
-The static boundary test asserted the previous file location instead of the key custody invariant.
-
-### Correct solution
-
-Read the dedicated keyring module and assert legacy compatibility, additive per-version secrets, active selection, and server-side nonce/encryption behavior across the two relevant sources.
-
-### Prevention
-
-Keep static security tests bound to ownership boundaries and invariants rather than one implementation file.
-
-### Related files
-
-- `tests/anonymous-submission-boundary.test.mjs`
-- `supabase/functions/_shared/encryptionKeyring.ts`
-
-### Related tests
-
-- `npm test`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

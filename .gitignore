@@ -6,6 +6,7 @@ coverage/
 !.env.example
 !.env.operator.example
 .secrets/
+.tools/
 .supabase/
 supabase/.branches/
 supabase/.temp/

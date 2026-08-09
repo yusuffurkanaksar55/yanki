@@ -1,5 +1,46 @@
 # Test Report
 
+## 2026-08-09 - Encrypted Off-Site Backup And Exact-Snapshot Restore
+
+### Environment
+
+- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1, and Docker Desktop local Supabase.
+- Checksum-verified Restic 0.19.1 under ignored `.tools/restic` on the D: project drive.
+- Disposable local Restic repository and process-only random repository/evaluation keys; the repository was removed after acceptance.
+
+### Commands executed
+
+- Focused off-site configuration/boundary and shared restore Vitest suites
+- `npm run lint`, `npm run typecheck`, `npm run backup:tool:install`
+- `npm run check`, `npm run deployment:config`
+- Explicit repository init, encrypted snapshot, 100% data integrity check, scoped retention/prune, and off-site restore acceptance scripts
+
+### Passed
+
+- Remote repository validation, local acceptance-only override, database-URL argument secrecy, fail-aware source mode, environment-scoped retention, integrity subset validation, full snapshot metadata, and safe JSON summary tests passed.
+- The official Windows Restic archive matched the pinned SHA-256 and reported version 0.19.1 from ignored D: storage.
+- A 869,602-byte PostgreSQL custom dump created an encrypted snapshot with no plaintext host file; Restic stored 869,966 new repository bytes and a 100% repository data check passed.
+- Exact environment host/tags/filename and full snapshot id were verified before restore. Stream hash/size matched, all reviewed database privileges passed, one independently keyed canary decrypted, and the disposable database plus local repository were removed.
+- Full application checks passed 45 Vitest files and 190 tests, lint, typecheck, production build, bounded-memory verification, and Docker Compose configuration validation.
+
+### Failed And Corrected
+
+- The first exact-snapshot validation assumed Restic stdin paths were root-relative on every OS. Windows records the stdin filename under the current drive path. Validation now normalizes both separators and compares the final filename while still requiring the full snapshot id, exact host, and all tags; the complete rerun passed.
+
+### Security checks
+
+- Verified database URLs remain in `PGDATABASE`, repository/password values are absent from arguments/reports, and local repositories require an exact acceptance-only override.
+- Verified snapshot creation uses `--stdin-from-command`, retention filters exact host plus combined tags, restore never uses `latest`, and neither backup nor restore creates a plaintext dump file.
+- Verified restored system-admin/browser boundaries and every recovery canary before target deletion.
+
+### Skipped
+
+- No real S3/Azure/other remote provider or production systemd host was configured; this requires approved provider credentials and infrastructure.
+
+### Remaining risks
+
+- Production release still requires remote-provider immutability/access review, monitored timer execution, storage-object backup if adopted, aligned legal/retention policy, and signed production-like RPO/RTO evidence.
+
 ## 2026-08-09 - Key Custody And Database Recovery Acceptance
 
 ### Environment
@@ -190,50 +231,3 @@
 ### Remaining risks
 
 - External gateway/WAF capacity controls and alert delivery, production key custody/recovery, retention, bootstrap, backup acceptance, and invitation email remain release blockers.
-
-## 2026-08-07 - Additive Encryption Key Rotation And Health
-
-### Environment
-
-- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
-- Docker Desktop local Supabase stack with retained local volumes.
-- Linked Supabase project `daxaymcmtbmummrxdyjy` with synthetic users and development-only keys.
-
-### Commands executed
-
-- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run check`
-- `npx supabase migration up --local`, `npm run supabase:test:local`, `npm run supabase:lint:local`
-- Remote migration dry-run/push/list, `npm run supabase:lint:linked`, `npm run supabase:types`
-- Edge Function deploy/list, `npm run encryption:key:prepare -- DEV_20260807_01`
-- `npm run smoke:key-health` before/after rotation and `npm run smoke:reports` under the new active key
-
-### Passed
-
-- Vitest passed 32 files and 125 tests.
-- pgTAP passed 94 cases across five suites, including service-only key inventory grants and browser-role denials.
-- Local and linked schema lint reported no errors; local and remote migration histories include `20260807143000`.
-- Pre-rotation health was healthy with one configured and one referenced version; post-rotation health was healthy with two configured versions.
-- Four new encrypted evaluations produced the expected `3.5` aggregate under the new active key. The final health check was healthy with two configured and two referenced versions, proving historical and new ciphertext coverage.
-- A synthetic employee was denied key health with `403`; no key value or version name appeared in API or browser models.
-
-### Failed And Corrected
-
-- The retained local database had not applied the new migration after startup; migration-up applied it without resetting local data, and all pgTAP suites passed.
-- The first static submission boundary test still inspected the old helper file for keyring environment names; it now inspects the dedicated keyring module.
-- The first post-rotation report smoke received `502` from the credential function because that shared-module dependent had not been redeployed; redeploying every dependent function restored the complete flow.
-- Supabase CLI again could not cache its experimental `pg-delta` catalog after the remote push because the temporary CA file was absent. Migration list and linked lint confirmed successful application.
-
-### Security checks
-
-- Verified additive rotation never overwrote or deleted the historical secret.
-- Verified the generated key was written only to ignored `.secrets/`, never printed, uploaded through an env file, and deleted immediately after success.
-- Verified key-health output contains only aggregate configuration state and version counts.
-- Verified both historical and new ciphertext remain decryptable only through the thresholded trusted reporting boundary.
-
-### Skipped
-
-- Automated visual browser verification could not start because the Codex browser runtime still could not create its kernel asset path. Component tests, production build, database checks, and live API verification passed.
-
-### Remaining risks
-
-- Production key custody/escrow/recovery acceptance, anonymous endpoint rate limiting, retention, production bootstrap, monitoring, backup acceptance, and invitation email remain release blockers.

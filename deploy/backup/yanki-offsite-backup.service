@@ -1,0 +1,26 @@
+[Unit]
+Description=Yanki encrypted off-site PostgreSQL backup
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=yanki-backup
+Group=yanki-backup
+WorkingDirectory=/opt/yanki/current
+EnvironmentFile=/etc/yanki/backup.env
+Environment=RESTIC_CACHE_DIR=/var/cache/yanki-backup/restic
+Environment=NPM_CONFIG_CACHE=/var/cache/yanki-backup/npm
+Environment=NPM_CONFIG_UPDATE_NOTIFIER=false
+UMask=0077
+CacheDirectory=yanki-backup/restic yanki-backup/npm
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ExecStart=/usr/bin/npm run backup:offsite:create
+ExecStart=/usr/bin/npm run backup:offsite:check
+ExecStart=/usr/bin/npm run backup:offsite:retention
+
+[Install]
+WantedBy=multi-user.target

@@ -107,6 +107,16 @@ Key custody is described by a provider-neutral schema-versioned manifest contain
 
 The combined recovery command extends the disposable streaming restore. Before the target is removed, trusted operator code reads only synthetic canaries through the database recovery role, loads every key from the separately recovered secret environment, decrypts each canary, and checks its digest in memory. Missing, extra, duplicate, corrupt, or wrong-key records fail the drill. Command output contains counts and booleans only, never key versions, custody references, ciphertext, decrypted bytes, or credentials.
 
+## Encrypted Off-Site Backup Architecture
+
+The operator backup boundary uses pinned Restic `0.19.1`. `pg_dump` runs through Restic's source-command mode, so a failed database export prevents snapshot creation. PostgreSQL custom-format bytes flow directly into authenticated encrypted repository storage with no plaintext host file. Docker-local and native database-URL source modes share the same fixed dump arguments; the database URL is passed through `PGDATABASE`, not process arguments.
+
+Every snapshot is scoped by stable environment hostname, product tag, environment tag, format tag, and deterministic dump filename. Production configuration accepts only recognized remote repository schemes; local paths require an exact acceptance-only override. Integrity checking reads a configured repository data subset, while retention is filtered to the exact host and combined tags before pruning.
+
+Off-site recovery requires one full snapshot id. Restic metadata must match the expected environment, tags, and filename before a guarded disposable database is created. Decrypted archive bytes stream from `restic dump` into `pg_restore`; the shared restore verifier checks migrations, content/retention/canary privilege boundaries, and every separately recovered key canary. The archive and decrypted content are never materialized on host storage, and the disposable target is removed in `finally`.
+
+The systemd unit runs snapshot creation, integrity checking, and retention in order. A failure stops later commands and produces a non-zero service state for external monitoring. Restic does not replace Supabase platform configuration, Edge Function deployment, SMTP/DNS configuration, storage-object copies, or release artifacts; those remain separately reproducible deployment assets.
+
 ## Production Tenant Bootstrap Architecture
 
 `bootstrap-production-tenant.mjs` is a trusted operator boundary shared by SaaS and dedicated installations. A stable request UUID and SHA-256 fingerprint make an exact rerun idempotent. The script creates a Supabase Auth invitation, writes the request UUID into server-controlled Auth app metadata, and calls `bootstrap_organization_tenant()` with the service role. PostgreSQL serializes bootstrap operations, verifies the Auth id/email/marker, and atomically creates the organization, initial unit, invited profile, organization-admin invitation, default retention policy, content-free operation record, and audit metadata.

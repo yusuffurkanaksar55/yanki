@@ -6,6 +6,9 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added pinned Restic 0.19.1 encrypted off-site database snapshots with fail-aware `pg_dump`, remote-repository enforcement, integrity checks, exact-environment retention, and a persistent systemd schedule.
+- Added full-snapshot-id off-site restore acceptance that streams directly into a guarded database and reuses database privilege plus encryption-key canary verification.
+- Added a checksum-verified D-drive-friendly Windows development installer, operator environment template, backup boundary tests, ADR-0027, and SaaS/dedicated recovery documentation.
 - Added a provider-neutral key-custody manifest requiring independent primary/recovery references, one active version, and two distinct custodian roles without storing credentials or key material.
 - Added default-deny encrypted synthetic recovery canaries, a narrow service-role refresh RPC, and combined database-plus-key recovery acceptance inside the streaming disposable restore.
 - Added custody/canary cryptographic tests, 14 pgTAP recovery cases, ADR-0026, and SaaS/dedicated recovery operations documentation.

@@ -127,13 +127,15 @@ Tenant bootstrap logs may contain request, organization, unit, invitation, and A
 
 Retention policy updates and cleanup executions may audit tenant scope, policy version, configured days, legal-hold/automation state, cutoff date, and execution mode. They must never audit subjects, evaluator identities, content, participation state, or deleted-row counts.
 
-Key custody and recovery output may contain schema version, key/canary counts, boolean acceptance results, dump stream size/hash, and target cleanup status. It must never contain key values, key-version identifiers, custody references, ciphertext, decrypted canary bytes, credentials, or real evaluation content. Recovery canaries are random synthetic values and have no identity or tenant relationship.
+Key custody, off-site backup, and recovery output may contain schema version, key/canary counts, boolean acceptance results, snapshot id, dump stream size/hash, source mode, retention settings, and target cleanup status. It must never contain repository locators, repository passwords, provider/database credentials, key values, key-version identifiers, custody references, ciphertext, decrypted canary bytes, or real evaluation content. Recovery canaries are random synthetic values and have no identity or tenant relationship.
 
 ## Database Visibility
 
 Database readers may see ciphertext and non-sensitive metadata only. Database encryption protects stored content from direct database inspection, but a party controlling both application code and encryption secrets could alter the system to access content. This limitation must remain documented and must not be hidden in product claims.
 
 Tenant retention deletes expired ciphertext from the live logical database only. Existing WAL, snapshots, replicas, and backups remain subject to independently configured infrastructure retention. Historical encryption keys cannot be retired until both live references and approved backup-retention windows are exhausted.
+
+Restic encrypts and authenticates off-site snapshots before remote persistence. Its repository password and backend credentials are independent server secrets and must be recoverable through an approved channel separate from the repository. The production validator rejects local repositories unless an acceptance-only override is explicit. Backup retention is scoped by exact environment metadata; it must also remain contractually aligned with tenant deletion, legal hold, and incident-preservation requirements.
 
 ## Tenant Isolation
 
@@ -149,6 +151,6 @@ In customer-managed installations, the customer controls the host, database, app
 
 - Complete live invitation email delivery and acceptance verification with an approved test mailbox.
 - Add narrowly scoped Supabase RLS policies only after server-side authorization flows are designed.
-- Configure the implemented custody manifest with a real independent production secret manager/offline escrow, schedule encrypted backups, and complete a successful isolated environment-specific key-plus-database recovery drill before production.
+- Configure the implemented custody manifest and Restic workflow with real independent production secret/off-site providers, enable monitoring for the scheduled service, and complete a successful isolated environment-specific key-plus-database recovery drill before production.
 - Add outer gateway/WAF limits for credential preparation and anonymous redemption, plus alert delivery without sensitive request logging.
 - Add executable cross-tenant database tests against a running local or dedicated Supabase stack.
