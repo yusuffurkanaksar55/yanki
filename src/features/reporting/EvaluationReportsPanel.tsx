@@ -171,8 +171,8 @@ export function EvaluationReportsPanel({
         </p>
       ) : null}
 
-      {report?.status === "WITHHELD" ? (
-        <WithheldReport report={report} />
+      {report?.status === "EMPTY" ? (
+        <EmptyReport />
       ) : null}
 
       {report?.status === "AVAILABLE" ? (
@@ -182,18 +182,12 @@ export function EvaluationReportsPanel({
   );
 }
 
-function WithheldReport({ report }: { readonly report: EvaluationReport }) {
+function EmptyReport() {
   return (
-    <div className="mt-6 border-l-4 border-amber bg-amber-50 px-5 py-5">
-      <h3 className="font-semibold text-amber-950">{tr.reports.withheld.title}</h3>
-      <p className="mt-2 text-sm leading-6 text-amber-950">
-        {tr.reports.withheld.description.replace(
-          "{threshold}",
-          String(report.anonymityThreshold)
-        )}
-      </p>
-      <p className="mt-2 text-xs font-semibold text-amber-950">
-        {tr.reports.withheld.countProtected}
+    <div className="mt-6 border-l-4 border-sky-600 bg-sky-50 px-5 py-5">
+      <h3 className="font-semibold text-sky-950">{tr.reports.noResponses.title}</h3>
+      <p className="mt-2 text-sm leading-6 text-sky-950">
+        {tr.reports.noResponses.description}
       </p>
     </div>
   );
@@ -225,7 +219,7 @@ function AvailableReport({
           <dd className="text-right font-semibold text-slate-900">
             {report.submissionCount}
           </dd>
-          <dt className="text-slate-600">{tr.reports.labels.closedAt}</dt>
+          <dt className="text-slate-600">{tr.reports.labels.cycleEnd}</dt>
           <dd className="text-right font-semibold text-slate-900">
             {formatDateTime(report.closedAt)}
           </dd>

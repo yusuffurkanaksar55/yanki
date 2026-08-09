@@ -43,8 +43,11 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 - Eligible employees receive a one-time submission capability only after server-side assignment and time-window validation.
 - Evaluation answers are encrypted in trusted server code before persistence and cannot be linked directly to the evaluator in the content domain.
 - A successful anonymous redemption completes the identity-domain assignment atomically and cannot be replayed.
-- Report discovery must not reveal whether a closed subject group has zero or some below-threshold participation.
-- Raw free-text answers are not returned in aggregate reports; only their non-empty response count is exposed after threshold enforcement.
+- Report discovery must list authorized non-draft subjects without revealing whether they have received a submission.
+- Before the first encrypted submission, a report must return `EMPTY` without questions, ciphertext, or a participation count.
+- After the first encrypted submission, authorized reviewers may see the current aggregate while the cycle remains active.
+- Raw free-text answers are not returned in aggregate reports; only their non-empty response count is exposed once a report is available.
+- Product copy must not promise group anonymity for sparse aggregates; it must describe evaluator identity separation and contextual inference risk accurately.
 - Anonymous submission abuse controls must protect valid credentials from invalid-traffic exhaustion and must not retain IP, device, user, assignment, credential digest, request body, or evaluation content.
 - Active system administrators may see only aggregate invalid-credential and rate-limited request counts, never request-level records or evaluation content.
 - Each company may configure how long encrypted evaluation content remains in the live database, within an approved supported range.

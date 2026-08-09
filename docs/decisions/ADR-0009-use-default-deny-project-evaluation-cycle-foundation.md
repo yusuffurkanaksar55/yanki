@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-The product needs administrators, and delegated project managers, to configure projects, project completion dates, and evaluation close dates. Evaluation cycles can be opened without a fixed participant-count requirement, but reporting still needs the configured anonymity threshold before results are shown.
+The product needs administrators, and delegated project managers, to configure projects, project completion dates, and evaluation close dates. Evaluation cycles can be opened without a fixed participant-count requirement. ADR-0030 later removed the reporting threshold and made aggregates available after the first encrypted submission.
 
 The platform does not yet have trusted Edge Functions for sensitive management actions, so frontend clients must not receive broad table access.
 

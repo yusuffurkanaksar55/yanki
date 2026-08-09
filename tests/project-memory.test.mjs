@@ -39,7 +39,8 @@ const requiredFiles = [
   "docs/decisions/ADR-0014-use-atomic-organization-administration-boundary.md",
   "docs/decisions/ADR-0015-use-atomic-delegated-project-date-administration.md",
   "docs/decisions/ADR-0016-support-shared-and-dedicated-deployments.md",
-  "docs/decisions/ADR-0017-enforce-organization-tenant-integrity.md"
+  "docs/decisions/ADR-0017-enforce-organization-tenant-integrity.md",
+  "docs/decisions/ADR-0030-use-immediate-identity-separated-aggregate-reporting.md"
 ];
 
 function readProjectFile(relativePath) {
@@ -69,10 +70,10 @@ describe("project memory foundation", () => {
     expect(encryptionAdr).toMatch(/persist only ciphertext and non-sensitive metadata/);
   });
 
-  it("documents thresholded and scoped result access", () => {
+  it("documents immediate and scoped result access", () => {
     const authorizationModel = readProjectFile("docs/AUTHORIZATION_MODEL.md");
 
-    expect(authorizationModel).toMatch(/Report access requires the configured anonymity threshold to be met/);
+    expect(authorizationModel).toMatch(/Report access starts after the first encrypted submission/);
     expect(authorizationModel).toMatch(/Users must not access results about themselves/);
   });
 

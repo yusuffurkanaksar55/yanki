@@ -46,13 +46,13 @@ const created = await callFunction(
     action: "create_project_cycle",
     payload: {
       closesAt: new Date(now.getTime() + 60 * 60 * 1000).toISOString(),
-      evaluationName: `Threshold reporting smoke ${uniqueSuffix}`,
+      evaluationName: `Immediate reporting smoke ${uniqueSuffix}`,
       opensAt: new Date(now.getTime() - 60 * 1000).toISOString(),
       organizationId,
       projectCode: `RPT-${uniqueSuffix}`,
       projectCompletedOn: now.toISOString().slice(0, 10),
       projectManagerUserId: subject.userId,
-      projectName: `Threshold reporting smoke ${uniqueSuffix}`,
+      projectName: `Immediate reporting smoke ${uniqueSuffix}`,
       templateVersionId
     }
   },
@@ -89,7 +89,7 @@ await callFunction(
   adminToken
 );
 
-const prematureReport = await invokeFunction(
+const emptyReportResponse = await invokeFunction(
   "evaluation-reports",
   {
     action: "get_report",
@@ -101,12 +101,36 @@ const prematureReport = await invokeFunction(
   reviewerToken
 );
 
-assertFunctionError(
-  prematureReport,
-  400,
-  "REPORT_WINDOW_NOT_CLOSED",
-  "A report was available before the evaluation window closed."
+if (emptyReportResponse.status !== 200) {
+  throw new Error(`Empty report request failed: ${readError(emptyReportResponse.body)}.`);
+}
+
+const emptyReport = readRecord(emptyReportResponse.body.report);
+
+if (
+  emptyReport.status !== "EMPTY"
+  || (
+    Object.hasOwn(emptyReport, "submissionCount")
+    && emptyReport.submissionCount !== null
+  )
+) {
+  throw new Error("A report without submissions did not return the safe EMPTY state.");
+}
+
+const activeTargets = await callFunction(
+  "evaluation-reports",
+  { action: "list_targets" },
+  reviewerToken
 );
+const activeTarget = readArray(activeTargets.targets).find((candidate) =>
+  isRecord(candidate)
+  && candidate.evaluationCycleId === cycle.id
+  && candidate.subjectUserId === subject.userId
+);
+
+if (!isRecord(activeTarget)) {
+  throw new Error("The authorized active report target was not listed.");
+}
 
 const rawTextMarkers = [];
 
@@ -150,6 +174,29 @@ for (let index = 0; index < evaluatorTokens.length; index += 1) {
   if (accepted.status !== 201 || accepted.body.accepted !== true) {
     throw new Error(`Encrypted evaluator submission ${index + 1} failed.`);
   }
+
+  if (index === 0) {
+    const firstReportResponse = await invokeFunction(
+      "evaluation-reports",
+      {
+        action: "get_report",
+        payload: {
+          evaluationCycleId: cycle.id,
+          subjectUserId: subject.userId
+        }
+      },
+      reviewerToken
+    );
+    const firstReport = readRecord(firstReportResponse.body.report);
+
+    if (
+      firstReportResponse.status !== 200
+      || firstReport.status !== "AVAILABLE"
+      || firstReport.submissionCount !== 1
+    ) {
+      throw new Error("The active report was not available after the first submission.");
+    }
+  }
 }
 
 await callFunction(
@@ -178,7 +225,7 @@ const target = readArray(targets.targets).find((candidate) =>
 );
 
 if (!isRecord(target)) {
-  throw new Error("The authorized closed report target was not listed.");
+  throw new Error("The authorized report target was not listed after cycle closure.");
 }
 
 if (
@@ -208,7 +255,7 @@ if (reportResponse.status !== 200) {
 const report = readRecord(reportResponse.body.report);
 
 if (report.status !== "AVAILABLE" || report.submissionCount !== 4) {
-  throw new Error("The report did not become available at the threshold of four.");
+  throw new Error("The report did not retain all four identity-free submissions.");
 }
 
 const ratingQuestions = readArray(report.questions).filter((question) =>
@@ -301,10 +348,12 @@ assertFunctionError(
 );
 
 console.log(JSON.stringify({
+  activeTargetListed: true,
   aggregateSubmissionCount: report.submissionCount,
   anonymousAccessDenied: true,
+  emptyStateVerified: true,
   employeeAccessDenied: true,
-  prematureAccessDenied: true,
+  firstSubmissionAvailable: true,
   rawTextWithheld: true,
   ratingAverage: 3.5,
   selfAccessDenied: true,

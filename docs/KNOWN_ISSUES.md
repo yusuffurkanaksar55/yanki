@@ -8,7 +8,7 @@ High
 
 ### Description
 
-One-time anonymous submission, additive key rotation, content-free key health, provider-neutral custody validation, encrypted synthetic recovery canaries, pinned encrypted off-site backup scheduling/integrity/retention, exact-snapshot database-plus-key restore automation, application-level anonymous quotas, same-origin gateway limits with direct-bypass token enforcement, transition-based content-free alert delivery, aggregate abuse monitoring, trusted thresholded reporting, tenant retention with legal hold, and production tenant bootstrap are implemented. Real production custody/off-site provider configuration, production gateway-token activation/direct-denial, signed production-like recovery acceptance, real alert-receiver/capacity acceptance, and infrastructure availability monitoring are not complete yet.
+One-time anonymous submission, additive key rotation, content-free key health, provider-neutral custody validation, encrypted synthetic recovery canaries, pinned encrypted off-site backup scheduling/integrity/retention, exact-snapshot database-plus-key restore automation, application-level anonymous quotas, same-origin gateway limits with direct-bypass token enforcement, transition-based content-free alert delivery, aggregate abuse monitoring, trusted immediate aggregate reporting, tenant retention with legal hold, and production tenant bootstrap are implemented. Real production custody/off-site provider configuration, production gateway-token activation/direct-denial, signed production-like recovery acceptance, real alert-receiver/capacity acceptance, and infrastructure availability monitoring are not complete yet.
 
 ### Impact
 
@@ -38,7 +38,7 @@ The product requires multiple administrators, CEOs/C-Level users, project manage
 
 ### Impact
 
-Resolved for the delegated date requirement. System administrators and exact assigned project managers can update project completion and evaluation close dates. Employee assignment, anonymous submission, and thresholded report flows are also implemented; production operations remain tracked by ISSUE-001.
+Resolved for the delegated date requirement. System administrators and exact assigned project managers can update project completion and evaluation close dates. Employee assignment, anonymous submission, and immediate aggregate report flows are also implemented; production operations remain tracked by ISSUE-001.
 
 ### Workaround
 

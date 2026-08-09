@@ -6,6 +6,9 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added a public Turkish Yankı product site with an original full-bleed visual, workflow, security, deployment, and authenticated workspace entry sections.
+- Added immediate identity-separated aggregate reporting for active and completed cycles, with a safe `EMPTY` state before the first encrypted submission.
+- Added ADR-0030 documenting the removal of the group-size threshold, preserved authorization boundaries, and sparse-group inference risk.
 - Added a responsive Yankı application shell, original authentication artwork, Lucide navigation, accessible account controls, and centralized Turkish product copy.
 - Added permission-aware administration modules so project, user, hierarchy, template, security, and retention workflows no longer render as one stacked page.
 - Added organization-name selectors plus localized project status and date presentation to project and template administration.
@@ -29,6 +32,8 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- Redesigned the authentication screen, collapsed password recovery until requested, and added a clear return path to the product site.
+- Replaced clipped horizontal mobile workspace navigation with stable equal-width navigation targets and removed remaining horizontal page overflow.
 - Removed inactive dashboard actions, implementation-readiness panels, technical frontend notes, and raw API status/date output from user-facing screens.
 - Fixed mobile administration overflow and desktop project-metric compression found during responsive browser verification.
 - Completed the previously missing browser password-update step after Supabase invitation and password-recovery links.

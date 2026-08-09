@@ -45,6 +45,9 @@ describe("AuthPage", () => {
 
     renderAuthPage(service);
 
+    await user.click(
+      screen.getByRole("button", { name: tr.auth.passwordReset.title })
+    );
     await user.type(
       screen.getByLabelText(tr.auth.passwordReset.emailLabel),
       "person@example.com"

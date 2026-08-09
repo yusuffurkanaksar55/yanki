@@ -3,7 +3,6 @@ import { getBrowserSupabaseClient } from "../../lib/supabase/client";
 import type { Database } from "../../types/supabase";
 
 export type EvaluationReportTarget = {
-  readonly anonymityThreshold: number;
   readonly closedAt: string;
   readonly evaluationCycleId: string;
   readonly evaluationCycleName: string;
@@ -56,7 +55,7 @@ export type EvaluationReportQuestion = {
 export type EvaluationReport = EvaluationReportTarget &
   (
     | {
-        readonly status: "WITHHELD";
+        readonly status: "EMPTY";
         readonly submissionCount: null;
         readonly questions: readonly [];
       }
@@ -143,11 +142,11 @@ function toReport(value: unknown): EvaluationReport {
   const record = isRecord(value) ? value : {};
   const target = toTarget(record);
 
-  if (record.status === "WITHHELD") {
+  if (record.status === "EMPTY") {
     return {
       ...target,
       questions: [],
-      status: "WITHHELD",
+      status: "EMPTY",
       submissionCount: null
     };
   }
@@ -168,7 +167,6 @@ function toTarget(value: unknown): EvaluationReportTarget {
   const record = isRecord(value) ? value : {};
 
   return {
-    anonymityThreshold: readNumber(record.anonymityThreshold),
     closedAt: readString(record.closedAt),
     evaluationCycleId: readString(record.evaluationCycleId),
     evaluationCycleName: readString(record.evaluationCycleName),

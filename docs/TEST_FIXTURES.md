@@ -34,7 +34,7 @@ The fixture also creates a synthetic project and time-bound evaluation cycle:
 | Evaluation cycle | Yanki Demo Project Completion Evaluation |
 | Evaluation close date | 2026-07-30 |
 
-The evaluation cycle can be opened without a fixed participant count requirement. Reporting still requires the configured anonymity threshold before results can be shown.
+The evaluation cycle can be opened without a fixed participant count requirement. Authorized aggregate reporting starts after the first encrypted submission.
 
 ## Runtime Requirements
 
@@ -69,8 +69,8 @@ The linked test project was authenticated-smoke-tested with a synthetic project 
 
 These credentials were originally generated before the fixture script included its baseline project records, so the smoke project was created through the production administration boundary. Rerunning `npm run fixture:demo` creates or updates the baseline `YANKI-DEMO` project but also rotates all synthetic account passwords.
 
-## Thresholded Reporting Fixtures
+## Immediate Reporting Fixtures
 
-`npm run smoke:reports` creates uniquely named `Threshold reporting smoke ...` projects and cycles in the linked synthetic organization. Each run uses the CEO as reviewer, the team leader as evaluated subject, and the CEO plus three employees as evaluators. Successful runs leave encrypted submissions and safe audit/configuration records because anonymous content is immutable and must not be linked back to evaluators for cleanup.
+`npm run smoke:reports` creates uniquely named `Immediate reporting smoke ...` projects and cycles in the linked synthetic organization. Each run uses the CEO as reviewer, the team leader as evaluated subject, and the CEO plus three employees as evaluators. Successful runs leave encrypted submissions and safe audit/configuration records because anonymous content is immutable and must not be linked back to evaluators for cleanup.
 
-The accepted live run verified four aggregate submissions, a synthetic rating average of `3.5`, raw-text withholding, and premature/system-admin/self/employee/anonymous denial. A prior run stopped safely before output because required close metadata was absent; its forward-only migration fix is recorded in `docs/ERROR_LOG.md`.
+The accepted live run verified `EMPTY` before participation, active-target discovery, immediate availability after the first encrypted submission while the cycle was active, the four-submission final aggregate with a synthetic `3.5` rating average, raw-text withholding, and system-admin/self/employee/anonymous denial. Historical thresholded-run evidence remains in the bounded operational logs and release notes.

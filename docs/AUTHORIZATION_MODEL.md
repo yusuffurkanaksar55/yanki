@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and implemented through default-deny tables, narrow own-context RPCs, record-backed scoped administration, immutable templates, authenticated one-time submission preparation, anonymous atomic redemption, thresholded scoped aggregate reporting, service-role-only tenant bootstrap, and service-role-only encrypted recovery-canary refresh.
+Authorization is documented and implemented through default-deny tables, narrow own-context RPCs, record-backed scoped administration, immutable templates, authenticated one-time submission preparation, anonymous atomic redemption, immediate scoped aggregate reporting, service-role-only tenant bootstrap, and service-role-only encrypted recovery-canary refresh.
 
 ## Principles
 
@@ -53,7 +53,7 @@ Project date updates are available to platform/matching-organization system admi
 
 The sensitive-gateway token grants only passage through the pre-authorization outer boundary for anonymous redemption and credential preparation. It does not authenticate a user, select an assignment, bypass one-time credential validation, or grant database authority. Nginx overwrites the header, and production Functions reject a missing or incorrect token before body parsing, Auth lookup, quota consumption, context resolution, or encryption.
 
-`evaluation-reports` binds every request to the authenticated active user. `list_my_evaluation_report_targets()` returns only closed, authorized cycle-plus-subject targets and no participation state. `get_encrypted_evaluation_report_batch()` denies self access, every active `SYSTEM_ADMIN`, unapproved roles, missing active tenant membership, scope mismatch, and open cycles before applying the threshold. It releases ciphertext only at or above threshold. Direct ciphertext-table access remains revoked from `service_role`.
+`evaluation-reports` binds every request to the authenticated active user. `list_my_evaluation_report_targets()` returns only authorized non-draft cycle-plus-subject targets and no participation state. `get_encrypted_evaluation_report_batch()` denies self access, every active `SYSTEM_ADMIN`, unapproved roles, missing active tenant membership, and scope mismatch. It returns `EMPTY` before participation and releases an identity-free ciphertext batch after the first submission. Direct ciphertext-table access remains revoked from `service_role`.
 
 `encryption-key-health` requires an authenticated active `SYSTEM_ADMIN`. Its service-role-only inventory can inspect only distinct key-version identifiers referenced by ciphertext. The browser receives configuration validity, active/historical coverage booleans, and total version counts; it receives no version names, keys, ciphertext, content, identities, or per-version usage.
 
@@ -71,7 +71,7 @@ Can view only assignments addressed to their authenticated identity, prepare a o
 
 ### `TEAM_LEADER`
 
-Can access authorized anonymous aggregate results for users in assigned scope after threshold checks. Cannot view evaluator identities, own results, results outside scope, or below-threshold results.
+Can access authorized identity-separated aggregate results for users in assigned scope after the first encrypted submission. Cannot view evaluator identities, own results, or results outside scope.
 
 ### `PROJECT_MANAGER`
 
@@ -85,7 +85,7 @@ Can access authorized anonymous aggregate results within assigned organizational
 
 ### `BOARD_REVIEWER`
 
-Can access high-level authorized anonymous aggregate results according to explicit governance scope. Cannot bypass anonymity, threshold, or self-access restrictions.
+Can access high-level authorized identity-separated aggregate results according to explicit governance scope. Cannot bypass scope, administrator-deny, or self-access restrictions.
 
 ## Scope Types
 
@@ -104,9 +104,9 @@ Planned scope boundaries:
 
 Users must not access results about themselves. The reporting target list excludes self targets, the batch function returns `REPORT_SELF_ACCESS_DENIED`, the Edge Function exposes only the authenticated actor's authorized result, and regression tests cover direct identifier manipulation.
 
-## Threshold Enforcement
+## Report Availability
 
-Report access requires the configured anonymity threshold to be met. The default and database floor are 4 submissions per fixed cycle-plus-subject group. Below threshold, no exact count, ciphertext, question set, or result is returned.
+Report access starts after the first encrypted submission for a fixed cycle-plus-subject group, including during an active cycle. Before that point, `EMPTY` reveals no count, ciphertext, or question set. Role, tenant scope, active manager relationship where required, system-administrator denial, and self-access denial remain mandatory for every request.
 
 ## URL Manipulation Defense
 

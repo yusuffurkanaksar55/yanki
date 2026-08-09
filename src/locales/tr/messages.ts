@@ -4,6 +4,108 @@ export const tr = {
     kicker: "Anonim değerlendirme",
     accountFallback: "Kullanıcı hesabı"
   },
+  marketing: {
+    navigation: {
+      ariaLabel: "Tanıtım sitesi gezinmesi",
+      mobileAriaLabel: "Mobil tanıtım sitesi gezinmesi",
+      home: "Yankı ana sayfa",
+      howItWorks: "Nasıl çalışır?",
+      privacy: "Güvenlik yaklaşımı",
+      deployment: "Kurulum seçenekleri",
+      signIn: "Oturum aç",
+      openMenu: "Menüyü aç",
+      closeMenu: "Menüyü kapat"
+    },
+    hero: {
+      eyebrow: "Çalışan deneyiminin dürüst sinyali",
+      title: "İnsanların gerçekten düşündüğünü, kimliklerini yanıtlarına bağlamadan duyun.",
+      summary:
+        "Yankı; çalışan, ekip ve proje değerlendirmelerini güvenli iş akışlarıyla toplar, yetkili kişilere karar verebilecekleri toplu sonuçlar sunar.",
+      primaryAction: "Çalışma alanına gir",
+      secondaryAction: "Nasıl çalıştığını gör"
+    },
+    proof: {
+      ariaLabel: "Yankı ürün ilkeleri",
+      items: [
+        {
+          title: "Kimlikten ayrıştırılmış yanıtlar",
+          description: "Değerlendirici kimliği, gönderilen değerlendirme içeriğiyle birlikte saklanmaz."
+        },
+        {
+          title: "Sunucuda uygulanan yetki",
+          description: "Rapor erişimi rol, organizasyon kapsamı ve yönetici ilişkilerine göre denetlenir."
+        },
+        {
+          title: "SaaS veya şirket sunucusu",
+          description: "Aynı ürün yönetilen hizmet olarak ya da kuruma özel altyapıda çalışabilir."
+        }
+      ]
+    },
+    workflow: {
+      eyebrow: "Sade iş akışı",
+      title: "Doğru kişiye, doğru zamanda, doğru kapsamda geri bildirim",
+      summary:
+        "Organizasyon yapısı esnektir; roller, yönetici ilişkileri ve proje sorumlulukları şirketin gerçek çalışma biçimine göre tanımlanır.",
+      steps: [
+        {
+          title: "Yapıyı kurun",
+          description: "Şirketi, ekipleri, projeleri, rolleri ve raporlama ilişkilerini tek bir çalışma alanında tanımlayın."
+        },
+        {
+          title: "Süreci açın",
+          description: "Değiştirilemez şablonu, değerlendirilecek kişileri ve son tarihi seçerek değerlendirmeyi başlatın."
+        },
+        {
+          title: "Sonucu izleyin",
+          description: "Yetkili kişiler, ilk değerlendirmeden itibaren güncellenen kimliksiz toplu skorları izler."
+        }
+      ]
+    },
+    security: {
+      eyebrow: "Güvenlik yaklaşımı",
+      title: "Güven, tasarımın sonradan eklenen parçası değil",
+      summary:
+        "Yankı; hassas içeriği tarayıcıdan, sistem yöneticilerinden ve yetkisiz organizasyon kapsamlarından ayıran katmanlı bir model kullanır.",
+      items: [
+        {
+          title: "Şifreli değerlendirme içeriği",
+          description: "Değerlendirme içeriği veritabanında düz metin olarak tutulmaz."
+        },
+        {
+          title: "Kimlik ve içerik ayrımı",
+          description: "Gönderim içeriği, değerlendiricinin kullanıcı kaydını taşımaz."
+        },
+        {
+          title: "Sınırları sunucu uygular",
+          description: "Kendi sonucuna erişim ve sistem yöneticisinin içerik okuması arayüzden bağımsız olarak engellenir."
+        },
+        {
+          title: "Şeffaf gizlilik sınırı",
+          description: "Az katılımlı gruplarda bağlamsal çıkarım riski vardır; şirket politikaları buna göre yapılandırılmalıdır."
+        }
+      ]
+    },
+    deployment: {
+      eyebrow: "Dağıtım esnekliği",
+      title: "Bugün bulutta, gerektiğinde kurum altyapısında",
+      summary:
+        "Tek ürün yaklaşımı iki dağıtım modelini de korur. Böylece küçük ekipler hızlı başlayabilir, özel altyapı isteyen kurumlar kontrolü kendi ortamında tutabilir.",
+      saas: {
+        title: "Yönetilen Yankı",
+        description: "Kurulumla uğraşmadan şirket hesabınızı oluşturun; güncelleme, işletim ve yedekleme süreçlerini Yankı yönetsin."
+      },
+      privateServer: {
+        title: "Kuruma özel kurulum",
+        description: "Uygulamayı, veritabanını ve güvenilir servisleri şirketin kendi sunucu veya özel bulut ortamında çalıştırın."
+      }
+    },
+    cta: {
+      title: "Çalışma alanınız hazırsa, Yankı sizi bekliyor.",
+      summary: "Size atanmış değerlendirmeleri tamamlayın veya yetkiniz kapsamındaki sonuçları inceleyin.",
+      action: "Oturum aç"
+    },
+    footer: "Güvenli çalışan ve proje değerlendirme platformu"
+  },
   navigation: {
     primaryAriaLabel: "Ana gezinme",
     dashboard: "Genel bakış",
@@ -82,11 +184,11 @@ export const tr = {
   },
   reports: {
     sectionLabel: "Anonim toplu değerlendirme raporları",
-    eyebrow: "Kapalı süreçler",
+    eyebrow: "Yetkili sonuçlar",
     title: "Toplu değerlendirme raporları",
     description:
-      "Yalnızca yetki kapsamındaki kapalı süreçler, anonimlik eşiğine ulaştığında toplu sonuç olarak görüntülenir.",
-    aggregateOnly: "Yalnızca toplu sonuç",
+      "Yetki kapsamındaki aktif ve tamamlanmış süreçler, ilk değerlendirmeden itibaren toplu sonuç olarak güncellenir.",
+    aggregateOnly: "Kimliksiz toplu sonuç",
     loadingTargets: "Erişilebilir raporlar yükleniyor...",
     targetLabel: "Rapor konusu",
     actions: {
@@ -97,21 +199,20 @@ export const tr = {
     empty: {
       title: "Görüntülenebilir rapor yok",
       description:
-        "Yetki kapsamınızda kapanmış bir rapor konusu bulunmuyor."
+        "Yetki kapsamınızda görüntüleyebileceğiniz bir rapor konusu bulunmuyor."
     },
     feedback: {
       targetsFailed: "Rapor listesi şu anda yüklenemedi.",
-      reportFailed: "Rapor güvenli şekilde hazırlanamadı. Yetkinizi ve süreç durumunu kontrol edin."
+      reportFailed: "Rapor güvenli şekilde hazırlanamadı. Yetkinizi ve bağlantınızı kontrol edin."
     },
-    withheld: {
-      title: "Sonuçlar anonimlik eşiği nedeniyle gizli",
+    noResponses: {
+      title: "Henüz değerlendirme bulunmuyor",
       description:
-        "Bu rapor, en az {threshold} anonim değerlendirme bulunmadan açılamaz.",
-      countProtected: "Mevcut katılım sayısı anonimliği korumak için gösterilmez."
+        "İlk değerlendirme gönderildiğinde toplu sonuçlar burada görüntülenecek."
     },
     labels: {
       submissions: "Toplu yanıt",
-      closedAt: "Süreç kapanışı",
+      cycleEnd: "Süreç bitişi",
       answers: "yanıt",
       average: "Ortalama"
     },
@@ -548,6 +649,7 @@ export const tr = {
   },
   auth: {
     loading: "Oturum durumu kontrol ediliyor.",
+    backToSite: "Tanıtım sitesine dön",
     eyebrow: "Dürüst geri bildirim",
     pageTitle: "Her ses duyulsun, kimse işaret edilmesin.",
     pageSummary:

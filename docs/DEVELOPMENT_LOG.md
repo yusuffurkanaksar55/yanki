@@ -1,5 +1,45 @@
 # Development Log
 
+## 2026-08-09 - Public Product Site And Immediate Aggregate Reporting
+
+### Objective
+
+Introduce a polished public Yankı product experience, improve authentication and responsive navigation, and make authorized aggregate results available after the first evaluation without weakening identity/content separation or server-side authorization.
+
+### Changes
+
+- Added a public Turkish product site at the root route with generated project-owned artwork, workflow, security, deployment, and authenticated workspace entry sections.
+- Redesigned the dedicated sign-in route, collapsed password recovery until requested, and added an explicit return path to the public site.
+- Replaced clipped mobile workspace navigation with stable equal-width targets and added global horizontal-overflow safeguards.
+- Replaced the four-submission/closed-cycle reporting rule with `EMPTY` before participation and `AVAILABLE` after the first encrypted submission, including during active cycles.
+- Updated the reporting UI, synthetic fixture/smoke workflow, public claims, focused documentation, ADR-0030, and all relevant security tests.
+
+### Database changes
+
+Applied `20260809210000_immediate_evaluation_reporting.sql` locally and to linked project `daxaymcmtbmummrxdyjy`. Existing cycle compatibility thresholds were normalized to `1`; authorized target discovery now includes every non-draft cycle; trusted batch access preserves system-admin, self, tenant, role, scope, and manager-relationship checks.
+
+### Security impact
+
+Mixed but explicit. Authorization, encryption, evaluator-link separation, direct-table denial, and raw-text withholding remain intact. Removing the group-size threshold creates contextual inference risk for one-person and sparse aggregates, so product and security documentation no longer claims group anonymity from sample size.
+
+### Tests performed
+
+- Full `npm run check`: 49 Vitest files and 216 tests, lint, typecheck, production build, and bounded-memory verification.
+- Local migration application, clean local schema lint, and 185 pgTAP cases across eight database suites.
+- Linked migration/list verification, clean linked schema lint, and deployments of `evaluation-reports` and `admin-project-cycles`.
+- Linked synthetic report acceptance verified active-target discovery, `EMPTY`, first-submission availability, four identity-free submissions, a `3.5` aggregate average, raw-text withholding, and administrator/self/employee/anonymous denial.
+- In-app browser verification at 1280x720 and 390x844 covered public, authentication, dashboard, and administration views with no page-level horizontal overflow.
+
+### Result
+
+The root URL now introduces Yankı publicly, `#login` provides a dedicated sign-in experience, and authenticated workspaces remain protected. Authorized reviewers can see active aggregate results after the first encrypted submission, with the remaining sparse-group privacy limitation documented honestly.
+
+### Remaining work
+
+- Add route-level code splitting to remove the current production bundle-size warning.
+- Add persistent Playwright visual, keyboard, and authenticated routing regression coverage.
+- Complete production provider, invitation-mail, recovery, and environment-specific security acceptance before live employee use.
+
 ## 2026-08-09 - Product UI Foundation And Responsive Administration
 
 ### Objective
@@ -153,41 +193,3 @@ The repository has executable scheduling and environment-scoped restore automati
 - Configure approved production secret/off-site providers and run a timed isolated recovery drill.
 - Add outer gateway/WAF limits and alert delivery without sensitive request logging.
 - Complete approved invitation-email and immutable release/customer acceptance work.
-
-## 2026-08-09 - Independent Key Custody And Combined Recovery Acceptance
-
-### Objective
-
-Prove that every separately custodied evaluation-encryption key can decrypt a restored database without reading real evaluation content, committing provider-specific secrets, writing a host dump, or exposing keys/version identifiers in operator output.
-
-### Changes
-
-- Added a schema-versioned provider-neutral custody manifest validator requiring one active key, independent primary/recovery references, and at least two distinct custodian roles.
-- Added AES-256-GCM encrypted random recovery canaries for every manifest key, with authenticated environment/version context and no identity, tenant, assignment, credential, or evaluation-content relationship.
-- Added a default-deny canary table, narrow service-role-only atomic refresh RPC, explicit-confirmation operator commands, and combined verification inside the disposable streaming restore.
-- Added unit/static boundary tests, 14 pgTAP cases, ADR-0026, and SaaS/dedicated custody and recovery runbooks.
-
-### Database changes
-
-Applied `20260809153000_encryption_recovery_canaries.sql` locally and to linked project `daxaymcmtbmummrxdyjy`. It adds `evaluation_encryption_recovery_canaries` and `upsert_evaluation_encryption_recovery_canaries()` while revoking direct table privileges from browser roles and `service_role`.
-
-### Security impact
-
-Positive. Key material remains only in the trusted process, manifests reject embedded credentials, real evaluation content is never selected, and recovery evidence exposes only counts, booleans, and dump stream metadata. A production provider/offline escrow and isolated environment drill are still required before live use.
-
-### Tests performed
-
-- Focused custody/recovery/restore Vitest, lint, typecheck, clean local reset, local schema lint, and 180 pgTAP cases across eight suites.
-- Real local combined drill with a process-only random 32-byte test key: one encrypted canary was provisioned, a 670,101-byte compressed dump streamed into restore, every canary decrypted, privilege checks passed, no host dump was written, and the disposable target was removed.
-- Full `npm run check`: 43 Vitest files and 177 tests, lint, typecheck, production build, and bounded-memory verification; Docker Compose configuration validation also passed.
-- Linked migration dry-run/push/list, generated type refresh, and linked schema lint.
-
-### Result
-
-The repository and linked synthetic project now have the default-deny canary schema, while the executable combined recovery drill is proven locally for both deployment topologies. No linked canary was created because independently recovered production key material is intentionally unavailable in the workspace.
-
-### Remaining work
-
-- Select and configure the real production primary secret manager and independently controlled recovery/offline escrow.
-- Schedule encrypted off-host backups and complete a signed isolated environment restore with approved RPO/RTO.
-- Complete gateway/WAF alerts and approved invitation-email acceptance.

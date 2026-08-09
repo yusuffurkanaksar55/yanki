@@ -50,7 +50,7 @@ Use `db push --dry-run` before remote changes. Never run destructive linked rese
 
 ## Security Baseline
 
-The applied migrations create foundational authorization tables, safe audit metadata tables, profile and invitation onboarding tables, organization hierarchy tables, project and time-bound evaluation-cycle configuration, immutable templates, default-deny assignment planning, one-time anonymous credentials, encrypted submissions, thresholded reporting, retention controls, and content-free tenant bootstrap operations.
+The applied migrations create foundational authorization tables, safe audit metadata tables, profile and invitation onboarding tables, organization hierarchy tables, project and time-bound evaluation-cycle configuration, immutable templates, default-deny assignment planning, one-time anonymous credentials, encrypted submissions, immediate identity-separated reporting, retention controls, and content-free tenant bootstrap operations.
 
 The `admin-project-cycles` Edge Function is the first trusted administrative function. It uses `SUPABASE_SERVICE_ROLE_KEY` only in the Edge Function runtime and must not expose that value to frontend code. It supports project/cycle listing and creation, organization member lookup, project member assignment, project-backed evaluation assignment generation, and atomic delegated project-date updates through service-role-only `admin_update_project_dates()`.
 
@@ -127,7 +127,7 @@ npm run smoke:project-dates
 
 The script selects an editable project returned to the synthetic project manager, temporarily advances its evaluation close timestamp, verifies employee and unauthenticated denial, and uses the synthetic system administrator to restore and verify the original timestamp.
 
-## Thresholded Reporting Smoke Test
+## Immediate Aggregate Reporting Smoke Test
 
 The reusable report smoke script reads public Supabase values plus synthetic admin, reviewer, subject, and three employee credentials from process environment variables. It contains no credentials and must not run against real employee accounts.
 
@@ -135,4 +135,4 @@ The reusable report smoke script reads public Supabase values plus synthetic adm
 npm run smoke:reports
 ```
 
-The script creates a temporary project and closed evaluation cycle, submits four encrypted evaluations, verifies the expected aggregate, and confirms that raw text is withheld. It also verifies premature, system-admin, self, employee, and anonymous access denial. Required credential variables use the `REPORT_ADMIN_*`, `REPORT_REVIEWER_*`, `REPORT_SUBJECT_*`, and `REPORT_EMPLOYEE_1_*` through `REPORT_EMPLOYEE_3_*` prefixes.
+The script creates a temporary project and active evaluation cycle, verifies the safe `EMPTY` state, submits one encrypted evaluation, and confirms that the aggregate becomes available immediately. It then submits the remaining synthetic evaluations, verifies the final aggregate and raw-text withholding, and confirms system-admin, self, employee, and anonymous access denial. Required credential variables use the `REPORT_ADMIN_*`, `REPORT_REVIEWER_*`, `REPORT_SUBJECT_*`, and `REPORT_EMPLOYEE_1_*` through `REPORT_EMPLOYEE_3_*` prefixes.

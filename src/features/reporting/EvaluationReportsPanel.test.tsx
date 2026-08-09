@@ -27,11 +27,11 @@ describe("EvaluationReportsPanel", () => {
     expect(service.getReport).toHaveBeenCalledWith("cycle-id", "subject-id");
   });
 
-  it("does not reveal the exact submission count below the threshold", async () => {
+  it("shows an empty state until the first evaluation is submitted", async () => {
     const service = createService({
       ...createTarget(),
       questions: [],
-      status: "WITHHELD",
+      status: "EMPTY",
       submissionCount: null
     });
     const user = userEvent.setup();
@@ -43,8 +43,8 @@ describe("EvaluationReportsPanel", () => {
       screen.getByRole("button", { name: tr.reports.actions.load })
     );
 
-    expect(await screen.findByText(tr.reports.withheld.title)).toBeInTheDocument();
-    expect(screen.getByText(tr.reports.withheld.countProtected)).toBeInTheDocument();
+    expect(await screen.findByText(tr.reports.noResponses.title)).toBeInTheDocument();
+    expect(screen.getByText(tr.reports.noResponses.description)).toBeInTheDocument();
     expect(screen.queryByText(tr.reports.labels.submissions)).not.toBeInTheDocument();
   });
 });
@@ -58,7 +58,6 @@ function createService(report: EvaluationReport): EvaluationReportService {
 
 function createTarget(): EvaluationReportTarget {
   return {
-    anonymityThreshold: 4,
     closedAt: "2026-08-01T12:00:00.000Z",
     evaluationCycleId: "cycle-id",
     evaluationCycleName: "Yıllık Değerlendirme",

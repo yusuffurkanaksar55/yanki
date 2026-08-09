@@ -137,7 +137,7 @@ async function createReport(value: unknown): Promise<Record<string, unknown>> {
   const target = toReportTarget(batch);
   const status = readRequiredString(batch.status, "REPORT_STATUS_MISSING");
 
-  if (status === "WITHHELD") {
+  if (status === "EMPTY") {
     return {
       ...target,
       status,
@@ -150,7 +150,6 @@ async function createReport(value: unknown): Promise<Record<string, unknown>> {
     throw new Error("EVALUATION_REPORT_DATA_INVALID");
   }
 
-  const threshold = readNumber(batch.anonymity_threshold);
   const submissionCount = readNumber(batch.submission_count);
   const questions = readArray(batch.questions).map(toReportingQuestion);
   const encryptedSubmissions = readArray(batch.submissions).map((submission) =>
@@ -158,8 +157,7 @@ async function createReport(value: unknown): Promise<Record<string, unknown>> {
   );
 
   if (
-    threshold < 4
-    || submissionCount < threshold
+    submissionCount < 1
     || encryptedSubmissions.length !== submissionCount
     || questions.length === 0
   ) {
@@ -258,7 +256,6 @@ function toReportTarget(value: unknown): Record<string, unknown> {
   const record = readRecord(value);
 
   return {
-    anonymityThreshold: readNumber(record.anonymity_threshold),
     closedAt: readRequiredString(record.closed_at ?? record.closes_at, "REPORT_CLOSE_MISSING"),
     evaluationCycleId: readRequiredUuid(
       record.evaluation_cycle_id,
@@ -333,8 +330,7 @@ function readDatabaseError(error: unknown): string | null {
     "ACTIVE_PROFILE_REQUIRED",
     "REPORT_SELF_ACCESS_DENIED",
     "REPORTING_ACCESS_DENIED",
-    "REPORT_TARGET_NOT_FOUND",
-    "REPORT_WINDOW_NOT_CLOSED"
+    "REPORT_TARGET_NOT_FOUND"
   ];
 
   return knownErrors.find((code) => message.includes(code)) ?? null;
@@ -383,10 +379,7 @@ function toErrorStatus(message: string, error: unknown): number {
     return 404;
   }
 
-  if (
-    error instanceof RequestValidationError
-    || message === "REPORT_WINDOW_NOT_CLOSED"
-  ) {
+  if (error instanceof RequestValidationError) {
     return 400;
   }
 

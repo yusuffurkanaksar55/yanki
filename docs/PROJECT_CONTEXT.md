@@ -10,7 +10,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 
 ## Current Implementation Status
 
-- Application UI: initial Turkish dashboard shell implemented.
+- Application UI: responsive public product site, dedicated authentication experience, Turkish employee dashboard, and role-aware administration shell implemented.
 - Authentication: typed Supabase Auth client foundation implemented for email/password sign-in, password reset request, strong password setup after invitation/recovery, local-session sign-out, and session-state gating.
 - User profile onboarding: Supabase Auth-backed invitation creation/revocation, atomic invitation acceptance, and authenticated profile gate implemented with Turkish pending, inactive, and error states.
 - Organization hierarchy: configurable organizations, units, memberships, manager assignments, trusted existing-user administration, and demo fixture script implemented.
@@ -24,8 +24,8 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Evaluation encryption: answers are validated and encrypted with AES-256-GCM inside a trusted Edge Function; only ciphertext, nonce, key version, date-only storage metadata, subject/reporting scope, and immutable template context are persisted.
 - Anonymous endpoint abuse protection: known credentials receive isolated 12-request/10-minute buckets, unknown credentials share a 120-request/minute invalid-only bucket, request bodies are bounded, and seven-day five-minute aggregate counters contain no identity, tenant, credential, request, or content data.
 - Outer gateway and alert delivery: the Docker Nginx runtime proxies same-origin `/supabase` traffic, applies content-free body/connection/request limits before sensitive Functions, injects a server-only direct-bypass token, disables sensitive endpoint logs, and a hardened five-minute operator timer delivers identifier-free alert/recovery transitions to an authenticated HTTPS webhook.
-- Aggregate reporting: authorized team leaders, C-Level reviewers, and board reviewers can request closed-cycle subject reports through a trusted Edge Function. Database functions enforce scope, system-admin denial, self-access denial, and the configured anonymity threshold before releasing an identity-free ciphertext batch for server-side decryption and aggregation.
-- Reporting UI: the Turkish dashboard lists authorized closed report targets without participation counts, shows a count-free withheld state below threshold, renders numeric/categorical aggregates above threshold, and never receives raw free-text responses.
+- Aggregate reporting: authorized team leaders, C-Level reviewers, and board reviewers can request active or completed subject reports through a trusted Edge Function. Database functions enforce scope, system-admin denial, and self-access denial before releasing an identity-free ciphertext batch after the first submission.
+- Reporting UI: the Turkish dashboard lists authorized non-draft report targets without discovery-time participation counts, shows an empty state before the first response, renders numeric/categorical aggregates as responses arrive, and never receives raw free-text responses.
 - Evaluation content retention: each organization has a versioned 30-to-3650-day policy, disabled-by-default automatic purge, legal hold, scoped Turkish administration UI, and service-role-only live-database cleanup that returns no submission counts.
 - Production tenant bootstrap: a service-role-only, fingerprinted, idempotent operator command creates an organization, initial unit, first administrator invitation, default retention policy, and content-free audit trail for shared SaaS or dedicated installations. Failed database creation compensates only the Auth identity created by that command, and an explicit recovery command can renew an incomplete initial invitation without printing an action link.
 - Recovery acceptance: a Docker-backed disposable restore drill streams a compressed dump into a protected temporary database without a host dump file, verifies migration and security invariants, optionally decrypts identity-free synthetic canaries with independently recovered keys, and always removes the target.
@@ -45,8 +45,8 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 
 - Employees can submit assigned evaluations but cannot read submitted content.
 - Employees cannot view evaluations about themselves or other employees.
-- Team leaders can view only authorized aggregated anonymous results and cannot view their own results.
-- C-Level reviewers can view only authorized aggregated anonymous results within assigned scopes.
+- Team leaders can view only authorized identity-separated aggregate results and cannot view their own results.
+- C-Level reviewers can view only authorized identity-separated aggregate results within assigned scopes.
 - System administrators can manage configuration but cannot read evaluation content.
 - Project managers and team leaders are evaluable.
 - Published question templates must be versioned instead of modified destructively.
@@ -62,16 +62,16 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Never expose encryption keys or Supabase service-role credentials to the browser.
 - Never rely only on frontend route protection.
 - Enforce self-access prevention in UI, Edge Functions, authorization checks, and database policies.
-- Do not reveal result aggregates below the configured anonymity threshold.
+- Do not claim group anonymity for one-person or sparse aggregates; communicate the contextual inference risk honestly.
 - Do not log sensitive payloads, anonymous credentials, decrypted content, exact submission timestamps, or evaluator-to-response mappings.
 
 ## Current Database Structure
 
-The Supabase migrations additionally create immutable versioned templates, identity-domain `anonymous_submission_credentials`, content-domain `encrypted_evaluation_submissions`, tenant-scoped `organization_evaluation_retention_policies`, content-free `tenant_bootstrap_operations`, short-lived `security_rate_limit_buckets`, and aggregate `security_abuse_event_counters`. Service-role-only RPCs issue credentials, make quota decisions, atomically persist or expire ciphertext, bootstrap tenants, expose safe abuse summaries, and release report batches only after authorization, closure, and threshold checks. Abuse, retention-policy, and bootstrap-operation tables store no evaluation content or evaluator linkage. RLS is enabled and direct table privileges remain default-deny, including to `service_role` for sensitive operational tables.
+The Supabase migrations additionally create immutable versioned templates, identity-domain `anonymous_submission_credentials`, content-domain `encrypted_evaluation_submissions`, tenant-scoped `organization_evaluation_retention_policies`, content-free `tenant_bootstrap_operations`, short-lived `security_rate_limit_buckets`, and aggregate `security_abuse_event_counters`. Service-role-only RPCs issue credentials, make quota decisions, atomically persist or expire ciphertext, bootstrap tenants, expose safe abuse summaries, and release identity-free report batches only after authorization. Abuse, retention-policy, and bootstrap-operation tables store no evaluation content or evaluator linkage. RLS is enabled and direct table privileges remain default-deny, including to `service_role` for sensitive operational tables.
 
 ## Current Authentication Model
 
-The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, invitation/recovery password update, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, own-assignment display and encrypted anonymous submission, thresholded aggregate reports for authorized reviewers, trusted immutable-template and project/cycle administration, system-admin invitation creation/revocation, authenticated invitation acceptance, and trusted existing-user role/hierarchy administration. Real invitation email delivery and acceptance still require an approved mailbox smoke test. Microsoft Entra ID is not implemented yet.
+The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, invitation/recovery password update, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, own-assignment display and encrypted anonymous submission, immediate identity-separated aggregate reports for authorized reviewers, trusted immutable-template and project/cycle administration, system-admin invitation creation/revocation, authenticated invitation acceptance, and trusted existing-user role/hierarchy administration. Real invitation email delivery and acceptance still require an approved mailbox smoke test. Microsoft Entra ID is not implemented yet.
 
 ## Current Authorization Model
 

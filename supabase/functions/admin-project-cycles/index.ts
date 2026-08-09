@@ -456,7 +456,7 @@ async function createProjectCycle(
   const { data: cycle, error: cycleError } = await serviceClient
     .from("evaluation_cycles")
     .insert({
-      anonymity_threshold: 4,
+      anonymity_threshold: 1,
       closes_at: input.closesAt,
       created_by_user_id: actorUserId,
       cycle_type: "PROJECT_COMPLETION",

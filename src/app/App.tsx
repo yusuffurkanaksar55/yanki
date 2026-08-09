@@ -12,6 +12,7 @@ import { DashboardPage } from "../features/dashboard/DashboardPage";
 import type {
   EvaluationAssignmentService
 } from "../features/evaluations/evaluationAssignmentService";
+import { MarketingPage } from "../features/marketing/MarketingPage";
 import type { EvaluationReportService } from "../features/reporting/evaluationReportService";
 import { ProfileGate } from "../features/profiles/ProfileGate";
 import type { ProfileService } from "../features/profiles/profileService";
@@ -31,7 +32,7 @@ type AppProps = {
   readonly workspaceContextService?: WorkspaceContextService;
 };
 
-type AppRoute = "dashboard" | "administration";
+type AppRoute = "marketing" | "login" | "dashboard" | "administration";
 
 export function App({
   authService,
@@ -46,6 +47,10 @@ export function App({
   workspaceContextService
 }: AppProps) {
   const route = useHashRoute();
+
+  if (route === "marketing") {
+    return <MarketingPage />;
+  }
 
   return (
     <AuthProvider service={authService}>
@@ -117,10 +122,20 @@ function useHashRoute(): AppRoute {
 
 function readRouteFromHash(): AppRoute {
   if (typeof window === "undefined") {
+    return "marketing";
+  }
+
+  if (window.location.hash === "#administration") {
+    return "administration";
+  }
+
+  if (window.location.hash === "#dashboard") {
     return "dashboard";
   }
 
-  return window.location.hash === "#administration"
-    ? "administration"
-    : "dashboard";
+  if (window.location.hash === "#login") {
+    return "login";
+  }
+
+  return "marketing";
 }

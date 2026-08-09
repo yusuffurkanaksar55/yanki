@@ -32,6 +32,7 @@ describe("App", () => {
   });
 
   it("renders the Turkish dashboard shell after an authenticated session is available", async () => {
+    window.history.replaceState(null, "", "/#dashboard");
     const profileService = createProfileServiceStub(createProfileStub());
 
     render(
@@ -124,6 +125,7 @@ describe("App", () => {
   });
 
   it("shows invitation onboarding when an authenticated user has no profile yet", async () => {
+    window.history.replaceState(null, "", "/#dashboard");
     render(
       <App
         authService={createAuthServiceStub(createSessionStub())}
@@ -138,11 +140,23 @@ describe("App", () => {
   });
 
   it("renders the sign-in page when there is no active session", async () => {
+    window.history.replaceState(null, "", "/#login");
     render(<App authService={createAuthServiceStub(null)} />);
 
     expect(
       await screen.findByRole("heading", { name: tr.auth.pageTitle })
     ).toBeInTheDocument();
+  });
+
+  it("renders the public Yankı introduction at the root route", () => {
+    render(<App authService={createAuthServiceStub(null)} />);
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: tr.app.name })
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("link", { name: tr.marketing.navigation.signIn }).length
+    ).toBeGreaterThan(0);
   });
 });
 
@@ -243,7 +257,7 @@ function createManagedProjectStub(draft: ProjectCycleDraft): ManagedProject {
     completesOn: draft.projectCompletedOn,
     cycles: [
       {
-        anonymityThreshold: 4,
+        anonymityThreshold: 1,
         assignmentSummary: {
           cancelled: 0,
           completed: 0,

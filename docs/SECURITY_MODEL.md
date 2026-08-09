@@ -2,11 +2,11 @@
 
 ## Status
 
-This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, privacy-preserving application quotas, server-side AES-256-GCM encryption, additive key rotation, content-free key health checks, atomic assignment completion, trusted thresholded aggregate reporting, tenant-scoped content retention with legal hold, idempotent production tenant bootstrap, independent-custody manifest validation, encrypted recovery canaries, disposable database-plus-key restore verification, and trusted administration boundaries. Real production custody-provider configuration and environment-specific recovery acceptance remain incomplete.
+This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, privacy-preserving application quotas, server-side AES-256-GCM encryption, additive key rotation, content-free key health checks, atomic assignment completion, trusted immediate identity-separated aggregate reporting, tenant-scoped content retention with legal hold, idempotent production tenant bootstrap, independent-custody manifest validation, encrypted recovery canaries, disposable database-plus-key restore verification, and trusted administration boundaries. Real production custody-provider configuration and environment-specific recovery acceptance remain incomplete.
 
 ## Security Objectives
 
-- Protect evaluator anonymity.
+- Separate evaluator identity from evaluation content and describe the remaining inference risk accurately.
 - Prevent plaintext evaluation content from being readable in the database.
 - Prevent self-access to evaluation results.
 - Restrict reporting to authorized scopes.
@@ -64,7 +64,7 @@ Decryption is implemented only in `evaluation-reports`, after the database has e
 - Role validation
 - Scope validation
 - Self-access prevention
-- Minimum anonymity threshold validation
+- First-submission availability validation
 - Request schema validation
 
 Raw decrypted individual responses must not be returned to reviewers.
@@ -115,13 +115,13 @@ Alert webhooks must use HTTPS outside explicit loopback acceptance and authentic
 
 `anonymous_submission_credentials` remains in the identity domain and has no content or submission identifier. `encrypted_evaluation_submissions` remains in the content domain and has no evaluator, assignment, credential, digest, plaintext, or exact timestamp column. Both tables have RLS enabled and all direct table privileges are revoked from browser roles and `service_role`; trusted code can use only the narrow RPCs.
 
-## Anonymity Threshold
+## Immediate Aggregate Availability
 
-The default minimum result threshold is 4 submissions per reportable group. The threshold must be configurable per evaluation cycle, but lowering it below the documented security minimum requires an explicit administrative warning and recorded decision.
+Report availability starts after the first encrypted submission for a fixed evaluation-cycle-plus-subject group. The legacy cycle threshold field is fixed to `1` for compatibility and is not an administrative privacy control.
 
-Below threshold, the application must withhold results and return a Turkish user-facing message through the localization system.
+Before the first submission, the application returns a Turkish `EMPTY` state without questions, ciphertext, decrypted values, or a participation count. After the first submission, the authorized report includes the current sample size and aggregate values, including while the cycle is active.
 
-The implemented report group is fixed to evaluation cycle plus evaluated subject. Target discovery is independent of submission existence. A below-threshold response contains neither the exact count nor questions, ciphertext, or decrypted values. Client-selected slicing is not supported.
+The implemented report group is fixed to evaluation cycle plus evaluated subject. Target discovery is independent of submission existence, and client-selected slicing is not supported. Evaluator identifiers remain separated from content, but a reviewer can sometimes infer a contributor from organizational context when the group is small. Product claims must not describe this behavior as guaranteed group anonymity.
 
 ## Logging And Auditing
 

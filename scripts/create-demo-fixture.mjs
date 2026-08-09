@@ -570,7 +570,7 @@ async function upsertEvaluationCycle(organizationId, projectId, accountRecords) 
     project_completed_on: demoProject.completesOn,
     opens_at: demoEvaluationCycle.opensAt,
     closes_at: demoEvaluationCycle.closesAt,
-    anonymity_threshold: 4,
+    anonymity_threshold: 1,
     created_by_user_id: creator.userId
   };
 

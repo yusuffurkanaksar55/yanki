@@ -20,7 +20,7 @@ Separate assignment identity from submission content. Assignment records may rep
 
 ## Consequences
 
-- Reporting must rely on aggregate, thresholded results.
+- Reporting must rely on identity-separated aggregate results and must state sparse-group inference risk honestly.
 - Duplicate prevention needs careful credential design.
 - Debugging and auditing must avoid reintroducing identity linkage.
 

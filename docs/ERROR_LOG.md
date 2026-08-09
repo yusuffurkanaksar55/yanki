@@ -1,5 +1,67 @@
 # Error Log
 
+## ERR-20260809-057 - Reporting smoke lacked local account aliases
+
+### Context
+
+The first linked immediate-reporting acceptance invocation expected reusable `REPORT_*` account variables.
+
+### Symptoms
+
+The script stopped before authentication or remote mutation with `REPORT_ADMIN_EMAIL is required`.
+
+### Root cause
+
+Synthetic account credentials had been supplied for interactive testing but were intentionally not persisted in `.env.local` under the smoke script's aliases.
+
+### Correct solution
+
+Run the acceptance once with the previously approved synthetic values supplied only to the command process. Do not write them into source, documentation, or a committed environment file.
+
+### Prevention
+
+Keep smoke scripts fail-fast on missing variables and document their required aliases without values. Production and CI credentials must come from an approved secret manager.
+
+### Related files
+
+- `scripts/smoke-thresholded-evaluation-reporting.mjs`
+- `docs/TEST_FIXTURES.md`
+
+### Related tests
+
+- `npm run smoke:reports`
+
+## ERR-20260809-056 - Supabase pg-delta catalog cache missed its temporary certificate
+
+### Context
+
+The immediate-reporting migration was pushed to the linked synthetic Supabase project with CLI 2.109.1.
+
+### Symptoms
+
+The migration applied, but the CLI warned that post-apply pg-delta catalog caching could not read a temporary `pgdelta-target-ca.crt` file.
+
+### Root cause
+
+The CLI's optional post-apply catalog export outlived or could not resolve its temporary certificate path. The database migration transaction itself had already completed.
+
+### Correct solution
+
+Do not replay or repair the applied migration blindly. Verify local/remote migration parity and run linked schema lint; both checks confirmed `20260809210000` is active and the schema is clean.
+
+### Prevention
+
+Treat post-apply CLI warnings separately from database transaction failures and require migration-list plus linked-lint evidence before deciding whether a forward repair is needed. Reassess after the planned CLI update.
+
+### Related files
+
+- `supabase/migrations/20260809210000_immediate_evaluation_reporting.sql`
+
+### Related tests
+
+- `npx supabase migration list`
+- `npm run supabase:lint:linked`
+
 ## ERR-20260809-055 - Checksum test sorted hash-prefixed lines instead of file names
 
 ### Context
@@ -247,68 +309,6 @@ Run the full repository suite, not only database tests, after adding a public ta
 ### Related tests
 
 - `npm test`
-- `npm run check`
-
-## ERR-20260809-047 - Local recovery helper used an unavailable RNG API
-
-### Context
-
-The first executable combined database/key recovery drill generated a process-only disposable AES key from PowerShell.
-
-### Symptoms
-
-Windows PowerShell reported that the static `RandomNumberGenerator.Fill` method was unavailable. Because later commands succeeded, the compound helper also returned exit code zero after using the still zero-filled test buffer.
-
-### Root cause
-
-The helper assumed a newer .NET cryptography API and did not stop immediately after a PowerShell method error.
-
-### Correct solution
-
-Use the compatible `RandomNumberGenerator.Create().GetBytes()` API, dispose the generator, refresh the encrypted canary, and explicitly propagate every child process exit code. The corrected drill used a real random 32-byte key and passed.
-
-### Prevention
-
-Keep production keys in the approved secret manager rather than generating them in shell helpers. For disposable Windows verification, use APIs supported by Windows PowerShell and make compound acceptance helpers fail fast.
-
-### Related files
-
-- `scripts/provision-encryption-recovery-canaries.mjs`
-- `scripts/verify-key-database-recovery-acceptance.mjs`
-
-### Related tests
-
-- `npm run encryption:recovery:acceptance`
-
-## ERR-20260809-046 - Recovery-event test mutated a readonly service contract
-
-### Context
-
-The first full check after adding password-recovery gating compiled the new React test.
-
-### Symptoms
-
-TypeScript rejected assignment to the readonly `onAuthStateChange` field on an `AuthService` stub.
-
-### Root cause
-
-The test attempted to mutate an already constructed typed service object in order to capture the Supabase Auth listener.
-
-### Correct solution
-
-Construct a new immutable `AuthService` value with the desired listener override and preserve the remaining stub methods through object spread.
-
-### Prevention
-
-Treat injectable service contracts as immutable in tests and configure scenario-specific behavior during stub construction.
-
-### Related files
-
-- `src/features/authentication/PasswordSetupPage.test.tsx`
-
-### Related tests
-
-- `npm run typecheck`
 - `npm run check`
 
 ## ERR-YYYYMMDD-XXX - Short error title

@@ -6,7 +6,7 @@ Secure company-internal web platform for anonymous employee, team, project, mana
 
 ## Current Status
 
-The repository is in application development phase. It contains persistent project memory, a React + TypeScript + Vite application, Supabase Auth onboarding, configurable hierarchy and scoped administration, immutable versioned evaluation templates, authenticated assignment access, a Turkish evaluation form, one-time anonymous credentials, AES-256-GCM encrypted submission persistence, privacy-preserving anonymous endpoint quotas, thresholded trusted aggregate reporting, a portable Docker/Nginx frontend package, signed digest-pinned container release automation, explicit multi-tenant integrity controls, and executable frontend/database/security tests.
+The repository is in application development phase. It contains persistent project memory, a React + TypeScript + Vite application, a public Turkish product site, Supabase Auth onboarding, configurable hierarchy and scoped administration, immutable versioned evaluation templates, authenticated assignment access, a Turkish evaluation form, one-time anonymous credentials, AES-256-GCM encrypted submission persistence, privacy-preserving anonymous endpoint quotas, immediate identity-separated aggregate reporting, a portable Docker/Nginx frontend package, signed digest-pinned container release automation, explicit multi-tenant integrity controls, and executable frontend/database/security tests.
 
 Invitation delivery still needs an approved mailbox smoke test. Key rotation/health, anonymous quotas, same-origin gateway limits, content-free alerting, retention, tenant bootstrap, encrypted off-site backup/restore, and release supply-chain automation are implemented. Real production providers, the first hosted version-tag release, and environment-specific signed acceptance remain incomplete.
 
@@ -35,7 +35,7 @@ The frontend test/build stack, Supabase CLI foundation, and first Supabase Edge 
 - Evaluator identity and submission content are technically separated.
 - Anonymous credentials are one-time-use and must not create a reversible assignment-to-submission mapping.
 - Database readers must not be able to read scores, comments, or lessons learned content.
-- Result access is scoped, thresholded, and self-access is denied.
+- Result access is scoped, starts after the first encrypted submission, and denies self-access.
 - Administrative access does not imply access to sensitive evaluation content.
 - Abuse controls must not persist IP addresses, device fingerprints, credential digests, user identifiers, assignment identifiers, or request content.
 
@@ -76,7 +76,7 @@ These commands currently validate the React application scaffold, documentation 
 
 The remote Supabase project is linked to project ref `daxaymcmtbmummrxdyjy`. Public frontend environment examples are documented in `.env.example`; real local values belong in `.env.local`, which is ignored by Git.
 
-The applied migrations create default-deny onboarding, hierarchy, template, project, cycle, assignment, one-time credential, encrypted content, anonymous abuse-control, and thresholded reporting boundaries. Every cycle and assignment preserves an exact published template version. Evaluation answers are stored only as AES-256-GCM ciphertext; the content table has no evaluator, assignment, credential, plaintext answer, or exact submission timestamp column. Reports are decrypted only in trusted code after closure, scope, self-access, administrator-deny, and threshold checks.
+The applied migrations create default-deny onboarding, hierarchy, template, project, cycle, assignment, one-time credential, encrypted content, anonymous abuse-control, and identity-separated reporting boundaries. Every cycle and assignment preserves an exact published template version. Evaluation answers are stored only as AES-256-GCM ciphertext; the content table has no evaluator, assignment, credential, plaintext answer, or exact submission timestamp column. Active and completed reports become available after the first encrypted submission and are decrypted only in trusted code after scope, self-access, and administrator-deny checks.
 
 ## Deployment
 

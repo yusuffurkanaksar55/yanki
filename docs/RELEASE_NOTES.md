@@ -1,5 +1,13 @@
 # Release Notes
 
+## 2026-08-09 - Public Product Experience And Immediate Aggregate Reporting
+
+This is not a product release. The root route now presents a responsive Turkish Yankı product site explaining the workflow, security boundary, and SaaS or customer-managed deployment options. Authentication has a dedicated route and redesigned responsive experience; the employee and administration workspaces keep their existing protected routes. Browser verification covered public, sign-in, dashboard, and administration layouts at desktop and mobile widths without horizontal page overflow.
+
+ADR-0030 supersedes the reporting availability rule in ADR-0021. Authorized non-draft report targets are discoverable independently of participation, reports return `EMPTY` before the first encrypted submission, and numeric or categorical aggregates become available after the first encrypted submission while a cycle is active. System-administrator denial, self-access denial, tenant/role/scope checks, evaluator identity separation, trusted-only decryption, and raw free-text withholding remain enforced. One-person and sparse aggregates can permit contextual inference, so the product does not claim group anonymity from sample size.
+
+Full application checks passed 49 Vitest files and 216 tests. Local schema lint and 185 pgTAP cases passed; migration `20260809210000` is active in the linked synthetic project, linked lint is clean, and both reporting-related Edge Functions were deployed. Live synthetic acceptance verified active-target discovery, `EMPTY`, first-submission availability, a four-submission `3.5` rating aggregate, raw-text withholding, and administrator/self/employee/anonymous denial.
+
 ## 2026-08-09 - Signed Digest-Pinned Container Release Foundation
 
 This is not a product release. Exact stable version tags now build one `linux/amd64` and `linux/arm64` OCI image index in GitHub Actions, publish it to GHCR, attach BuildKit SPDX SBOM and max-mode provenance, and sign both the image digest and release manifest through the exact GitHub Actions OIDC workflow identity.

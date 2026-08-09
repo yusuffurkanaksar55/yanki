@@ -2,7 +2,7 @@
 
 ## Status
 
-Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed onboarding, configurable hierarchy, own-context RPCs, immutable versioned templates, project/cycle/assignment planning, identity-domain one-time credentials, content-domain encrypted evaluation submissions, thresholded reporting functions, tenant-scoped evaluation-content retention, production tenant bootstrap, and synthetic encrypted recovery canaries.
+Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed onboarding, configurable hierarchy, own-context RPCs, immutable versioned templates, project/cycle/assignment planning, identity-domain one-time credentials, content-domain encrypted evaluation submissions, immediate identity-separated reporting functions, tenant-scoped evaluation-content retention, production tenant bootstrap, and synthetic encrypted recovery canaries.
 
 Generated TypeScript database types are stored in `src/types/supabase.ts` and should be regenerated after schema changes.
 
@@ -118,7 +118,7 @@ The service-role-only organization-administration functions mutate units, primar
 
 `evaluation_templates` is the tenant-scoped logical root. `evaluation_template_versions` stores snapshot metadata and lifecycle state. `evaluation_template_questions` stores ordered question prompts, required flags, supported question types, and selection options. Draft versions are editable; database triggers make a published version and every question beneath it permanently immutable. A new version is cloned from a published snapshot and begins as a draft.
 
-`evaluation_cycles` stores time-bound evaluation configuration with open and close timestamps, optional project completion date, cycle type, status, anonymity threshold, and a required exact published `template_version_id`. It does not require a fixed participant count to open a cycle.
+`evaluation_cycles` stores time-bound evaluation configuration with open and close timestamps, optional project completion date, cycle type, status, and a required exact published `template_version_id`. The legacy `anonymity_threshold` compatibility field is fixed to `1`; it no longer delays report availability. A cycle does not require a fixed participant count.
 
 `admin_update_project_dates()` atomically updates `projects.completes_on`, `evaluation_cycles.project_completed_on`, and `evaluation_cycles.closes_at` after verifying record scope, editable status, date ordering, and current system-administrator or exact assigned-project-manager authority. It is executable only by `service_role`.
 
@@ -140,7 +140,7 @@ Anonymous content-domain tables store encrypted submissions and non-sensitive me
 
 `issue_anonymous_submission_credential()`, `get_anonymous_submission_context()`, and `redeem_anonymous_submission_credential()` are executable only by `service_role`. Direct table privileges are revoked even from `service_role`, forcing trusted code through the reviewed lifecycle functions.
 
-Reporting adds no plaintext or materialized result table. `list_my_evaluation_report_targets()` returns closed configuration targets without reading participation state. `get_encrypted_evaluation_report_batch()` counts within one organization/cycle/subject group and returns no count or content below threshold; at threshold it returns only identity-free ciphertext and immutable question configuration to trusted code. Audit metadata records access status and threshold without the exact submission count.
+Reporting adds no plaintext or materialized result table. `list_my_evaluation_report_targets()` returns authorized non-draft configuration targets without reading participation state. `get_encrypted_evaluation_report_batch()` counts within one organization/cycle/subject group and returns `EMPTY` with no count or content before the first submission. Afterward it returns only identity-free ciphertext and immutable question configuration to trusted code. Audit metadata records access state and mode without the exact submission count.
 
 `list_referenced_evaluation_encryption_key_versions()` is executable only by `service_role`. It returns distinct key-version identifiers required by stored ciphertext, with no ciphertext, content, identity, per-version count, or timestamp. Trusted key-health code compares this inventory to server-only secret configuration and exposes only aggregate health status to system administrators.
 

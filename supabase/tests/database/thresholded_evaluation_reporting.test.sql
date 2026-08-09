@@ -28,7 +28,7 @@ select ok(
     'public.get_encrypted_evaluation_report_batch(uuid,uuid,uuid)',
     'EXECUTE'
   ),
-  'Trusted service code can request a thresholded encrypted batch'
+  'Trusted service code can request an authorized identity-free encrypted batch'
 );
 
 select ok(
@@ -279,7 +279,7 @@ values
     'CLOSED',
     now() - interval '2 days',
     now() - interval '1 day',
-    4
+    1
   ),
   (
     '60222222-2222-4222-8222-222222222222',
@@ -290,7 +290,7 @@ values
     'OPEN',
     now() - interval '1 day',
     now() + interval '1 day',
-    4
+    1
   );
 
 insert into public.evaluation_assignments (
@@ -468,8 +468,8 @@ select public.list_my_evaluation_report_targets(
 
 select is(
   jsonb_array_length((select result -> 'targets' from reviewer_targets)),
-  1,
-  'The target list includes authorized closed cycles and excludes open cycles'
+  2,
+  'The target list includes authorized active and completed cycles'
 );
 
 select ok(
@@ -495,7 +495,7 @@ select is(
   'System administrators receive no report targets'
 );
 
-create temporary table withheld_batch as
+create temporary table first_available_batch as
 select public.get_encrypted_evaluation_report_batch(
   '51111111-1111-4111-8111-111111111111',
   '60111111-1111-4111-8111-111111111111',
@@ -503,17 +503,15 @@ select public.get_encrypted_evaluation_report_batch(
 ) as result;
 
 select is(
-  (select result ->> 'status' from withheld_batch),
-  'WITHHELD',
-  'A below-threshold report is withheld'
+  (select result ->> 'status' from first_available_batch),
+  'AVAILABLE',
+  'A report is available after the first encrypted submission'
 );
 
-select ok(
-  not (
-    (select result from withheld_batch)
-      ?| array['submission_count', 'submissions', 'questions']
-  ),
-  'A withheld response reveals no exact count, ciphertext, or question content'
+select is(
+  (select (result ->> 'submission_count')::integer from first_available_batch),
+  3,
+  'An available report returns the current identity-free aggregate sample size'
 );
 
 select ok(
@@ -592,17 +590,14 @@ select throws_ok(
   'A cross-organization reviewer cannot request a report batch'
 );
 
-select throws_ok(
-  $$
-    select public.get_encrypted_evaluation_report_batch(
-      '51111111-1111-4111-8111-111111111111',
-      '60222222-2222-4222-8222-222222222222',
-      '53333333-3333-4333-8333-333333333333'
-    )
-  $$,
-  'P0001',
-  'REPORT_WINDOW_NOT_CLOSED',
-  'Reports cannot be opened before the evaluation window closes'
+select is(
+  public.get_encrypted_evaluation_report_batch(
+    '51111111-1111-4111-8111-111111111111',
+    '60222222-2222-4222-8222-222222222222',
+    '53333333-3333-4333-8333-333333333333'
+  ) ->> 'status',
+  'AVAILABLE',
+  'An active cycle report is available after its first submission'
 );
 
 insert into public.encrypted_evaluation_submissions (
@@ -642,7 +637,7 @@ select public.get_encrypted_evaluation_report_batch(
 select is(
   (select result ->> 'status' from available_batch),
   'AVAILABLE',
-  'A report becomes available at the configured anonymity threshold'
+  'The completed-cycle report remains available as submissions arrive'
 );
 
 select ok(
@@ -659,7 +654,7 @@ select is(
 select is(
   jsonb_array_length((select result -> 'submissions' from available_batch)),
   4,
-  'Exactly the thresholded identity-free ciphertext batch is released'
+  'Exactly the authorized identity-free ciphertext batch is released'
 );
 
 select is(

@@ -79,9 +79,14 @@ export function ApplicationShell({
           </div>
           <nav
             aria-label={tr.navigation.primaryAriaLabel}
-            className="scrollbar-none overflow-x-auto border-t border-slate-100 px-3"
+            className="border-t border-slate-100 px-2"
           >
-            <ul className="flex min-w-max gap-1 py-2">
+            <ul
+              className="grid gap-1 py-2"
+              style={{
+                gridTemplateColumns: `repeat(${navigationItems.length}, minmax(0, 1fr))`
+              }}
+            >
               {navigationItems.map((item) => (
                 <li key={`${item.href}-${item.label}`}>
                   <NavigationLink compact item={item} />
@@ -134,7 +139,9 @@ function NavigationLink({
     <a
       aria-current={item.isActive ? "page" : undefined}
       className={`flex items-center gap-3 rounded-md text-sm font-semibold transition focus-ring ${
-        compact ? "px-3 py-2" : "px-3 py-2.5"
+        compact
+          ? "h-14 min-w-0 flex-col justify-center gap-1 px-1 py-1 text-xs"
+          : "px-3 py-2.5"
       } ${
         item.isActive
           ? "bg-emerald-50 text-pine"
@@ -143,7 +150,9 @@ function NavigationLink({
       href={item.href}
     >
       <Icon aria-hidden="true" size={18} strokeWidth={1.8} />
-      <span>{item.label}</span>
+      <span className={compact ? "max-w-full truncate" : undefined}>
+        {item.label}
+      </span>
     </a>
   );
 }

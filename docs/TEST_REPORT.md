@@ -1,5 +1,52 @@
 # Test Report
 
+## 2026-08-09 - Public Site, Responsive Navigation, And Immediate Reporting
+
+### Environment
+
+- Windows 11, Node.js 24, Vite 8, React 19, Vitest, Docker Desktop, Supabase CLI 2.109.1, local Supabase, linked synthetic Supabase, and the Codex in-app Chromium browser.
+
+### Commands executed
+
+- `npm run check`
+- `npx supabase migration up --local`
+- `npm run supabase:lint:local` and `npm run supabase:test:local`
+- `npm run supabase:push:dry-run`, linked migration push/list, and `npm run supabase:lint:linked`
+- Deployments of `evaluation-reports` and `admin-project-cycles`
+- `npm run smoke:reports` with process-only synthetic credentials
+- Browser inspection at 1280x720 and 390x844
+
+### Passed
+
+- Full application checks passed 49 Vitest files and 216 tests, lint, typecheck, production build, and bounded-memory verification.
+- Local schema lint reported no errors and 185 pgTAP cases passed across eight suites, including the updated reporting authorization suite.
+- Linked migration `20260809210000` matches local history, linked schema lint is clean, and both updated Edge Functions deployed successfully.
+- Live synthetic reporting returned `EMPTY` before participation, became `AVAILABLE` after the first encrypted submission while active, retained four identity-free submissions with a `3.5` aggregate average, and withheld raw text.
+- Live system-admin, self, employee, and anonymous result access remained denied.
+- Public, sign-in, dashboard, and administration pages stayed within the tested desktop and mobile document widths; all mobile workspace destinations are visible without horizontal navigation scrolling.
+
+### Failed And Corrected
+
+- The first live smoke invocation lacked `REPORT_*` aliases and stopped before any remote mutation. The rerun used previously approved synthetic credentials in process memory only and passed.
+- Supabase reported a post-apply pg-delta catalog cache certificate warning. Migration list parity and clean linked lint independently confirmed that the migration applied successfully.
+- Desktop sign-in copy initially sat over the lower artwork ribbons; the final layout anchors copy at the visual center.
+- Mobile workspace navigation initially hid the fourth item beyond a horizontal scroller; stable equal-width targets now fit without page overflow.
+
+### Security checks
+
+- Verified evaluator identity never enters report batches or frontend result models, raw free text remains withheld, and direct ciphertext-table access is unchanged.
+- Verified public copy distinguishes identity separation from guaranteed group anonymity and states sparse-group inference risk.
+- Verified no test credentials were written to a repository file.
+
+### Skipped
+
+- No production employee data, production encryption key, real SMTP flow, customer server, or permanent screenshot baseline was used.
+
+### Remaining risks
+
+- One-person and sparse aggregates permit contextual inference by design under ADR-0030. Customer policy and onboarding must reflect this limitation.
+- The production build passes but reports a 581.93 kB JavaScript chunk; route-level code splitting remains required before material frontend growth.
+
 ## 2026-08-09 - Product UI And Responsive Layout Verification
 
 ### Environment
@@ -173,48 +220,3 @@
 ### Remaining risks
 
 - Production release still requires remote-provider immutability/access review, monitored timer execution, storage-object backup if adopted, aligned legal/retention policy, and signed production-like RPO/RTO evidence.
-
-## 2026-08-09 - Key Custody And Database Recovery Acceptance
-
-### Environment
-
-- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
-- Docker Desktop local Supabase PostgreSQL stack and guarded disposable restore database.
-- Process-only random AES-256 test key and committed credential-free example custody manifest.
-
-### Commands executed
-
-- Focused custody, recovery-boundary, and backup/restore Vitest suites
-- `npm run check`, `npm run deployment:config`
-- Local migration-up, `npm run supabase:lint:local`, `npm run supabase:test:local`
-- `npm run encryption:custody:validate`, canary provisioning, and `npm run encryption:recovery:acceptance` with explicit confirmations
-- Linked migration dry-run/push/list, `npm run supabase:types`, and `npm run supabase:lint:linked`
-
-### Passed
-
-- Manifest validation enforced exactly one active key, independent custody references, canonical 32-byte key encoding, two distinct custodian roles, and no embedded credential/key fields.
-- AES-256-GCM canaries round-tripped for active and historical keys; wrong-key and incomplete-set cases failed closed.
-- A clean local reset applied every migration, schema lint reported no errors, and 180 pgTAP cases passed across eight suites, including 15 recovery-canary table, RLS, grant, RPC, duplicate, length, and input-validation cases.
-- The final executable drill provisioned one synthetic canary, streamed a 670,101-byte compressed dump directly into restore, decrypted all custodied canaries, verified restored security boundaries, wrote no host dump, and removed the disposable database.
-- Full application checks passed 43 Vitest files and 177 tests, lint, typecheck, production build, bounded-memory verification, and Docker Compose configuration validation.
-- Local and remote migration histories include `20260809153000`; linked schema lint reported no errors and generated types contain the recovery canary table/function.
-
-### Failed And Corrected
-
-- The full repository security test expected every migration's `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` statement on one line. The new migration enabled RLS correctly but split the statement across lines; it now follows the repository's machine-checked migration form.
-- The first local helper used the unavailable static PowerShell `RandomNumberGenerator.Fill` method, leaving its disposable test byte array zero-filled even though the cryptographic acceptance path passed. The rerun used `RandomNumberGenerator.Create().GetBytes()`, refreshed the canary with a real random key, propagated child exit codes, and passed.
-- The first Compose validation could not spawn Docker inside the workspace sandbox; the approved Docker-enabled rerun passed unchanged. Remote push repeated the known non-fatal `pg-delta` temporary CA-cache warning, while migration list and linked lint independently confirmed successful application.
-
-### Security checks
-
-- Verified `anon`, `authenticated`, and `service_role` have no direct canary-table read privilege; only `service_role` can execute the encrypted refresh RPC.
-- Verified canary persistence contains no tenant, user, evaluator, subject, assignment, credential, answer, or evaluation-content column.
-- Verified operator reports omit keys, key-version identifiers, custody references, ciphertext, decrypted bytes, and service-role credentials.
-
-### Skipped
-
-- No real production key/provider was configured and no linked canary was written because independently recovered production key material is not available in the workspace.
-
-### Remaining risks
-
-- Production acceptance still requires approved primary and recovery custody providers, scheduled encrypted off-host backups, an isolated environment restore, documented RPO/RTO, and signed two-person evidence.

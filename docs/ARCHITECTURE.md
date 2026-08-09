@@ -81,7 +81,7 @@ Assignments and submissions are separate domains.
 - The authenticated `evaluation-submission-credentials` boundary validates the active evaluator, pending assignment, tenant memberships, cycle window, and immutable template. It generates a random 256-bit credential, stores only its SHA-256 digest in the identity domain, and returns the raw value only to browser memory.
 - The browser calls `anonymous-evaluation-submissions` without an Authorization header or cookies. The trusted function hashes the credential, loads identity-free context, validates every answer against the immutable questions, and encrypts the payload with AES-256-GCM plus deterministic authenticated context.
 - `redeem_anonymous_submission_credential()` atomically stores ciphertext, marks the credential redeemed, and completes the assignment. The content row contains no evaluator, assignment, credential, plaintext answer, or exact submission timestamp.
-- This is application-level unlinkability. Exact assignment completion time remains in the identity domain while only `stored_on` date exists in the content domain; sparse-group inference is handled later by thresholded reporting and operational policy.
+- This is application-level unlinkability. Exact assignment completion time remains in the identity domain while only `stored_on` date exists in the content domain. Immediate sparse-group aggregates can still permit contextual inference and must be governed by explicit customer policy and accurate product copy.
 
 ## Anonymous Abuse-Control Architecture
 
@@ -95,9 +95,9 @@ Scheduled alert delivery calls `get_anonymous_submission_abuse_summary_for_opera
 
 ## Reporting Architecture
 
-Reporting uses the authenticated `evaluation-reports` Edge Function and service-role-only database functions. Report discovery returns authorized closed cycle-plus-subject targets independently of submission existence and contains no participation count. Batch preparation denies active system administrators, the subject, unapproved roles, missing team-leader manager relationships, cross-scope access, and open cycles before counting content. Below threshold it returns no exact count, question set, or ciphertext.
+Reporting uses the authenticated `evaluation-reports` Edge Function and service-role-only database functions. Report discovery returns authorized non-draft cycle-plus-subject targets independently of submission existence and contains no participation count. Batch preparation denies active system administrators, the subject, unapproved roles, missing team-leader manager relationships, and cross-scope access before counting content. With zero submissions it returns `EMPTY` without a count, question set, or ciphertext.
 
-At or above threshold, the database releases an identity-free ciphertext batch plus immutable question configuration to the trusted function. AES-GCM decryption authenticates tenant, cycle, project, subject, assignment kind, template version, and context version. Every decrypted payload must contain the exact question set and valid answer types before aggregation. The browser receives rating averages/distributions, boolean counts, option counts, and text response counts. Raw short- and long-text values are never returned.
+After the first submission, including while a cycle is active, the database releases an identity-free ciphertext batch plus immutable question configuration to the trusted function. AES-GCM decryption authenticates tenant, cycle, project, subject, assignment kind, template version, and context version. Every decrypted payload must contain the exact question set and valid answer types before aggregation. The browser receives the current sample size, rating averages/distributions, boolean counts, option counts, and text response counts. Raw short- and long-text values are never returned.
 
 Encryption key rotation is additive. Trusted Functions merge the legacy JSON keyring with immutable per-version environment secrets and use a separate active-version selector for new ciphertext. A service-role-only inventory releases only distinct referenced version identifiers to `encryption-key-health`; the system-administrator UI receives only booleans and total version counts, never versions, keys, ciphertext, or content.
 
@@ -173,7 +173,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Evaluation-template Edge Function: `supabase/functions/evaluation-templates/index.ts`
 - Authenticated submission preparation Edge Function: `supabase/functions/evaluation-submission-credentials/index.ts`
 - Anonymous encryption and redemption Edge Function: `supabase/functions/anonymous-evaluation-submissions/index.ts`
-- Thresholded decryption and aggregate reporting Edge Function: `supabase/functions/evaluation-reports/index.ts`
+- Identity-separated decryption and aggregate reporting Edge Function: `supabase/functions/evaluation-reports/index.ts`
 - Content-free encryption key health Edge Function: `supabase/functions/encryption-key-health/index.ts`
 - Aggregate anonymous abuse monitoring Edge Function: `supabase/functions/security-abuse-monitoring/index.ts`
 - Evaluation retention administration Edge Function: `supabase/functions/evaluation-retention-administration/index.ts`
@@ -189,7 +189,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Versioned template migration: `supabase/migrations/20260806234500_versioned_evaluation_templates.sql`
 - Template immutability hardening migration: `supabase/migrations/20260807001500_template_immutability_hardening.sql`
 - Anonymous encrypted submission migration: `supabase/migrations/20260807013000_anonymous_encrypted_evaluation_submissions.sql`
-- Thresholded reporting migrations: `supabase/migrations/20260807103000_thresholded_evaluation_reporting.sql`, `supabase/migrations/20260807111500_reporting_close_metadata_fix.sql`
+- Reporting migrations: `supabase/migrations/20260807103000_thresholded_evaluation_reporting.sql`, `supabase/migrations/20260807111500_reporting_close_metadata_fix.sql`, `supabase/migrations/20260809210000_immediate_evaluation_reporting.sql`
 - Encryption key lifecycle migration: `supabase/migrations/20260807143000_encryption_key_lifecycle.sql`
 - Anonymous endpoint abuse-control migration: `supabase/migrations/20260807170000_anonymous_endpoint_abuse_protection.sql`
 - Evaluation content retention migration: `supabase/migrations/20260808120000_evaluation_content_retention.sql`

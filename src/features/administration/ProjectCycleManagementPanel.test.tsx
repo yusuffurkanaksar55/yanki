@@ -316,7 +316,7 @@ function createManagedProject(
     completesOn: draft.projectCompletedOn ?? "2026-07-19",
     cycles: [
       {
-        anonymityThreshold: 4,
+        anonymityThreshold: 1,
         assignmentSummary: {
           cancelled: 0,
           completed: 0,

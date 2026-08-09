@@ -2,7 +2,7 @@
 
 ## Product
 
-- The platform is company-internal and not public-facing.
+- The product information site is public-facing; authenticated evaluation and administration workspaces remain company-internal.
 - Initial user-facing language is Turkish.
 - Future localization should be possible without rewriting business logic.
 - Organization hierarchy can change over time, so historical memberships and manager assignments must be preserved.
@@ -13,6 +13,7 @@
 - Supabase Edge Functions are the intended trusted server-side execution boundary.
 - Encryption keys will be provided through secure server-side environment configuration outside Git.
 - The first anonymous submission model provides application-level unlinkability, not full cryptographic anonymity.
+- Immediate one-person and sparse aggregates can permit contextual inference even though evaluator identity is not stored with content.
 - A stronger blind-signature or equivalent credential model may be introduced later.
 - Raw anonymous credentials live only in transient trusted-process and React component memory; browser persistence and request logging remain forbidden.
 - The linked Supabase encryption key is synthetic-development-only and must be replaced before any live employee content is accepted.
