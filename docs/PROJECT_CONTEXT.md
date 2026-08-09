@@ -23,6 +23,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Anonymous evaluation submission: authenticated one-time credential preparation, browser-memory-only raw credentials, identity-free anonymous redemption, atomic assignment completion, and a Turkish typed-question form implemented.
 - Evaluation encryption: answers are validated and encrypted with AES-256-GCM inside a trusted Edge Function; only ciphertext, nonce, key version, date-only storage metadata, subject/reporting scope, and immutable template context are persisted.
 - Anonymous endpoint abuse protection: known credentials receive isolated 12-request/10-minute buckets, unknown credentials share a 120-request/minute invalid-only bucket, request bodies are bounded, and seven-day five-minute aggregate counters contain no identity, tenant, credential, request, or content data.
+- Outer gateway and alert delivery: the Docker Nginx runtime proxies same-origin `/supabase` traffic, applies content-free body/connection/request limits before sensitive Functions, injects a server-only direct-bypass token, disables sensitive endpoint logs, and a hardened five-minute operator timer delivers identifier-free alert/recovery transitions to an authenticated HTTPS webhook.
 - Aggregate reporting: authorized team leaders, C-Level reviewers, and board reviewers can request closed-cycle subject reports through a trusted Edge Function. Database functions enforce scope, system-admin denial, self-access denial, and the configured anonymity threshold before releasing an identity-free ciphertext batch for server-side decryption and aggregation.
 - Reporting UI: the Turkish dashboard lists authorized closed report targets without participation counts, shows a count-free withheld state below threshold, renders numeric/categorical aggregates above threshold, and never receives raw free-text responses.
 - Evaluation content retention: each organization has a versioned 30-to-3650-day policy, disabled-by-default automatic purge, legal hold, scoped Turkish administration UI, and service-role-only live-database cleanup that returns no submission counts.
@@ -78,7 +79,7 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 ## Known Limitations
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
-- Additive key rotation, content-free key health, custody-manifest validation, encrypted recovery canaries, scheduled off-site backup tooling, exact-snapshot database-plus-key recovery automation, anonymous endpoint quotas, aggregate abuse monitoring, tenant retention automation, and production tenant bootstrap are implemented. Real production custody/off-site provider configuration, signed production-like recovery acceptance, and outer gateway/WAF limits with alert delivery remain incomplete.
+- Additive key rotation, content-free key health, custody-manifest validation, encrypted recovery canaries, scheduled off-site backup tooling, exact-snapshot database-plus-key recovery automation, anonymous endpoint quotas, same-origin gateway limits with direct-bypass enforcement, transition-based alert delivery, aggregate abuse monitoring, tenant retention automation, and production tenant bootstrap are implemented. Real production custody/off-site provider configuration, gateway-token activation/direct-denial, signed production-like recovery acceptance, real alert-receiver/capacity acceptance, and infrastructure availability monitoring remain incomplete.
 - Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
 - Microsoft Entra ID is not implemented. The current anonymous credential model provides reviewed application-level unlinkability, not blind-signature cryptographic anonymity.
 - The Docker delivery, production tenant bootstrap, scheduled encrypted off-site backup tooling, and exact-snapshot restore-test foundations exist, but real remote-provider/systemd acceptance, release automation, and broader customer acceptance automation are not complete.
@@ -87,6 +88,7 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Recent Major Changes
 
+- 2026-08-09: Added same-origin Supabase gateway limits, sensitive endpoint log suppression, service-role-only aggregate alert summaries, authenticated webhook transitions, and hardened scheduling.
 - 2026-08-09: Added pinned Restic encrypted off-site snapshots, integrity/retention scheduling, and full-id environment-scoped database-plus-key restore automation.
 - 2026-08-09: Added provider-neutral independent key custody validation, encrypted synthetic recovery canaries, and a content-free combined database/key restore acceptance drill.
 - 2026-08-09: Added idempotent production tenant bootstrap, compensated Auth creation, initial-invitation recovery, and strong password setup for invitation/recovery sessions.
@@ -99,6 +101,6 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Current Development Priorities
 
-1. Configure real production custody/off-site providers and complete a signed isolated recovery acceptance, then implement outer gateway/WAF limits and alert delivery plus remaining customer acceptance checks.
+1. Configure real production custody/off-site providers, alert receiver, capacity thresholds, and infrastructure monitoring; complete signed recovery and customer acceptance checks.
 2. Configure email delivery when a provider is approved and complete real invitation acceptance verification.
 3. Add broader Playwright workflows and design a separately reviewed disclosure-resistant approach if raw-text themes are ever required.

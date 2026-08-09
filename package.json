@@ -26,6 +26,8 @@
     "encryption:recovery:canary": "node --env-file-if-exists=.env.local --env-file-if-exists=.env.operator.local scripts/provision-encryption-recovery-canaries.mjs",
     "encryption:recovery:acceptance": "node --env-file-if-exists=.env.local --env-file-if-exists=.env.operator.local scripts/verify-key-database-recovery-acceptance.mjs",
     "retention:run": "node --env-file-if-exists=.env.local --env-file-if-exists=.env.operator.local scripts/run-evaluation-retention.mjs",
+    "security:alerts:check": "node --env-file-if-exists=.env.operator.local scripts/check-security-alerts.mjs",
+    "security:alerts:acceptance": "node --env-file-if-exists=.env.local --env-file-if-exists=.env.operator.local scripts/verify-security-alert-acceptance.mjs",
     "tenant:bootstrap:check": "node --env-file-if-exists=.env.local --env-file-if-exists=.env.operator.local scripts/bootstrap-production-tenant.mjs --check",
     "tenant:bootstrap": "node --env-file-if-exists=.env.local --env-file-if-exists=.env.operator.local scripts/bootstrap-production-tenant.mjs",
     "tenant:bootstrap:recover": "node --env-file-if-exists=.env.local --env-file-if-exists=.env.operator.local scripts/bootstrap-production-tenant.mjs --recover",

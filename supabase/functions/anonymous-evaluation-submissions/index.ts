@@ -19,6 +19,11 @@ import {
   readJsonBodyWithLimit,
   RequestPayloadTooLargeError
 } from "../_shared/requestBody.ts";
+import {
+  enforceSensitiveGateway,
+  SensitiveGatewayAccessError,
+  SensitiveGatewayConfigurationError
+} from "../_shared/sensitiveGateway.ts";
 
 type QuestionType =
   | "RATING_1_TO_5"
@@ -69,6 +74,7 @@ Deno.serve(async (request) => {
   }
 
   try {
+    await enforceSensitiveGateway(request);
     const body = readRecord(
       await readJsonBodyWithLimit(request, maximumRequestBodyBytes)
     );
@@ -161,14 +167,21 @@ Deno.serve(async (request) => {
     return jsonResponse({ accepted: true }, 201);
   } catch (error) {
     const encryptionConfigurationError = readEncryptionConfigurationError(error);
-    const message = error instanceof RequestPayloadTooLargeError
+    const message = error instanceof SensitiveGatewayAccessError
+      || error instanceof SensitiveGatewayConfigurationError
+      ? error.message
+      : error instanceof RequestPayloadTooLargeError
       ? error.message
       : error instanceof RequestValidationError
         ? error.message
         : readDatabaseError(error)
           ?? encryptionConfigurationError
           ?? "ANONYMOUS_EVALUATION_SUBMISSION_FAILED";
-    const status = error instanceof RequestPayloadTooLargeError
+    const status = error instanceof SensitiveGatewayAccessError
+      ? 403
+      : error instanceof SensitiveGatewayConfigurationError
+        ? 500
+      : error instanceof RequestPayloadTooLargeError
       ? 413
       : message === "ANONYMOUS_CREDENTIAL_ALREADY_REDEEMED"
       ? 409

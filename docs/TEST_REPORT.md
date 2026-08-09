@@ -1,5 +1,56 @@
 # Test Report
 
+## 2026-08-09 - Gateway Limits And Security Alert Delivery
+
+### Environment
+
+- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1, Docker Desktop, and local Supabase.
+- Built `yanki-web:local` from the committed Node 22/Nginx 1.28 Alpine stages.
+- Linked synthetic Supabase project `daxaymcmtbmummrxdyjy`; no real alert provider or production credential was used.
+
+### Commands executed
+
+- Focused gateway, alert-state, deployment, and anonymous-abuse Vitest suites
+- `npm run lint`, `npm run typecheck`, `npm run check`, `npm run deployment:config`
+- Local migration-up, `npm run supabase:lint:local`, `npm run supabase:test:local`
+- Linked migration dry-run/push/list, `npm run supabase:lint:linked`, `npm run supabase:types`
+- Linked deployment/list verification for `evaluation-submission-credentials` and `anonymous-evaluation-submissions`, plus public no-session `401`/`413` boundary checks
+- Docker image build, generated `nginx -t`, health/proxy/body-limit acceptance, and concurrent rate-limit/log-suppression acceptance
+- `npm run security:alerts:acceptance` with the real local operator RPC and an ephemeral loopback webhook
+
+### Passed
+
+- Full application checks passed 48 Vitest files and 207 tests, lint, typecheck, production build, and bounded-memory verification.
+- Local schema lint reported no errors and 185 pgTAP cases passed across eight suites. Browser roles cannot execute the operator summary, a non-service JWT claim is rejected, and service role receives only the identifier-free aggregate shape.
+- Local and linked migration histories include `20260809190000`; linked lint is clean and generated types include `get_anonymous_submission_abuse_summary_for_operator()`.
+- The final image generated valid Nginx configuration even when the documentation upstream hostname did not resolve. Application and proxied Supabase health returned `200`; oversized anonymous input returned `413` before upstream.
+- Under 400 concurrent anonymous requests, 380 received gateway `429`; container logs contained zero sensitive endpoint or limiter-event lines.
+- Local alert acceptance read the real service-role RPC, delivered one alert and one recovery to loopback, suppressed a duplicate, removed temporary state, and emitted content/identifier-free output.
+- Linked `evaluation-submission-credentials` version 8 and `anonymous-evaluation-submissions` version 11 are active. With synthetic development enforcement intentionally unconfigured, no-session credential preparation returned `401` and oversized anonymous input returned `413`.
+
+### Failed And Corrected
+
+- The first lint run found that a generic state-read error discarded its caught filesystem cause. The outward message remains redacted and now preserves the internal `cause` chain.
+- The first generated Nginx test used a static upstream, so unresolved documentation DNS blocked startup. The gateway now uses the official image's runtime resolver discovery and a variable-backed upstream with bounded DNS validity.
+- Moving sensitive-token selection into a URI map preserved inherited proxy headers, but the long exact paths exceeded Nginx's default map hash bucket. The HTTP template now uses a 128-byte map bucket and the rebuilt image passes `nginx -t`.
+- Initial Supabase commands could not write CLI telemetry outside the workspace sandbox. The same unchanged migration/lint/test commands passed in the approved Docker/Supabase environment.
+
+### Security checks
+
+- Verified no gateway log format includes query strings, request bodies, Authorization headers, credentials, or evaluation content; sensitive endpoint access and request-level limiter logs are disabled.
+- Verified production gateway enforcement fails closed without a configured token, rejects missing/wrong tokens, accepts only the exact token, runs before sensitive Function work, and never exposes the token through browser runtime configuration.
+- Verified webhook URLs cannot contain credentials/query strings, production delivery requires HTTPS, redirects are rejected, bearer/service-role secrets never enter payloads or reports, and delivery failure cannot advance state.
+- Verified alert state is environment-bound, atomically replaced, duplicate-suppressing, content-free, and isolated from browser/application authority.
+
+### Skipped
+
+- No real Teams/email/SIEM webhook, production gateway token, production NAT load, CDN/WAF provider, TLS edge, or infrastructure alert receiver was available. Direct-denial is unit/static verified but awaits production-secret activation. These remain environment acceptance gates rather than missing repository implementation.
+- The full authenticated abuse smoke did not run because user-email/password variables are intentionally absent from local files; no credentials were copied into a command or log. Public deployed boundaries were verified separately.
+
+### Remaining risks
+
+- Production thresholds must be tuned against company egress/NAT and peak submission windows. Provider/load-balancer logs and webhook retention need separate privacy review, and timer/container/Supabase availability must alert through infrastructure independent of the application database.
+
 ## 2026-08-09 - Encrypted Off-Site Backup And Exact-Snapshot Restore
 
 ### Environment
@@ -182,52 +233,3 @@
 ### Remaining risks
 
 - Production backup scheduling, key-plus-database recovery, retention scheduler monitoring, gateway/WAF controls, alert delivery, bootstrap, and approved invitation email remain release blockers.
-
-## 2026-08-07 - Privacy-Preserving Anonymous Abuse Protection
-
-### Environment
-
-- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
-- Docker Desktop local Supabase stack restored from retained volumes.
-- Linked Supabase project `daxaymcmtbmummrxdyjy` with synthetic users only.
-
-### Commands executed
-
-- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run check`
-- `npm run deployment:config`
-- `npx supabase migration up --local`, `npx supabase test db`, local and linked schema lint
-- Remote migration dry-run/push/list, type generation, Edge Function deploy/list
-- `npm run smoke:abuse` with temporary process-only synthetic credentials
-
-### Passed
-
-- Vitest passed request-body, static privacy boundary, service, form, monitoring panel, and full regression coverage.
-- pgTAP passed 113 cases across five suites, including 19 new abuse table/grant/quota/summary cases.
-- Local and linked schema lint reported no errors; local and remote migration histories include `20260807170000`.
-- After a backup/restart, local `verify_jwt = false` parity allowed a no-session anonymous oversized request to reach the function and return controlled `413`; the stack was backed up and stopped again.
-- A recognized credential remained usable after the invalid-only global quota was exhausted in pgTAP, then received `429` only after its isolated twelfth request.
-- Live smoke returned `413` for a 270,000-character oversized body, `429` plus `Retry-After` for the thirteenth credential request, and `403` for non-admin monitoring access.
-- Live system-admin monitoring returned only aggregate invalid/rate-limited counts and policy constants; encrypted submission, assignment completion, and replay denial remained intact.
-
-### Failed And Corrected
-
-- The first static ordering assertion matched the imported encryption symbol instead of the awaited encryption call; the test now checks the runtime call site.
-- The first live oversized test used a 1.1 MB application limit and reached the hosted gateway's empty `503` timeout before a controlled response. Reducing the reviewed application limit to 256 KiB produced a fast stable `413`, and the client now has a dedicated Turkish oversized-response message.
-- Supabase CLI could not write its telemetry state under the workspace sandbox; rerunning the database test with approved profile-directory access passed all pgTAP suites.
-- Remote migration push applied successfully but experimental `pg-delta` cache export again missed its temporary CA file. Migration list and linked lint independently confirmed the applied schema.
-- The sandbox denied the first Docker CLI child process used by `deployment:config`; rerunning the same read-only Compose validation with approved Docker access passed.
-
-### Security checks
-
-- Verified abuse tables contain no IP, device, user, tenant, assignment, credential digest, request body, or content columns and have no direct API/service-role privileges.
-- Verified quota consumption happens before context lookup and encryption.
-- Verified invalid-only traffic cannot exhaust a recognized credential's isolated quota.
-- Verified monitoring authorization in both Edge and PostgreSQL and identifier-free aggregate output.
-
-### Skipped
-
-- Automated visual browser verification remained subject to the existing Codex browser runtime kernel-path issue; component tests and production build cover the panel structure pending that runtime fix.
-
-### Remaining risks
-
-- External gateway/WAF capacity controls and alert delivery, production key custody/recovery, retention, bootstrap, backup acceptance, and invitation email remain release blockers.

@@ -6,6 +6,10 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added a same-origin Nginx Supabase gateway with dynamic upstream DNS, matching sensitive body limits, per-source/global request zones, bounded connections, and request-level log suppression.
+- Added an environment-specific server token that prevents direct managed-Supabase calls from bypassing sensitive gateway limits, with fail-closed production configuration and constant-work Edge Function verification.
+- Added a service-role-only identifier-free operator summary, authenticated HTTPS webhook alert/recovery transitions, daily reminders, atomic deduplication state, and a hardened five-minute systemd schedule.
+- Added real Docker 413/429/log-suppression acceptance, local loopback alert-delivery acceptance, gateway/alert boundary tests, and ADR-0028.
 - Added pinned Restic 0.19.1 encrypted off-site database snapshots with fail-aware `pg_dump`, remote-repository enforcement, integrity checks, exact-environment retention, and a persistent systemd schedule.
 - Added full-snapshot-id off-site restore acceptance that streams directly into a guarded database and reuses database privilege plus encryption-key canary verification.
 - Added a checksum-verified D-drive-friendly Windows development installer, operator environment template, backup boundary tests, ADR-0027, and SaaS/dedicated recovery documentation.

@@ -15,6 +15,11 @@ import {
   readJsonBodyWithLimit,
   RequestPayloadTooLargeError
 } from "../_shared/requestBody.ts";
+import {
+  enforceSensitiveGateway,
+  SensitiveGatewayAccessError,
+  SensitiveGatewayConfigurationError
+} from "../_shared/sensitiveGateway.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Headers": "apikey, authorization, content-type, x-client-info",
@@ -35,6 +40,7 @@ Deno.serve(async (request) => {
   }
 
   try {
+    await enforceSensitiveGateway(request);
     const authorizationHeader = request.headers.get("authorization");
     const environment = readEnvironment();
     const userClient = createClient(
@@ -90,12 +96,19 @@ Deno.serve(async (request) => {
       submission: toPreparedSubmission(data)
     });
   } catch (error) {
-    const message = error instanceof RequestPayloadTooLargeError
+    const message = error instanceof SensitiveGatewayAccessError
+      || error instanceof SensitiveGatewayConfigurationError
+      ? error.message
+      : error instanceof RequestPayloadTooLargeError
       ? error.message
       : error instanceof RequestValidationError
         ? error.message
         : readDatabaseError(error) ?? "EVALUATION_SUBMISSION_PREPARATION_FAILED";
-    const status = error instanceof RequestPayloadTooLargeError
+    const status = error instanceof SensitiveGatewayAccessError
+      ? 403
+      : error instanceof SensitiveGatewayConfigurationError
+        ? 500
+      : error instanceof RequestPayloadTooLargeError
       ? 413
       : message === "EVALUATION_ASSIGNMENT_NOT_FOUND"
       || message === "ACTIVE_ORGANIZATION_MEMBERSHIP_REQUIRED"

@@ -8,6 +8,7 @@ const credentialFunctionSource = read("supabase/functions/evaluation-submission-
 const anonymousFunctionSource = read("supabase/functions/anonymous-evaluation-submissions/index.ts");
 const sharedSource = read("supabase/functions/_shared/evaluationSubmission.ts");
 const keyringSource = read("supabase/functions/_shared/encryptionKeyring.ts");
+const gatewaySource = read("supabase/functions/_shared/sensitiveGateway.ts");
 const browserServiceSource = read("src/features/evaluations/evaluationAssignmentService.ts");
 const submissionTableSource = migrationSource
   .split("create table public.encrypted_evaluation_submissions")[1]
@@ -76,6 +77,26 @@ describe("anonymous encrypted submission boundary", () => {
       .split("async submitEvaluation")[1]
       .split("function getDefaultService")[0];
     expect(anonymousRequestSource).not.toMatch(/Authorization/);
+  });
+
+  it("can require the trusted gateway before sensitive function work", () => {
+    expect(gatewaySource).toMatch(/YANKI_SENSITIVE_GATEWAY_REQUIRED/u);
+    expect(gatewaySource).toMatch(/YANKI_SENSITIVE_GATEWAY_TOKEN/u);
+    expect(gatewaySource).toMatch(/crypto\.subtle\.digest/u);
+    expect(gatewaySource).not.toMatch(/console\.(log|info|debug|error)/u);
+
+    for (const functionSource of [
+      credentialFunctionSource,
+      anonymousFunctionSource
+    ]) {
+      const enforcementIndex = functionSource.indexOf(
+        "await enforceSensitiveGateway(request)"
+      );
+      const bodyIndex = functionSource.indexOf("await readJsonBodyWithLimit");
+
+      expect(enforcementIndex).toBeGreaterThan(0);
+      expect(bodyIndex).toBeGreaterThan(enforcementIndex);
+    }
   });
 });
 

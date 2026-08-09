@@ -56,7 +56,7 @@ Vite variables are normally replaced at build time. This application loads `/app
 3. Obtain a reviewed, pinned Supabase self-host release from the official repository. Do not assemble independent latest image tags; Supabase tests the release image set together.
 4. Generate unique production secrets with the official Supabase scripts. Replace every sample password and key. Store secret files outside Git with least-privilege filesystem access.
 5. Configure `SUPABASE_PUBLIC_URL`, `API_EXTERNAL_URL`, `SITE_URL`, exact allowed redirect URLs, the proxy domain, JWT keys, database credentials, Studio credentials, and approved SMTP settings. Require at least 12 characters plus upper-case, lower-case, numeric, and symbol classes in the deployment's Auth password policy. Generate an independent 32-byte random AES key and configure it as server-only `EVALUATION_ENCRYPTION_KEY_VERSION_<VERSION>` plus `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION`. Never reuse the linked development key. `EVALUATION_ENCRYPTION_KEYRING` is supported only for backward compatibility.
-6. Put a TLS reverse proxy or customer load balancer in front of the Supabase gateway and application. Expose only required HTTPS endpoints. Keep Postgres, Studio, and internal service ports on restricted networks.
+6. Put a TLS reverse proxy or customer load balancer in front of the application gateway. Set browser `SUPABASE_PUBLIC_URL` to the same public application origin ending in `/supabase`, and set server-only `SUPABASE_UPSTREAM_URL` to the public or private Supabase origin. Generate a separate 256-bit-or-stronger `YANKI_SENSITIVE_GATEWAY_TOKEN`, configure the same value in Nginx and Functions, and set `YANKI_SENSITIVE_GATEWAY_REQUIRED=true` in Functions. Expose only required HTTPS endpoints. Keep Postgres, Studio, and internal service ports on restricted networks.
 7. Start Supabase with its official `run.sh start` workflow and wait for healthy services. Inspect failed service logs before continuing.
 8. Apply this repository's migrations to the dedicated database from a trusted release workspace:
 
@@ -76,7 +76,7 @@ docker compose --env-file .env.deploy up -d --build --wait
 11. Route the public application domain to the frontend container, verify `/healthz`, sign-in redirects, password reset, invitation delivery when enabled, and all role-denial scenarios. Run synthetic submission and report acceptance, including 413/429 behavior, threshold, self, system-admin, employee, and anonymous denial checks.
 12. Create the initial organization and administrator with the production tenant bootstrap procedure below. Verify that the administrator receives the message, sets a strong password, accepts the invitation, and sees only the new organization scope. Manual service-role table writes are not an approved workaround.
 13. Configure each tenant's evaluation-content policy, schedule `npm run retention:run` in the trusted operator environment, enable the encrypted off-site backup timer below, define aligned backup retention, and perform an environment-specific database-plus-key restore drill before accepting live data. Document recovery time and recovery point objectives.
-14. Configure capacity, availability, certificate, backup, database, Auth, Functions, application health, and anonymous abuse-counter alerts. Apply reverse-proxy/WAF connection and request limits outside the application without collecting IP/device identifiers in the product database. Never collect scores, comments, decrypted payloads, credentials, tokens, or evaluator-to-response mappings in logs.
+14. Configure capacity, availability, certificate, backup, database, Auth, Functions, application health, and anonymous abuse-counter alerts. Acceptance-test the included Nginx limits or reproduce them in the selected CDN/WAF, then connect the content-free alert timer and infrastructure failures to approved receivers. Never collect scores, comments, decrypted payloads, credentials, tokens, request bodies, or evaluator-to-response mappings in logs.
 15. Run the release acceptance checklist and obtain customer security/operations sign-off.
 
 ## Updates And Rollback
@@ -90,7 +90,7 @@ docker compose --env-file .env.deploy up -d --build --wait
 
 ## Production Release Gate
 
-This repository now has anonymous encrypted submission storage, additive key rotation, key-health validation, application-level anonymous quotas, content-free aggregate abuse monitoring, scoped thresholded reporting, tenant content-retention controls, production tenant bootstrap, scheduled encrypted off-site backup tooling, and exact-snapshot restore acceptance, but it is not approved for live employee data. An independent production key, approved key escrow, real remote backup provider, monitored systemd execution, signed environment-specific recovery drill, outer gateway/WAF limits and alert delivery, approved invitation-mail acceptance, and broader end-to-end security regression coverage must be completed before production use.
+This repository now has anonymous encrypted submission storage, additive key rotation, key-health validation, application-level anonymous quotas, same-origin gateway limits, content-free aggregate monitoring and webhook alert transitions, scoped thresholded reporting, tenant content-retention controls, production tenant bootstrap, scheduled encrypted off-site backup tooling, and exact-snapshot restore acceptance, but it is not approved for live employee data. An independent production key, approved key escrow, real remote backup and alert providers, monitored systemd/infrastructure execution, production capacity tuning, signed environment-specific recovery drill, approved invitation-mail acceptance, and broader end-to-end security regression coverage must be completed before production use.
 
 ## Production Tenant Bootstrap Operations
 
@@ -192,9 +192,69 @@ Run an isolated drill at least quarterly and after backup-tool, PostgreSQL-major
 - Application rate buckets expire after one day. Five-minute aggregate invalid/rate-limited counters are retained for seven days.
 - `security-abuse-monitoring` is restricted to active system administrators and exposes only aggregate 60-minute/24-hour counts and policy constants.
 - Do not add IP addresses, device fingerprints, request bodies, credential digests, users, assignments, or content to product abuse tables or application logs.
-- Configure the public reverse proxy, CDN, or WAF with independently reviewed connection/request limits before production. External infrastructure logs have their own privacy and retention review and must never capture request bodies or credentials.
-- Alert on sustained aggregate invalid/rate-limited activity and endpoint availability. Alert delivery is not implemented by this repository and remains a release gate.
 - Run `npm run smoke:abuse` with synthetic users after every anonymous submission, shared request-body, gateway, or monitoring change.
+
+### Same-origin gateway
+
+The application container is the browser's Supabase gateway. `SUPABASE_PUBLIC_URL` must be the HTTPS application origin ending in `/supabase`; `SUPABASE_UPSTREAM_URL` is consumed only by Nginx and must be an HTTP(S) host plus optional port with no path, credentials, query, or fragment. For local acceptance, the public URL may use loopback HTTP. Runtime DNS resolution means a temporarily unresolved upstream does not prevent `/healthz` or the static application from starting.
+
+Managed Supabase remains publicly addressable, so routing browser configuration through `/supabase` alone is not an enforcement boundary. Generate an environment-specific 256-bit-or-stronger base64url token of 32-256 characters through the approved secret tool. Put it in container `YANKI_SENSITIVE_GATEWAY_TOKEN`; Nginx overwrites the corresponding upstream header on the two sensitive routes. Configure the same Function secret plus `YANKI_SENSITIVE_GATEWAY_REQUIRED=true`. The Functions then reject missing/wrong direct requests before body parsing, Auth lookup, quota work, context lookup, or encryption. Never put this token in `SUPABASE_PUBLIC_URL`, `app-config.js`, Vite variables, browser storage, source control, or logs.
+
+For managed Supabase, prepare an ignored mode-`0600` secret file and apply it before deploying the two Functions:
+
+```text
+YANKI_SENSITIVE_GATEWAY_REQUIRED=true
+YANKI_SENSITIVE_GATEWAY_TOKEN=replace-through-approved-secret-channel
+```
+
+```bash
+npx supabase secrets set --project-ref "$PROJECT_REF" --env-file .secrets/sensitive-gateway.env
+npx supabase functions deploy evaluation-submission-credentials --project-ref "$PROJECT_REF"
+npx supabase functions deploy anonymous-evaluation-submissions --no-verify-jwt --project-ref "$PROJECT_REF"
+```
+
+For self-hosted Supabase, place the same two values in the Functions server environment and restart Functions. Rotate by updating Nginx and Functions in one maintenance window; a mismatch intentionally returns `403`. Development environments may omit both variables to retain direct synthetic testing, but that mode is forbidden for production evidence.
+
+The committed baseline applies these controls before Supabase:
+
+| Boundary | Per-source rate | Deployment rate | Burst | Body | Connections |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Anonymous redemption | 240/minute | 1200/minute | 60/240 | 256 KiB | 20/source |
+| Credential preparation | 120/minute | 600/minute | 30/120 | 16 KiB | 20/source |
+| Other Supabase routes | Not request-limited here | Not request-limited here | N/A | 8 MiB | 40/source |
+
+These are outer capacity limits, not business eligibility decisions. The trusted application quota remains credential-aware and cannot be replaced by Nginx. Review source/global rates against peak submission windows and shared corporate NAT before tightening them. A non-Docker CDN/WAF must reproduce at least the exact sensitive body limits, bounded connections, `429` behavior, and independently reviewed volumetric limits.
+
+Sensitive endpoint access logs are disabled. Remaining Nginx logs use `$uri`, not query strings, and never include bodies or Authorization headers. Limiter events are configured below the runtime error-log threshold. Provider/load-balancer logs remain outside this repository and require a documented privacy, access, and retention review. Do not expose the container port directly to the internet; restrict it behind the approved TLS proxy/load balancer.
+
+Validate every image and gateway change:
+
+```bash
+npm run deployment:config
+docker compose --env-file deploy/compose.env.example build web
+docker compose --env-file deploy/compose.env.example run --rm --no-deps web nginx -t
+```
+
+Then run synthetic 413/429 tests through the public route and confirm sensitive request details are absent from every gateway/provider log sink. Call both sensitive endpoints through the direct upstream URL without the internal header and require `403`; call through `/supabase` and require normal application authorization behavior. Do not accept a production environment where the direct URL reaches credential, quota, or encryption work.
+
+### Content-free alert delivery
+
+1. Create a dedicated HTTPS webhook receiver or a reviewed adapter to the approved Teams, email, SIEM, or incident platform. Require a random bearer token; do not put credentials in the URL or allow redirects.
+2. Copy `deploy/security/operator.env.example` to `/etc/yanki/security-alert.env`, set root ownership and mode `0600`, and place the bearer token in the configured secret file. The webhook token grants delivery only; it must not be a Supabase or encryption credential.
+3. Select 60-minute invalid-credential and rate-limited thresholds using synthetic baseline/load evidence. Defaults are 60 and 5. Shared SaaS counters are intentionally global and contain no tenant split.
+4. Apply the migration, set `SECURITY_ALERT_ACCEPTANCE_CONFIRM=RUN_LOCAL_SECURITY_ALERT_ACCEPTANCE`, and run `npm run security:alerts:acceptance`. This reads the real operator RPC, delivers alert/recovery payloads only to an ephemeral loopback receiver, verifies duplicate suppression, and removes temporary state.
+5. Send a separately approved test through the real receiver before production. Confirm the receiver stores no source IP supplied by this application, tenant/user/request/credential identifier, body, ciphertext, or evaluation content.
+
+Install the reviewed alert schedule on a Linux operator host:
+
+```bash
+sudo install -m 0644 deploy/security/yanki-security-alert.service /etc/systemd/system/
+sudo install -m 0644 deploy/security/yanki-security-alert.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now yanki-security-alert.timer
+```
+
+The timer polls every five minutes. It sends only `ALERT`, bounded `ALERT_REMINDER`, and `RECOVERED` transitions. The mode-`0600` state contains environment id, alert/healthy status, and last delivery time only. A failed RPC, malformed state, or failed webhook returns non-zero and does not advance state. Monitor timer failures, last-success age, application `/healthz`, Supabase health, certificates, capacity, and container restarts through the approved infrastructure channel; those availability alerts do not depend on the application database.
 
 ## Encryption Key Operations
 

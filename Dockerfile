@@ -12,7 +12,10 @@ RUN npm run build
 
 FROM ${NGINX_IMAGE} AS runtime
 
-COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1
+ENV NGINX_ENVSUBST_FILTER=^(SUPABASE_UPSTREAM_URL|NGINX_LOCAL_RESOLVERS|YANKI_SENSITIVE_GATEWAY_TOKEN)$
+
+COPY deploy/nginx.conf /etc/nginx/templates/default.conf.template
 COPY deploy/40-write-runtime-config.sh /docker-entrypoint.d/40-write-runtime-config.sh
 COPY --from=build /app/dist /usr/share/nginx/html
 

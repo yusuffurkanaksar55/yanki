@@ -1,0 +1,11 @@
+[Unit]
+Description=Check Yanki aggregate security alerts every five minutes
+
+[Timer]
+OnCalendar=*:0/5
+Persistent=true
+RandomizedDelaySec=30s
+Unit=yanki-security-alert.service
+
+[Install]
+WantedBy=timers.target

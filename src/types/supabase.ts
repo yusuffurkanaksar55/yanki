@@ -1359,6 +1359,10 @@ export type Database = {
         Args: { actor_user_id: string }
         Returns: Json
       }
+      get_anonymous_submission_abuse_summary_for_operator: {
+        Args: never
+        Returns: Json
+      }
       get_anonymous_submission_context: {
         Args: { credential_digest_hex: string }
         Returns: Json
@@ -1408,6 +1412,7 @@ export type Database = {
         Args: never
         Returns: string[]
       }
+      read_anonymous_submission_abuse_summary: { Args: never; Returns: Json }
       record_security_abuse_event: {
         Args: { managed_event_type: string; managed_observed_at: string }
         Returns: undefined

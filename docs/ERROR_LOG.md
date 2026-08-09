@@ -1,5 +1,128 @@
 # Error Log
 
+## ERR-20260809-053 - Sensitive-route map exceeded the default Nginx hash bucket
+
+### Context
+
+The final gateway-token review moved header selection into a URI map so location-specific token injection would not disable inherited proxy headers.
+
+### Symptoms
+
+Static tests passed, but the rebuilt runtime image failed `nginx -t` with `could not build map_hash` because the exact sensitive endpoint names exceeded the default 64-byte map bucket.
+
+### Root cause
+
+Nginx sizes map hash buckets independently from rate-limit zones, and the two long fixed URI keys require a larger cache-line bucket than the image default.
+
+### Correct solution
+
+Set `map_hash_bucket_size 128` in the HTTP configuration while retaining the URI map and server-level proxy headers.
+
+### Prevention
+
+Run `nginx -t` inside the rebuilt runtime image after every map, hostname, or generated-template change; static directive checks cannot validate hash sizing.
+
+### Related files
+
+- `deploy/nginx.conf`
+
+### Related tests
+
+- `docker compose --env-file deploy/compose.env.example run --rm --no-deps web nginx -t`
+
+## ERR-20260809-052 - Node typecheck imported a Deno-only test dependency
+
+### Context
+
+The first direct-bypass token test imported the Edge Function TypeScript helper from a TypeScript Vitest file.
+
+### Symptoms
+
+Vitest and ESLint passed, but the application `tsc` project reported unknown `Deno` globals and rejected the explicit `.ts` import extension.
+
+### Root cause
+
+The TypeScript test pulled a Deno runtime module into the Node/browser application type graph even though the production Edge Function source is intentionally outside that graph.
+
+### Correct solution
+
+Keep the behavior test in JavaScript, let Vitest transform the imported Edge module at runtime, and stub the Deno environment only for each test. The application type graph remains unchanged.
+
+### Prevention
+
+Test cross-runtime Edge helpers through JavaScript runtime tests or a dedicated Deno typecheck configuration; do not merge Deno globals into the browser application project.
+
+### Related files
+
+- `supabase/functions/_shared/sensitiveGateway.ts`
+- `tests/sensitive-gateway.test.mjs`
+
+### Related tests
+
+- `npm run typecheck`
+- `npx vitest run tests/sensitive-gateway.test.mjs`
+
+## ERR-20260809-051 - Static gateway upstream blocked Nginx startup
+
+### Context
+
+The first real Docker image acceptance ran `nginx -t` after Compose and the application image build succeeded.
+
+### Symptoms
+
+Nginx rejected the generated configuration because the documentation-only upstream hostname did not resolve at container startup.
+
+### Root cause
+
+A static hostname in `proxy_pass` is resolved while Nginx loads its configuration. A temporary Supabase DNS outage would therefore prevent the frontend and health endpoint from starting even though no API request had been made.
+
+### Correct solution
+
+Enable the official image's local resolver discovery, inject those resolver addresses into the template, and use a variable-backed upstream so DNS is resolved at request time and refreshed with a bounded validity period.
+
+### Prevention
+
+Run the generated Nginx configuration inside the exact runtime image and test startup with a deliberately unresolved documentation hostname.
+
+### Related files
+
+- `Dockerfile`
+- `deploy/nginx.conf`
+
+### Related tests
+
+- `docker compose --env-file deploy/compose.env.example run --rm --no-deps web nginx -t`
+
+## ERR-20260809-050 - Alert state read error dropped its internal cause
+
+### Context
+
+The first focused gateway and alert quality run passed all tests and type checking, then ESLint inspected the new state-file boundary.
+
+### Symptoms
+
+The `preserve-caught-error` rule rejected a generic state-read error because the caught filesystem error was not attached as its internal cause.
+
+### Root cause
+
+The public error text was intentionally generic to avoid exposing a sensitive operator path, but the implementation also discarded the original error object needed for trusted diagnostics.
+
+### Correct solution
+
+Keep the generic outward message and attach the caught filesystem error through the standard `Error` `cause` option.
+
+### Prevention
+
+At trusted operator boundaries, redact outward messages without discarding structured internal error chains.
+
+### Related files
+
+- `scripts/lib/security-alerting.mjs`
+
+### Related tests
+
+- `npm run lint`
+
 ## ERR-20260809-049 - Restic stdin snapshot path differed on Windows
 
 ### Context
@@ -189,136 +312,6 @@ Run the disposable restore drill after schema/security changes and before releas
 
 - `tests/backup-restore-acceptance.test.mjs`
 - `npm run backup:restore:acceptance`
-
-## ERR-20260807-043 - Hosted oversized request reached gateway timeout
-
-### Context
-
-The first live abuse smoke sent a body just above the original 1.1 MB anonymous application limit.
-
-### Symptoms
-
-The hosted endpoint returned an empty HTTP 503 after roughly two minutes instead of the Edge Function's controlled 413 response.
-
-### Root cause
-
-The original application threshold allowed the request to reach the linked hosted gateway's practical timeout path before the application could provide a stable rejection contract.
-
-### Correct solution
-
-Set the anonymous application body limit to 256 KiB, retain streaming byte checks, map 413 to a dedicated Turkish form message, redeploy, and verify a 270,000-character request returns a fast controlled 413.
-
-### Prevention
-
-Keep request-size limits below infrastructure timeout paths and include live oversized-body verification in `smoke:abuse` for managed and dedicated release environments.
-
-### Related files
-
-- `supabase/functions/_shared/requestBody.ts`
-- `supabase/functions/anonymous-evaluation-submissions/index.ts`
-- `src/features/evaluations/evaluationAssignmentService.ts`
-- `scripts/smoke-anonymous-evaluation-submission.mjs`
-
-### Related tests
-
-- `tests/request-body-limit.test.ts`
-- `npm run smoke:abuse`
-
-## ERR-20260807-042 - Remote migration catalog cache missed temporary CA file
-
-### Context
-
-The anonymous abuse-control migration was pushed to the linked Supabase project with experimental `pg-delta` enabled.
-
-### Symptoms
-
-The migration applied, but the CLI warned that catalog caching failed because `.temp/pgdelta/pgdelta-target-ca.crt` did not exist.
-
-### Root cause
-
-Supabase CLI 2.109.1 destroyed the experimental catalog-export worker after its temporary certificate file was unavailable. The database migration transaction itself had already completed.
-
-### Correct solution
-
-Verify application independently with `npx supabase migration list` and linked schema lint. Both confirmed matching local/remote migration history and no schema errors.
-
-### Prevention
-
-Treat post-push cache warnings separately from migration status, retain independent list/lint verification, and reassess after a reviewed Supabase CLI upgrade.
-
-### Related files
-
-- `supabase/migrations/20260807170000_anonymous_endpoint_abuse_protection.sql`
-- `supabase/config.toml`
-
-### Related tests
-
-- `npx supabase migration list`
-- `npm run supabase:lint:linked`
-
-## ERR-20260807-041 - Shared keyring dependent was not redeployed before rotation smoke
-
-### Context
-
-The linked synthetic environment had received the additive keyring readers and a new active per-version secret.
-
-### Symptoms
-
-The first post-rotation report smoke stopped at `evaluation-submission-credentials` with HTTP 502 before a new encrypted submission was written.
-
-### Root cause
-
-The credential function imports the shared evaluation module but was omitted from the initial dependent-function deployment set.
-
-### Correct solution
-
-Redeploy every Edge Function that imports the changed shared module before changing the active key, then rerun the complete submission/report flow.
-
-### Prevention
-
-Keep the deployment runbook's dependent-function list complete and treat shared Edge Function code changes as multi-function releases.
-
-### Related files
-
-- `supabase/functions/_shared/encryptionKeyring.ts`
-- `supabase/functions/evaluation-submission-credentials/index.ts`
-- `docs/DEPLOYMENT.md`
-
-### Related tests
-
-- `npm run smoke:reports`
-- `npm run smoke:key-health`
-
-## ERR-20260807-040 - Retained local database lacked the pending lifecycle migration
-
-### Context
-
-Docker Desktop restored the local Supabase database from retained volumes after the new lifecycle migration was created.
-
-### Symptoms
-
-The key lifecycle pgTAP suite could not find `list_referenced_evaluation_encryption_key_versions()`.
-
-### Root cause
-
-Starting a retained local stack did not apply the newly added migration automatically.
-
-### Correct solution
-
-Run `npx supabase migration up --local` before the local pgTAP suite when reusing retained volumes.
-
-### Prevention
-
-Check local migration state after startup and apply pending migrations before tests; use a full reset only when an empty-schema verification is required.
-
-### Related files
-
-- `supabase/migrations/20260807143000_encryption_key_lifecycle.sql`
-- `supabase/tests/database/encryption_key_lifecycle.test.sql`
-
-### Related tests
-
-- `npm run supabase:test:local`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

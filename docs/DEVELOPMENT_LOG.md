@@ -1,5 +1,44 @@
 # Development Log
 
+## 2026-08-09 - Same-Origin Gateway And Content-Free Alert Delivery
+
+### Objective
+
+Protect anonymous submission capacity before Supabase, route Docker browser traffic through one portable same-origin gateway, and deliver sustained aggregate abuse alerts without storing request-level identifiers, credentials, or evaluation content.
+
+### Changes
+
+- Converted the frontend Nginx runtime into a same-origin `/supabase` gateway with runtime DNS, exact 256 KiB/16 KiB sensitive body limits, per-source/global request zones, bounded connections, `429` rejection, and a server-only direct-bypass token.
+- Disabled sensitive endpoint access logs, removed query strings/authorization/body data from the remaining log format, and suppressed request-level limiter messages below the runtime log threshold.
+- Added a service-role-only identifier-free operator summary, generic authenticated HTTPS webhook transitions, bounded reminders, recovery delivery, atomic mode-`0600` state, and a hardened five-minute systemd timer.
+- Added local loopback alert acceptance, Docker 200/413/429/log-suppression acceptance, ADR-0028, generated types, and SaaS/dedicated operations documentation.
+
+### Database changes
+
+Applied `20260809190000_security_alert_operator_summary.sql` locally and to linked project `daxaymcmtbmummrxdyjy`. It extracts one direct-revoked aggregate builder and adds a service-role-only operator summary while preserving active-system-admin authorization for the browser monitoring path.
+
+### Security impact
+
+Positive. Volumetric and oversized traffic is bounded before trusted Functions, configured production Functions reject direct upstream calls without the gateway token, scheduled alert delivery receives only global aggregate counts, and no new user/tenant/request/source/credential/content record is persisted. The gateway uses source addresses transiently in shared memory only.
+
+### Tests performed
+
+- Full `npm run check`: 48 Vitest files and 207 tests, lint, typecheck, production build, and bounded-memory verification.
+- Local migration application, clean schema lint, and 185 pgTAP cases across eight suites; linked migration/list/type generation and linked schema lint also passed.
+- Real Docker image build and generated `nginx -t`; temporary gateway returned `200` for application/Supabase health, `413` for 270,000-byte anonymous input, and `429` for 380 of 400 concurrent requests with zero sensitive request/limiter log lines.
+- Real local operator RPC plus loopback webhook acceptance delivered alert and recovery transitions, suppressed the duplicate, wrote/removed temporary state, and logged no content or identifiers.
+- Linked sensitive Functions were deployed at credential version 8 and anonymous version 11; public no-session boundaries returned `401`/`413` without requiring stored user credentials.
+
+### Result
+
+The portable gateway and content-free alert delivery contract is implemented for shared SaaS and dedicated installations. Production still requires a real receiver, NAT/load tuning, provider-log privacy review, and infrastructure availability alert acceptance.
+
+### Remaining work
+
+- Configure real production custody/off-site and alert providers and complete signed acceptance.
+- Configure approved invitation email delivery and test a real mailbox flow.
+- Add immutable release publishing and broader Playwright/customer acceptance coverage.
+
 ## 2026-08-09 - Encrypted Off-Site Backup And Environment Restore Automation
 
 ### Objective
@@ -151,43 +190,4 @@ Tenant retention administration is active in the linked synthetic project with t
 
 - Configure production scheduling only after approved retention contracts, backup expiry, monitoring, and change control exist.
 - Complete independent production key escrow/recovery, gateway/WAF limits and alerts, tenant bootstrap, and environment-specific backup recovery acceptance.
-- Complete approved invitation-email and visual browser verification.
-
-## 2026-08-07 - Privacy-Preserving Anonymous Abuse Protection
-
-### Objective
-
-Bound anonymous submission abuse and oversized requests without storing source identifiers, credential digests, request-level evaluation metadata, or content, while giving system administrators safe aggregate operational visibility.
-
-### Changes
-
-- Added isolated known-credential and invalid-only global quotas before context lookup, validation, or encryption.
-- Added 256 KiB anonymous and 16 KiB authenticated preparation body limits, `413`/`429` responses, `Retry-After`, and centralized Turkish feedback.
-- Added five-minute aggregate abuse counters with seven-day retention, an authenticated system-admin monitoring Edge Function, and a Turkish administration panel.
-- Added request/boundary/service/component tests, 19 pgTAP abuse-control cases, live smoke coverage, and ADR-0023.
-
-### Database changes
-
-Applied `20260807170000_anonymous_endpoint_abuse_protection.sql` locally and to project `daxaymcmtbmummrxdyjy`. Abuse tables have RLS, no direct privileges including for `service_role`, and no IP, device, user, tenant, assignment, credential digest, request, or content columns.
-
-### Security impact
-
-Positive. Invalid traffic cannot consume recognized-credential application quotas. Operational visibility is aggregate-only, request bodies are bounded before parsing, and system administrators still cannot read evaluation content. External gateway/WAF capacity controls and alert delivery remain required for production.
-
-### Tests performed
-
-- `npm run lint`, `npm run typecheck`, Vitest, production build, and full `npm run check`.
-- Local migration-up, schema lint, and `npm run supabase:test:local`: 113 pgTAP cases across five suites.
-- Local self-host parity restart confirmed the anonymous no-session function configuration and controlled 413 response.
-- Remote dry-run/push/list, linked lint, type generation, and three Edge Function deployments.
-- Live `npm run smoke:abuse`: encrypted submission, replay denial, 256 KiB body rejection, isolated 429 quota with `Retry-After`, aggregate admin monitoring, and non-admin denial.
-
-### Result
-
-The migration and all three Edge Functions are active in the linked project. The live synthetic flow returned controlled `413` and `429` responses, preserved assignment completion and replay safety, exposed only aggregate counters to the HR system administrator, and denied the employee with `403`.
-
-### Remaining work
-
-- Establish production gateway/WAF limits and alert delivery without sensitive logging.
-- Complete independent production key escrow/recovery, retention, bootstrap, and backup/restore acceptance.
 - Complete approved invitation-email and visual browser verification.

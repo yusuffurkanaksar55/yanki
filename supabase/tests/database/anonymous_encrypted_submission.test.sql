@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(48);
+select plan(53);
 
 select has_table(
   'public',
@@ -86,6 +86,24 @@ select ok(
     'EXECUTE'
   ),
   'Authenticated clients cannot read abuse summaries directly'
+);
+
+select ok(
+  has_function_privilege(
+    'service_role',
+    'public.get_anonymous_submission_abuse_summary_for_operator()',
+    'EXECUTE'
+  ),
+  'Service role can request the identifier-free operator summary'
+);
+
+select ok(
+  not has_function_privilege(
+    'authenticated',
+    'public.get_anonymous_submission_abuse_summary_for_operator()',
+    'EXECUTE'
+  ),
+  'Authenticated clients cannot execute the operator summary'
 );
 
 select is(
@@ -542,6 +560,39 @@ select throws_ok(
   '42501',
   'SECURITY_MONITORING_ACCESS_DENIED',
   'A non-admin cannot read aggregate abuse counters'
+);
+
+select set_config('request.jwt.claim.role', 'authenticated', true);
+
+select throws_ok(
+  $$select public.get_anonymous_submission_abuse_summary_for_operator()$$,
+  '42501',
+  'SECURITY_MONITORING_OPERATOR_ACCESS_DENIED',
+  'A non-service JWT claim cannot invoke the scheduled operator summary'
+);
+
+select set_config('request.jwt.claim.role', 'service_role', true);
+
+select is(
+  public.get_anonymous_submission_abuse_summary_for_operator()
+    ->> 'invalid_credential_attempts_last_60_minutes',
+  '121',
+  'The operator summary returns the same identifier-free aggregate count'
+);
+
+select ok(
+  not (
+    public.get_anonymous_submission_abuse_summary_for_operator()
+    ?| array[
+      'user_id',
+      'organization_id',
+      'assignment_id',
+      'credential',
+      'credential_digest',
+      'content'
+    ]
+  ),
+  'The operator summary contains no identity, tenant, credential, or content keys'
 );
 
 select public.issue_anonymous_submission_credential(

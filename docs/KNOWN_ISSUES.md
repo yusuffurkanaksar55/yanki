@@ -8,7 +8,7 @@ High
 
 ### Description
 
-One-time anonymous submission, additive key rotation, content-free key health, provider-neutral custody validation, encrypted synthetic recovery canaries, pinned encrypted off-site backup scheduling/integrity/retention, exact-snapshot database-plus-key restore automation, application-level anonymous quotas, aggregate abuse monitoring, trusted thresholded reporting, tenant retention with legal hold, and production tenant bootstrap are implemented. Real production custody/off-site provider configuration, signed production-like recovery acceptance, and outer gateway/WAF controls with alert delivery are not complete yet.
+One-time anonymous submission, additive key rotation, content-free key health, provider-neutral custody validation, encrypted synthetic recovery canaries, pinned encrypted off-site backup scheduling/integrity/retention, exact-snapshot database-plus-key restore automation, application-level anonymous quotas, same-origin gateway limits with direct-bypass token enforcement, transition-based content-free alert delivery, aggregate abuse monitoring, trusted thresholded reporting, tenant retention with legal hold, and production tenant bootstrap are implemented. Real production custody/off-site provider configuration, production gateway-token activation/direct-denial, signed production-like recovery acceptance, real alert-receiver/capacity acceptance, and infrastructure availability monitoring are not complete yet.
 
 ### Impact
 
@@ -20,11 +20,11 @@ Continue development and synthetic acceptance testing only. Do not use the linke
 
 ### Planned resolution
 
-Configure independent production key and Restic credentials in approved custody, point the implemented timer at a genuinely remote repository, complete a signed isolated production-like recovery drill, and add outer gateway/WAF limits, alert delivery, and approved invitation-mail verification.
+Configure independent production key, Restic credentials, gateway token, and alert webhook credentials in approved custody; activate required token enforcement in Nginx/Functions; point the implemented timers at real providers; tune gateway limits with production evidence; complete signed direct-denial, isolated recovery, receiver/availability, and approved invitation-mail verification.
 
 ### Related tests
 
-`tests/encryptionKeyring.test.ts`, `tests/encryption-key-custody.test.ts`, `tests/encryption-recovery-acceptance.test.mjs`, `tests/offsite-backup.test.ts`, `tests/offsite-backup-boundary.test.mjs`, `supabase/tests/database/encryption_recovery_canaries.test.sql`, `npm run backup:offsite:restore:acceptance`, `npm run smoke:key-health`, `npm run smoke:abuse`, `npm run smoke:reports`
+`tests/encryptionKeyring.test.ts`, `tests/encryption-key-custody.test.ts`, `tests/encryption-recovery-acceptance.test.mjs`, `tests/offsite-backup.test.ts`, `tests/gateway-security-alert-boundary.test.mjs`, `tests/security-alerting.test.ts`, `supabase/tests/database/anonymous_encrypted_submission.test.sql`, `npm run security:alerts:acceptance`, `npm run backup:offsite:restore:acceptance`, `npm run smoke:key-health`, `npm run smoke:abuse`, `npm run smoke:reports`
 
 ## ISSUE-005 - Remaining delegated administration actions are not implemented
 

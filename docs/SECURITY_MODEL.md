@@ -105,7 +105,13 @@ Evaluation templates are configuration-domain records. `evaluation-templates` au
 
 Before identity-free context lookup or encryption, the endpoint enforces a 256 KiB body limit and consumes an application quota. Recognized credentials have isolated 12-request/10-minute buckets; unknown credentials share a 120-request/minute invalid-only bucket. The known bucket key is a one-way hash of an internal random credential row id, not the stored credential digest. Rate buckets expire after one day. Five-minute invalid/rate-limit counters are retained for seven days without IP, device, user, tenant, assignment, credential, request, or content data.
 
-`security-abuse-monitoring` is available only to authenticated active system administrators, with authorization repeated in the Edge Function and database. It exposes 60-minute and 24-hour aggregate counts and configured limits only. It cannot read credential or ciphertext tables. These controls reduce application-level abuse but do not replace reverse-proxy/WAF connection limits, capacity protection, and external alert delivery.
+`security-abuse-monitoring` is available only to authenticated active system administrators, with authorization repeated in the Edge Function and database. It exposes 60-minute and 24-hour aggregate counts and configured limits only. It cannot read credential or ciphertext tables. The separate operator summary is executable only with the service role and returns the same identifier-free global aggregates for scheduled delivery; it cannot read credentials or ciphertext.
+
+The same-origin Nginx gateway applies outer body, connection, per-source, and deployment-global request limits before Supabase. It injects a high-entropy token into the two sensitive upstream requests and overwrites any client-supplied value. Edge Functions use digest-based constant-work comparison whenever a token exists; production sets enforcement required so missing configuration fails closed and direct Supabase calls receive `403`. The token is an environment-specific server secret, distinct from Supabase, webhook, and encryption credentials, and is never written to `app-config.js`.
+
+The gateway transiently keys shared-memory zones by source address but disables sensitive endpoint access logs and suppresses request-level limiter messages. Remaining gateway logs use path-only `$uri` and never query strings, request bodies, Authorization headers, gateway tokens, credentials, or evaluation content. Provider infrastructure still requires an independent privacy and retention review.
+
+Alert webhooks must use HTTPS outside explicit loopback acceptance and authenticate with a separately custodied bearer token. Redirects are rejected. Payloads contain only environment id, transition type, operator observation time, two 60-minute aggregate counts, and configured thresholds. Failed delivery does not advance state. State files contain no tenant, user, request, credential, source address, or evaluation content.
 
 `anonymous_submission_credentials` remains in the identity domain and has no content or submission identifier. `encrypted_evaluation_submissions` remains in the content domain and has no evaluator, assignment, credential, digest, plaintext, or exact timestamp column. Both tables have RLS enabled and all direct table privileges are revoked from browser roles and `service_role`; trusted code can use only the narrow RPCs.
 
@@ -128,6 +134,8 @@ Tenant bootstrap logs may contain request, organization, unit, invitation, and A
 Retention policy updates and cleanup executions may audit tenant scope, policy version, configured days, legal-hold/automation state, cutoff date, and execution mode. They must never audit subjects, evaluator identities, content, participation state, or deleted-row counts.
 
 Key custody, off-site backup, and recovery output may contain schema version, key/canary counts, boolean acceptance results, snapshot id, dump stream size/hash, source mode, retention settings, and target cleanup status. It must never contain repository locators, repository passwords, provider/database credentials, key values, key-version identifiers, custody references, ciphertext, decrypted canary bytes, or real evaluation content. Recovery canaries are random synthetic values and have no identity or tenant relationship.
+
+Security alert output may contain only transition state and safe booleans. Webhook payloads may additionally contain the stable environment id, operator observation time, aggregate invalid/rate-limited counts, and thresholds. Logs must never contain the webhook URL/token, sensitive-gateway token, service-role key, source address, request-level event, tenant/user/assignment/credential identifiers, request body, ciphertext, or evaluation content.
 
 ## Database Visibility
 
@@ -152,5 +160,5 @@ In customer-managed installations, the customer controls the host, database, app
 - Complete live invitation email delivery and acceptance verification with an approved test mailbox.
 - Add narrowly scoped Supabase RLS policies only after server-side authorization flows are designed.
 - Configure the implemented custody manifest and Restic workflow with real independent production secret/off-site providers, enable monitoring for the scheduled service, and complete a successful isolated environment-specific key-plus-database recovery drill before production.
-- Add outer gateway/WAF limits for credential preparation and anonymous redemption, plus alert delivery without sensitive request logging.
+- Configure and acceptance-test a real production alert receiver, activate and prove direct-denial for the production gateway token, tune limits with capacity/NAT evidence, and connect host/container/service failures to the approved incident channel.
 - Add executable cross-tenant database tests against a running local or dedicated Supabase stack.

@@ -1,0 +1,25 @@
+[Unit]
+Description=Yanki content-free security alert check
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=yanki-security-alert
+Group=yanki-security-alert
+WorkingDirectory=/opt/yanki/current
+EnvironmentFile=/etc/yanki/security-alert.env
+Environment=SECURITY_ALERT_STATE_PATH=/var/lib/yanki-security-alert/state.json
+Environment=NPM_CONFIG_CACHE=/var/cache/yanki-security-alert/npm
+Environment=NPM_CONFIG_UPDATE_NOTIFIER=false
+UMask=0077
+StateDirectory=yanki-security-alert
+CacheDirectory=yanki-security-alert/npm
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ExecStart=/usr/bin/npm run security:alerts:check
+
+[Install]
+WantedBy=multi-user.target

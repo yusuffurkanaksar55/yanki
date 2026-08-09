@@ -81,6 +81,7 @@ Implemented foundation functions:
 - `get_encrypted_evaluation_report_batch()`
 - `consume_anonymous_submission_request()`
 - `get_anonymous_submission_abuse_summary()`
+- `get_anonymous_submission_abuse_summary_for_operator()`
 - `list_manageable_evaluation_retention_policies()`
 - `admin_update_evaluation_retention_policy()`
 - `execute_due_evaluation_content_retention()`
@@ -151,7 +152,7 @@ Reporting adds no plaintext or materialized result table. `list_my_evaluation_re
 
 `execute_due_evaluation_content_retention()` is service-role-only. It serializes executions, skips disabled and legally held policies, deletes only ciphertext whose date-only `stored_on` precedes the current cutoff, and returns no submission/deletion count. Configuration and execution audit records also omit participation and content. Backup expiry remains outside this live-database model.
 
-`consume_anonymous_submission_request()` is the service-role-only quota decision boundary. `get_anonymous_submission_abuse_summary()` is also service-role-only and repeats active system-administrator authorization before returning only aggregate counts and policy constants.
+`consume_anonymous_submission_request()` is the service-role-only quota decision boundary. `get_anonymous_submission_abuse_summary()` is also service-role-only and repeats active system-administrator authorization before returning only aggregate counts and policy constants. `get_anonymous_submission_abuse_summary_for_operator()` repeats the service JWT-role check and returns the same identifier-free global summary to the scheduled alert process. Its shared aggregate builder has no API-role execute grant.
 
 ## Expected Constraints
 
