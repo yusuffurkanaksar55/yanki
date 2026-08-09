@@ -1,4 +1,5 @@
 import type {
+  AuthChangeEvent,
   AuthError,
   Session,
   SupabaseClient
@@ -11,7 +12,10 @@ export type SignInCredentials = {
   readonly password: string;
 };
 
-export type AuthStateListener = (session: Session | null) => void;
+export type AuthStateListener = (
+  event: AuthChangeEvent,
+  session: Session | null
+) => void;
 
 export type AuthSubscription = {
   readonly unsubscribe: () => void;
@@ -26,6 +30,7 @@ export type AuthService = {
     credentials: SignInCredentials
   ) => Promise<void>;
   readonly requestPasswordReset: (email: string) => Promise<void>;
+  readonly updatePassword: (password: string) => Promise<void>;
   readonly signOut: () => Promise<void>;
 };
 
@@ -33,6 +38,7 @@ export type AuthServiceErrorCode =
   | "AUTH_SESSION_READ_FAILED"
   | "AUTH_SIGN_IN_FAILED"
   | "AUTH_PASSWORD_RESET_FAILED"
+  | "AUTH_PASSWORD_UPDATE_FAILED"
   | "AUTH_SIGN_OUT_FAILED";
 
 export class AuthServiceError extends Error {
@@ -55,6 +61,8 @@ export const browserAuthService: AuthService = {
     getDefaultAuthService().signInWithPassword(credentials),
   requestPasswordReset: (email) =>
     getDefaultAuthService().requestPasswordReset(email),
+  updatePassword: (password) =>
+    getDefaultAuthService().updatePassword(password),
   signOut: () => getDefaultAuthService().signOut()
 };
 
@@ -73,8 +81,8 @@ export function createSupabaseAuthService(
     },
 
     onAuthStateChange(listener) {
-      const { data } = client.auth.onAuthStateChange((_event, session) => {
-        listener(session ?? null);
+      const { data } = client.auth.onAuthStateChange((event, session) => {
+        listener(event, session ?? null);
       });
 
       return {
@@ -100,6 +108,17 @@ export function createSupabaseAuthService(
 
       if (error) {
         throw createAuthServiceError("AUTH_PASSWORD_RESET_FAILED", error);
+      }
+    },
+
+    async updatePassword(password) {
+      const { error } = await client.auth.updateUser({
+        data: { requires_password_setup: false },
+        password
+      });
+
+      if (error) {
+        throw createAuthServiceError("AUTH_PASSWORD_UPDATE_FAILED", error);
       }
     },
 

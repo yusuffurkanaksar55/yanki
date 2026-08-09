@@ -36,6 +36,9 @@
 - Supabase Auth Site URL is configured as `http://127.0.0.1:5173`.
 - Supabase Auth redirect URLs include `http://127.0.0.1:5173` and `http://localhost:5173`.
 - Invitation creation and redemption will require trusted Edge Functions and must not be implemented directly in the browser.
+- Tenant bootstrap runs only from a trusted operator environment with a service-role key supplied by the deployment secret manager; the browser never exposes a first-run bootstrap endpoint.
+- Production tenant bootstrap assumes approved SMTP, an exact HTTPS redirect allow-list, and a deployment-level strong-password policy are configured before the first administrator invitation is sent.
+- The first administrator is organization-scoped. Platform administration is a separate vendor-operated capability and is never granted implicitly by tenant bootstrap.
 - Development and acceptance testing can use synthetic users instead of live employees.
 - The default synthetic hierarchy is CEO, HR admin, team leader, and three employees, but real organization structures must remain configurable.
 - Demo fixture users require a service-role key provided through a local environment variable and are not created by normal `npm run check`.

@@ -394,7 +394,10 @@ async function createInvitation(
     : "MEMBER";
   const { data: invitedUserData, error: invitedUserError } =
     await serviceClient.auth.admin.inviteUserByEmail(input.email, {
-      data: { display_name: input.displayName }
+      data: {
+        display_name: input.displayName,
+        requires_password_setup: true
+      }
     });
 
   if (invitedUserError || !invitedUserData.user) {

@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode
 } from "react";
@@ -34,6 +35,8 @@ export function AuthProvider({
   const [status, setStatus] = useState<AuthStatus>("checking");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<AuthFeedback | null>(null);
+  const [passwordSetupRequired, setPasswordSetupRequired] = useState(false);
+  const passwordRecoveryDetectedRef = useRef(false);
 
   useEffect(() => {
     let isActive = true;
@@ -41,13 +44,23 @@ export function AuthProvider({
 
     async function initializeAuth() {
       try {
-        subscription = service.onAuthStateChange((nextSession) => {
+        subscription = service.onAuthStateChange((event, nextSession) => {
           if (!isActive) {
             return;
           }
 
+          if (event === "PASSWORD_RECOVERY") {
+            passwordRecoveryDetectedRef.current = true;
+          } else if (event === "SIGNED_OUT") {
+            passwordRecoveryDetectedRef.current = false;
+          }
+
           setSession(nextSession);
           setStatus(nextSession ? "authenticated" : "unauthenticated");
+          setPasswordSetupRequired(
+            passwordRecoveryDetectedRef.current
+            || requiresPasswordSetup(nextSession)
+          );
         });
 
         const currentSession = await service.getSession();
@@ -58,6 +71,10 @@ export function AuthProvider({
 
         setSession(currentSession);
         setStatus(currentSession ? "authenticated" : "unauthenticated");
+        setPasswordSetupRequired(
+          passwordRecoveryDetectedRef.current
+          || requiresPasswordSetup(currentSession)
+        );
       } catch (error) {
         if (!isActive) {
           return;
@@ -126,6 +143,21 @@ export function AuthProvider({
     }
   }, [service]);
 
+  const completePasswordSetup = useCallback(async (password: string) => {
+    setIsSubmitting(true);
+    setFeedback(null);
+
+    try {
+      await service.updatePassword(password);
+      passwordRecoveryDetectedRef.current = false;
+      setPasswordSetupRequired(false);
+    } catch (error) {
+      setFeedback(toAuthFeedback(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [service]);
+
   const clearFeedback = useCallback(() => {
     setFeedback(null);
   }, []);
@@ -137,8 +169,10 @@ export function AuthProvider({
       userEmail: session?.user.email ?? null,
       isSubmitting,
       feedback,
+      passwordSetupRequired,
       signInWithPassword,
       requestPasswordReset,
+      completePasswordSetup,
       signOut,
       clearFeedback
     }),
@@ -146,7 +180,9 @@ export function AuthProvider({
       clearFeedback,
       feedback,
       isSubmitting,
+      passwordSetupRequired,
       requestPasswordReset,
+      completePasswordSetup,
       session,
       signInWithPassword,
       signOut,
@@ -155,6 +191,10 @@ export function AuthProvider({
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+function requiresPasswordSetup(session: Session | null): boolean {
+  return session?.user.user_metadata?.requires_password_setup === true;
 }
 
 function toAuthFeedback(error: unknown): AuthFeedback {

@@ -1,5 +1,13 @@
 # Release Notes
 
+## 2026-08-09 - Production Tenant Bootstrap Foundation
+
+This is not a product release. Shared SaaS and dedicated operators can now create a company and its first organization-scoped administrator through one explicit-confirmation command. A stable request UUID and SHA-256 fingerprint make exact retries idempotent; existing unmarked Auth identities are rejected, and a failed database transaction removes only the Auth identity created by that command.
+
+PostgreSQL atomically creates the organization, initial unit, invited profile, initial administrator invitation, default retention policy, content-free bootstrap operation, and audit event. No role or membership exists until the exact email-verified user accepts the invitation. An explicit recovery command can renew an incomplete initial invitation and request recovery mail without returning a raw action link.
+
+Invitation and password-recovery sessions now open a Turkish strong-password gate before the workspace. Vitest passed 41 files and 167 tests; a clean local database reset and 165 pgTAP cases passed. Migration `20260809120000` is active in the linked synthetic project, linked lint is clean, and `user-onboarding` is active at version 8. Approved SMTP/mailbox acceptance, production key recovery, WAF/alerts, scheduled off-host backups, and environment-specific restore acceptance remain release blockers.
+
 ## 2026-08-07 - Thresholded Trusted Aggregate Reporting
 
 This is not a product release. Scoped team leaders with an active manager relationship, C-Level reviewers, and board reviewers can now open closed cycle-plus-subject reports. Database functions deny system administrators, dual admin/reviewer accounts, the evaluated subject, unapproved roles, cross-scope users, and open cycles before applying the configured threshold.

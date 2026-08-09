@@ -50,6 +50,11 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 - Legal hold must suspend content deletion for the selected company.
 - Retention administration and audit output must not reveal submission counts, subjects, evaluator identities, or evaluation content.
 - Deletion from the live database must not be represented as immediate erasure from retained backups; backup expiry is an independent infrastructure control.
+- Shared SaaS and dedicated installations must create a tenant and its first administrator through the same reviewed server-only bootstrap boundary.
+- A repeated bootstrap request must be idempotent and must not adopt or elevate an unrelated existing Auth identity.
+- The first administrator receives no organization membership or role until the exact email-verified invitation is accepted.
+- Invitation and password-recovery sessions must require a strong user-defined password before the application workspace opens.
+- Bootstrap and recovery output must not contain passwords, service-role keys, invitation tokens, or raw action links.
 
 ## Roles
 
@@ -110,4 +115,5 @@ No role is a singleton. A tenant may have multiple users with the same role when
 - Additive key rotation, content-free health checks, tenant retention automation, and a disposable local restore drill are complete. Production key custody, key-plus-database recovery acceptance, scheduled encrypted backups, and environment-specific restore acceptance are not complete.
 - Application-level anonymous submission quotas and content-free monitoring are complete. Production gateway/WAF limits and alert delivery are not complete.
 - Real invitation email delivery awaits an approved provider and mailbox.
+- Production bootstrap is implemented; each environment still requires approved SMTP, redirect allow-list, password policy, and first-administrator mailbox acceptance verification.
 - The current one-time credential model provides application-level unlinkability; blind-signature cryptographic anonymity is not claimed.

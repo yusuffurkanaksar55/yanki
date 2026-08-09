@@ -150,6 +150,7 @@ function createAuthServiceStub(session: Session | null): AuthService {
     })),
     signInWithPassword: vi.fn(async () => undefined),
     requestPasswordReset: vi.fn(async () => undefined),
+    updatePassword: vi.fn(async () => undefined),
     signOut: vi.fn(async () => undefined)
   };
 }

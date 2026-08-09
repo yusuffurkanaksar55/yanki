@@ -1,5 +1,54 @@
 # Test Report
 
+## 2026-08-09 - Production Tenant Bootstrap And Password Setup
+
+### Environment
+
+- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
+- Docker Desktop local Supabase PostgreSQL/Auth/Mailpit stack rebuilt from migrations and seed.
+- Linked Supabase project `daxaymcmtbmummrxdyjy` with synthetic users only.
+- Vite development server inspected with the Codex in-app browser at desktop and 390 x 844 mobile viewports.
+
+### Commands executed
+
+- `npm run check`, `npm run deployment:config`, `npm run supabase:lint:local`
+- `npx supabase db reset --local --yes`, `npm run supabase:test:local`
+- `node scripts/bootstrap-production-tenant.mjs --check` with process-only local Supabase configuration and synthetic nonexisting identity
+- Focused bootstrap/operator/password component and auth-service Vitest runs
+- Remote migration dry-run/push/list, linked type generation/schema lint, and `user-onboarding` function deploy/list
+
+### Passed
+
+- Vitest passed 41 files and 167 tests, including deterministic normalization/fingerprinting, explicit confirmation, Auth marker creation, compensation, invitation recovery, strong-password validation, password updates, `PASSWORD_RECOVERY` event gating, and password-setup session exit.
+- pgTAP passed 165 cases across seven suites; 31 bootstrap cases verify RLS/grants, atomic records, default retention, no premature role/membership, idempotency, fingerprint conflict, Auth marker enforcement, duplicate-slug denial, safe renewal, acceptance, and exact organization-admin scope.
+- A clean local database reset applied all migrations through `20260809120000`; local schema lint reported no errors.
+- Side-effect-free operator preflight returned `ready` and `administratorIdentity: available` without creating a user or tenant.
+- Docker Compose validation passed. Desktop and 390 px mobile browser inspection showed readable layouts, no horizontal overflow, and no console warning/error entries.
+- Local and remote migration histories include `20260809120000`; linked schema lint reported no errors, generated types include every bootstrap table/function, and `user-onboarding` is active at version 8.
+
+### Failed And Corrected
+
+- The first recovery-event component test reassigned a readonly Auth service field. The test now constructs a new immutable stub with the listener override; full typecheck passes.
+- Initial local operator-check helpers assumed a clean Supabase CLI status stream. CLI diagnostics and sandbox telemetry polluted parsing; the approved rerun parsed the local JSON envelope in process and passed. Production commands read secrets directly from the approved operator environment and do not parse CLI status output.
+- Docker Compose and local Supabase lint initially hit expected workspace sandbox process/profile restrictions. Approved reruns passed unchanged.
+- Remote migration push repeated the known non-fatal `pg-delta` temporary CA cache warning. Migration list and linked lint independently confirmed successful application.
+- Vite again reported the existing non-blocking warning for a JavaScript chunk above 500 kB.
+
+### Security checks
+
+- Verified browser roles cannot read bootstrap operation state or execute status/create/renew functions; direct `service_role` table access is also denied.
+- Verified no role or membership is granted before exact email-verified invitation acceptance and the accepted role is organization-scoped, never platform-scoped.
+- Verified operator output excludes administrator email, passwords, tokens, action links, service-role keys, and Auth response bodies.
+- Verified invitation renewal is limited to the original request/fingerprint and rejected after acceptance or revocation.
+
+### Skipped
+
+- No real tenant or Auth identity was created in the linked project. Real invitation delivery, password setup, and mailbox acceptance require an approved SMTP provider and mailbox.
+
+### Remaining risks
+
+- Production SMTP, redirect allow-list, Auth password policy, and mailbox acceptance remain release gates alongside key recovery, WAF/alerts, scheduled backups, and environment-specific restore acceptance.
+
 ## 2026-08-09 - Tenant Evaluation Retention And Restore Acceptance
 
 ### Environment
@@ -190,56 +239,3 @@
 ### Remaining risks
 
 - Production key rotation/recovery, anonymous endpoint rate limiting, retention, production bootstrap, monitoring, backup acceptance, and invitation email remain release blockers.
-
-## 2026-08-07 - Anonymous Encrypted Evaluation Submission
-
-### Environment
-
-- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
-- Docker Desktop local Supabase stack.
-- Linked Supabase project `daxaymcmtbmummrxdyjy` with synthetic users only.
-
-### Commands executed
-
-- `npm run lint`
-- `npm run typecheck`
-- `npm test`
-- `npm run build`
-- `npm run supabase:test:local`
-- `npm run supabase:lint:local`
-- `npm run supabase:lint:linked`
-- `npm run supabase:push:dry-run`
-- `npm run smoke:submissions`
-
-### Passed
-
-- Local Supabase applied every migration from an empty schema.
-- pgTAP passed 55 cases across employee access, template lifecycle, and anonymous encrypted submission suites.
-- The 29 new database cases cover table/RPC grants, forbidden linkage columns, credential replacement, context minimization, atomic redemption, replay denial, ciphertext storage, completion, and immutability.
-- Focused component, service, and boundary tests validate required answers, anonymous request headers, no browser credential persistence, and successful inbox refresh.
-- Both new Edge Functions bundled and are active remotely.
-- Live synthetic acceptance encrypted four answers, atomically completed the assignment, and rejected credential replay with 409.
-- Linked public schema lint is clean and final remote dry-run reports up to date.
-
-### Failed And Corrected
-
-- The first migration lacked a composite tenant key on evaluation cycles; it was added before remote deployment.
-- Legacy Windows PowerShell did not support static random `Fill`; the development key was replaced before any encryption.
-- PowerShell stripped JSON quotes from an inline keyring secret; a temporary env-file transfer corrected it and was immediately deleted.
-- Two static documentation/security assertions described the previous foundation state; both now inspect the exact current invariant.
-
-### Skipped
-
-- Visual browser verification could not start because the Codex browser runtime still cannot create its kernel asset path. Component, build, and live API verification passed.
-- Real invitation email remains deferred until an approved mailbox/provider is available.
-
-### Security checks
-
-- Verified no raw credential, answer, encryption key, service-role key, or evaluator-to-response mapping is stored in browser persistence or repository files.
-- Verified the anonymous browser request omits user Authorization and cookies.
-- Verified the content table has no evaluator, assignment, credential, digest, plaintext, or exact timestamp column.
-- Verified direct table access is denied and only narrow service-role RPCs can issue/contextualize/redeem credentials.
-
-### Remaining risks
-
-- Thresholded reporting, trusted decryption, reviewer scope/self-access enforcement, production key rotation/recovery, rate limiting, retention, and backup acceptance remain production blockers.

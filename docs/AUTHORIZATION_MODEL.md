@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and implemented through default-deny tables, narrow own-context RPCs, record-backed scoped administration, immutable templates, authenticated one-time submission preparation, anonymous atomic redemption, and thresholded scoped aggregate reporting.
+Authorization is documented and implemented through default-deny tables, narrow own-context RPCs, record-backed scoped administration, immutable templates, authenticated one-time submission preparation, anonymous atomic redemption, thresholded scoped aggregate reporting, and service-role-only tenant bootstrap.
 
 ## Principles
 
@@ -21,7 +21,7 @@ Dedicated customer installations retain the same checks. Physical infrastructure
 
 ## Current Database Foundation
 
-The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`. The project/evaluation-cycle migration creates `projects`, `project_memberships`, and `evaluation_cycles`. The evaluation assignment migration creates `evaluation_assignments`.
+The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`. The project/evaluation-cycle migration creates `projects`, `project_memberships`, and `evaluation_cycles`. The evaluation assignment migration creates `evaluation_assignments`. The production bootstrap migration creates content-free `tenant_bootstrap_operations` and narrow service-role functions.
 
 RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `get_my_workspace_context()` allows authenticated users to read only their own non-sensitive role, unit, and manager context. `user_invitations`, roles, role assignments, audit events, organization hierarchy tables, project tables, evaluation-cycle tables, and evaluation assignment tables remain default-deny to frontend clients. `get_my_evaluation_assignments()` derives the caller from `auth.uid()`, requires an active profile and tenant membership, revalidates the subject's active matching membership, and returns only the caller's non-cancelled assignment display metadata from non-draft cycles.
 
@@ -34,6 +34,8 @@ The current frontend auth, profile, workspace, and administration gates only con
 Project date updates are available to platform/matching-organization system administrators and exact assigned project managers. Delegated access requires both `projects.project_manager_user_id = actor_user_id` and an active `PROJECT_MANAGER` role scoped to the same project. The service-role-only atomic database function repeats this check before updating the project and evaluation cycle.
 
 `user-onboarding` requires a platform or matching-organization `SYSTEM_ADMIN` role for invitation listing, creation, and revocation. Invitation acceptance is available only to the exact Supabase Auth user created for the invitation, after verified-email, expiration, terminal-state, organization, unit, and optional manager checks. The acceptance database function is executable only by `service_role`.
+
+`bootstrap_organization_tenant()` and its exact-status/renewal companions are executable only by `service_role`; browser roles have no execute or operation-table access. Bootstrap is authorized by possession of the operator secret plus an explicit confirmation and exact request fingerprint, because no application administrator exists yet. The database also requires a matching server-controlled Auth app-metadata request marker and rejects any preconfigured identity. The invited user receives no membership or `SYSTEM_ADMIN` role until the normal email-verified `accept_user_invitation()` transaction succeeds, and that role is scoped only to the newly created organization.
 
 `organization-administration` requires an active profile and a platform or matching-organization `SYSTEM_ADMIN` role. The Edge Function recomputes authorization from `user_role_assignments`; service-role-only database functions revalidate the actor within each mutation transaction. Unit changes, primary membership/direct-manager updates, and manageable existing-user role assignments remain organization-scoped. Direct-manager cycles, cross-organization membership, invalid unit-scoped roles, unsafe unit archival, and removal of the final organization-scoped system administrator are denied. `PROJECT_MANAGER` remains owned by the project administration boundary.
 

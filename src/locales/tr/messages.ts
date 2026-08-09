@@ -676,6 +676,20 @@ export const tr = {
       emailLabel: "Şifre sıfırlama e-postası",
       submitButton: "Sıfırlama bağlantısı gönder"
     },
+    passwordSetup: {
+      title: "Yeni şifreni belirle",
+      passwordLabel: "Yeni şifre",
+      confirmationLabel: "Yeni şifre tekrar",
+      submitButton: "Şifreyi kaydet",
+      submitting: "Şifre kaydediliyor",
+      validation: {
+        required: "Yeni şifre zorunludur.",
+        minimumLength: "Yeni şifre en az 12 karakter olmalıdır.",
+        complexity:
+          "Yeni şifre büyük harf, küçük harf, rakam ve özel karakter içermelidir.",
+        mismatch: "Şifreler eşleşmiyor."
+      }
+    },
     validation: {
       emailRequired: "E-posta adresi zorunludur.",
       emailInvalid: "Geçerli bir e-posta adresi gir.",
@@ -693,6 +707,8 @@ export const tr = {
         "E-posta veya şifre bilgileri doğrulanamadı.",
       AUTH_PASSWORD_RESET_FAILED:
         "Şifre sıfırlama bağlantısı gönderilemedi.",
+      AUTH_PASSWORD_UPDATE_FAILED:
+        "Yeni şifre kaydedilemedi. Bağlantıyı yenileyip tekrar dene.",
       AUTH_SIGN_OUT_FAILED:
         "Çıkış yapılırken bir hata oluştu.",
       genericError: "Beklenmeyen bir hata oluştu."

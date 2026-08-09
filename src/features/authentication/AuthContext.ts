@@ -19,10 +19,12 @@ export type AuthContextValue = {
   readonly userEmail: string | null;
   readonly isSubmitting: boolean;
   readonly feedback: AuthFeedback | null;
+  readonly passwordSetupRequired: boolean;
   readonly signInWithPassword: (
     credentials: SignInCredentials
   ) => Promise<void>;
   readonly requestPasswordReset: (email: string) => Promise<void>;
+  readonly completePasswordSetup: (password: string) => Promise<void>;
   readonly signOut: () => Promise<void>;
   readonly clearFeedback: () => void;
 };

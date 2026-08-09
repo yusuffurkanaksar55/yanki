@@ -8,7 +8,7 @@ High
 
 ### Description
 
-One-time anonymous submission, additive key rotation, content-free key health, application-level anonymous quotas, aggregate abuse monitoring, trusted thresholded reporting, tenant retention with legal hold, and a disposable local restore drill are implemented. Independent production key custody, key-plus-database recovery acceptance, outer gateway/WAF controls and alert delivery, production bootstrap, scheduled encrypted off-host backups, and environment-specific restore acceptance are not implemented yet.
+One-time anonymous submission, additive key rotation, content-free key health, application-level anonymous quotas, aggregate abuse monitoring, trusted thresholded reporting, tenant retention with legal hold, production tenant bootstrap, and a disposable local restore drill are implemented. Independent production key custody, key-plus-database recovery acceptance, outer gateway/WAF controls and alert delivery, scheduled encrypted off-host backups, and environment-specific restore acceptance are not implemented yet.
 
 ### Impact
 
@@ -20,11 +20,11 @@ Continue development and synthetic acceptance testing only. Do not use the linke
 
 ### Planned resolution
 
-Create an independent production key, complete approved key escrow/recovery drills, and add outer gateway/WAF limits, alert delivery, production bootstrap, scheduled encrypted backups, environment-specific restore acceptance, and approved invitation-mail verification.
+Create an independent production key, complete approved key escrow/recovery drills, and add outer gateway/WAF limits, alert delivery, scheduled encrypted backups, environment-specific restore acceptance, and approved invitation-mail verification.
 
 ### Related tests
 
-`tests/encryptionKeyring.test.ts`, `tests/anonymous-abuse-protection-boundary.test.mjs`, `supabase/tests/database/anonymous_encrypted_submission.test.sql`, `src/features/administration/SecurityOperationsPanel.test.tsx`, `npm run smoke:key-health`, `npm run smoke:abuse`, `npm run smoke:reports`
+`tests/encryptionKeyring.test.ts`, `tests/anonymous-abuse-protection-boundary.test.mjs`, `tests/production-tenant-bootstrap.test.mjs`, `supabase/tests/database/anonymous_encrypted_submission.test.sql`, `supabase/tests/database/production_tenant_bootstrap.test.sql`, `src/features/administration/SecurityOperationsPanel.test.tsx`, `npm run smoke:key-health`, `npm run smoke:abuse`, `npm run smoke:reports`
 
 ## ISSUE-005 - Remaining delegated administration actions are not implemented
 
@@ -165,11 +165,11 @@ Completed on 2026-08-06. The frontend image reported `healthy`, `/healthz` retur
 
 ### Severity
 
-High
+Medium
 
 ### Description
 
-The repository now contains a portable frontend image, customer Compose example, self-host deployment runbook, and tenant-integrity migration. Production organization bootstrap, backup/restore automation, immutable release publishing, customer acceptance automation, and encrypted evaluation workflows are not implemented.
+The repository now contains a portable frontend image, customer Compose example, self-host deployment runbook, tenant-integrity migration, encrypted evaluation workflows, production tenant bootstrap, and a disposable restore drill. Scheduled encrypted off-host backups, environment-specific recovery automation, immutable release publishing, and customer acceptance automation are not implemented.
 
 ### Impact
 
@@ -181,9 +181,10 @@ None for production. Use managed development and synthetic fixture environments 
 
 ### Planned resolution
 
-Complete the sensitive evaluation runtime first, then add a reviewed first-organization bootstrap boundary, image publishing with checksums, backup/restore drills, deployment smoke tests, and an operator acceptance checklist.
+Add immutable image publishing with checksums, scheduled encrypted off-host backups, environment-specific restore drills, deployment smoke tests, and an operator acceptance checklist.
 
 ### Related tests
 
 - `tests/deployment-foundation.test.mjs`
 - `tests/tenant-isolation.test.mjs`
+- `tests/production-tenant-bootstrap.test.mjs`

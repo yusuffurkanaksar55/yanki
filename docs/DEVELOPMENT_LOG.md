@@ -1,5 +1,43 @@
 # Development Log
 
+## 2026-08-09 - Idempotent Production Tenant Bootstrap
+
+### Objective
+
+Provision a company and its first administrator through one portable trusted workflow without browser privileges, manual table writes, password/token output, duplicate tenants, or silent elevation of an existing Auth identity.
+
+### Changes
+
+- Added a fingerprinted service-role-only bootstrap transaction that creates the organization, initial unit, invited administrator profile, organization-admin invitation, default retention policy, content-free operation state, and audit event.
+- Added a side-effect-free preflight plus explicit-confirmation operator command with exact-request replay, server-controlled Auth markers, and compensation for a newly created Auth identity when database provisioning fails.
+- Added an explicit initial-invitation recovery command that renews only an exact incomplete bootstrap and requests Supabase recovery mail without generating a raw action link.
+- Added a Turkish strong-password gate for invitation metadata and Supabase `PASSWORD_RECOVERY` sessions; normal administrator invitations now set the same password-setup metadata.
+- Raised the local Auth baseline to 12 characters with upper/lower/numeric/symbol requirements and documented equivalent production configuration.
+
+### Database changes
+
+Applied `20260809120000_production_tenant_bootstrap.sql` locally and to project `daxaymcmtbmummrxdyjy`. It adds default-deny `tenant_bootstrap_operations`, exact status/bootstrap/renewal functions, safe audit events, and service-role-only execution grants. A clean local reset applied every migration successfully, and linked schema lint passed.
+
+### Security impact
+
+Positive. Browser roles cannot inspect or execute bootstrap state. The first administrator receives no membership or role before email-verified invitation acceptance. Existing unmarked identities are rejected, action links and credentials never enter command output, and retries require the original request UUID plus exact fingerprint.
+
+### Tests performed
+
+- Full `npm run check`: 41 Vitest files and 167 tests, lint, typecheck, production build, and memory check.
+- Clean local Supabase reset, local schema lint, and 165 pgTAP cases across seven suites, including 31 bootstrap cases.
+- Side-effect-free local `tenant:bootstrap:check` returned `ready` with an available administrator identity.
+- Docker Compose configuration validation and in-app browser inspection at desktop and 390 px mobile width; no horizontal overflow or browser console errors were observed.
+- Remote migration dry-run/push/list, linked type generation, linked schema lint, and `user-onboarding` deployment/version verification.
+
+### Result
+
+The tenant bootstrap foundation is active in the linked synthetic project for shared SaaS and dedicated installation workflows. `user-onboarding` is active at version 8 with password-setup metadata. No live tenant or Auth identity was created.
+
+### Remaining work
+
+- Complete approved SMTP/mailbox acceptance, independent production key recovery, gateway/WAF alerts, scheduled encrypted off-host backups, and environment-specific restore acceptance.
+
 ## 2026-08-09 - Tenant Evaluation Retention And Restore Acceptance
 
 ### Objective
@@ -154,41 +192,3 @@ Both reporting migrations are current remotely. `evaluation-reports` is active a
 - Replace the development key and implement production key rotation/recovery, rate limiting, retention, bootstrap, monitoring, and backup/restore acceptance.
 - Complete approved invitation-email verification.
 - Complete automated visual browser verification after the Codex browser runtime path issue is resolved.
-
-## 2026-08-07 - Anonymous Encrypted Evaluation Submission
-
-### Objective
-
-Allow an eligible authenticated employee to submit an immutable evaluation exactly once without persisting evaluator identity beside content, while encrypting every answer before database persistence.
-
-### Changes
-
-- Added authenticated credential preparation and anonymous encrypted-submission Edge Functions.
-- Added a Turkish typed-question modal connected to available employee assignments.
-- Added memory-only raw credentials, anonymous no-cookie/no-Authorization fetch, answer validation, AES-256-GCM encryption, and stable operational error codes.
-- Added a reusable live acceptance command and updated generated Supabase types.
-
-### Database changes
-
-Applied `20260807013000_anonymous_encrypted_evaluation_submissions.sql` locally and to project `daxaymcmtbmummrxdyjy`. It adds identity-domain digested credentials, content-domain ciphertext, immutable lifecycle guards, tenant foreign keys, and three service-role-only RPCs. Sensitive tables have no direct privileges, including for `service_role`.
-
-### Security impact
-
-Positive. Content rows contain no evaluator, assignment, credential, digest, plaintext answer, or exact submission timestamp. Raw credentials are transient, replay is terminal, assignment completion is atomic, and key material remains only in Supabase Secrets. The implementation provides application-level unlinkability, not blind-signature cryptographic anonymity.
-
-### Tests performed
-
-- `npm run lint`, `npm run typecheck`, `npm test`, and production build checks.
-- `npm run supabase:test:local`: 55 pgTAP cases across three suites.
-- Local and linked public schema lint plus final remote migration dry-run.
-- `npm run smoke:submissions` with synthetic users: four encrypted answers accepted, assignment completed, replay denied.
-
-### Result
-
-The linked migration is current and both new Edge Functions are active. The live synthetic flow passes without creating additional fixture data. The linked schema lint reports no errors.
-
-### Remaining work
-
-- Implement trusted thresholded reporting, self-access denial, and scoped reviewer authorization.
-- Replace the development key before live use and add rotation, recovery, rate limiting, retention, and backup acceptance.
-- Complete visual browser verification when the Codex browser runtime path issue is resolved.

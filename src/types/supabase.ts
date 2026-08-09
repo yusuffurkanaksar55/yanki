@@ -918,6 +918,58 @@ export type Database = {
         }
         Relationships: []
       }
+      tenant_bootstrap_operations: {
+        Row: {
+          administrator_user_id: string
+          completed_at: string
+          initial_unit_id: string
+          invitation_id: string
+          organization_id: string
+          request_fingerprint: string
+          request_id: string
+        }
+        Insert: {
+          administrator_user_id: string
+          completed_at?: string
+          initial_unit_id: string
+          invitation_id: string
+          organization_id: string
+          request_fingerprint: string
+          request_id: string
+        }
+        Update: {
+          administrator_user_id?: string
+          completed_at?: string
+          initial_unit_id?: string
+          invitation_id?: string
+          organization_id?: string
+          request_fingerprint?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_bootstrap_operations_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: true
+            referencedRelation: "user_invitations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_bootstrap_operations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_bootstrap_operations_unit_fk"
+            columns: ["organization_id", "initial_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organization_units"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
       user_invitations: {
         Row: {
           accepted_at: string | null
@@ -1233,6 +1285,21 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      bootstrap_organization_tenant: {
+        Args: {
+          administrator_display_name: string
+          administrator_email: string
+          bootstrap_administrator_user_id: string
+          bootstrap_request_id: string
+          expected_request_fingerprint: string
+          initial_unit_name: string
+          initial_unit_slug: string
+          invitation_expires_in_days?: number
+          organization_name: string
+          organization_slug: string
+        }
+        Returns: Json
+      }
       can_review_evaluation_subject: {
         Args: {
           actor_user_id: string
@@ -1276,6 +1343,13 @@ export type Database = {
       }
       get_my_evaluation_assignments: { Args: never; Returns: Json }
       get_my_workspace_context: { Args: never; Returns: Json }
+      get_tenant_bootstrap_operation: {
+        Args: {
+          bootstrap_request_id: string
+          expected_request_fingerprint: string
+        }
+        Returns: Json
+      }
       get_thresholded_evaluation_report_batch_without_close_metadata: {
         Args: {
           actor_user_id: string
@@ -1316,6 +1390,14 @@ export type Database = {
           managed_encryption_context_version: number
           managed_encryption_key_version: string
           managed_payload_schema_version: number
+        }
+        Returns: Json
+      }
+      renew_tenant_bootstrap_invitation: {
+        Args: {
+          bootstrap_request_id: string
+          expected_request_fingerprint: string
+          invitation_expires_in_days?: number
         }
         Returns: Json
       }

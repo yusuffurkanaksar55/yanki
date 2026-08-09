@@ -99,6 +99,14 @@ Destructive execution is not exposed to the browser. A portable operator command
 
 The backup/restore acceptance command streams a compressed dump directly from the local Supabase database container into a guarded `_restore_acceptance` database. It records only stream size/hash and boolean checks, writes no dump file to host storage, verifies migrations plus content/retention privilege boundaries, and removes the temporary database in a `finally` path.
 
+## Production Tenant Bootstrap Architecture
+
+`bootstrap-production-tenant.mjs` is a trusted operator boundary shared by SaaS and dedicated installations. A stable request UUID and SHA-256 fingerprint make an exact rerun idempotent. The script creates a Supabase Auth invitation, writes the request UUID into server-controlled Auth app metadata, and calls `bootstrap_organization_tenant()` with the service role. PostgreSQL serializes bootstrap operations, verifies the Auth id/email/marker, and atomically creates the organization, initial unit, invited profile, organization-admin invitation, default retention policy, content-free operation record, and audit metadata.
+
+No membership or role exists until the exact email-verified Auth user accepts through `accept_user_invitation()`. A database failure causes the operator to delete only the Auth identity created by that execution. Existing identities without the exact server-controlled request marker are rejected. `tenant_bootstrap_operations` has RLS and no direct API privileges, including for `service_role`.
+
+An explicit recovery command can renew an unaccepted, unrevoked initial invitation for the same request/fingerprint and ask Supabase Auth to deliver a password-recovery message. It never returns a raw action link. Invitation and `PASSWORD_RECOVERY` sessions are held at the Turkish password-setup gate until `auth.updateUser()` stores a password meeting the client policy and clears the non-authoritative setup metadata flag.
+
 ## Localization
 
 User-facing Turkish strings must be centralized under a future localization module such as `src/locales/tr/`. Code identifiers, internal errors, tests, and technical artifacts remain English.
@@ -120,6 +128,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Administration role/hierarchy service and panel: `src/features/administration/hierarchyAdministrationService.ts`, `src/features/administration/RoleHierarchyManagementPanel.tsx`
 - Turkish messages: `src/locales/tr/messages.ts`
 - Authentication context and UI: `src/features/authentication/`
+- Invitation/recovery password setup: `src/features/authentication/PasswordSetupPage.tsx`
 - Profile onboarding gate and service: `src/features/profiles/`
 - Workspace context gate and service: `src/features/workspace/`
 - Typed Supabase client: `src/lib/supabase/client.ts`
@@ -156,10 +165,12 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Encryption key lifecycle migration: `supabase/migrations/20260807143000_encryption_key_lifecycle.sql`
 - Anonymous endpoint abuse-control migration: `supabase/migrations/20260807170000_anonymous_endpoint_abuse_protection.sql`
 - Evaluation content retention migration: `supabase/migrations/20260808120000_evaluation_content_retention.sql`
+- Production tenant bootstrap migration: `supabase/migrations/20260809120000_production_tenant_bootstrap.sql`
 - Database authorization tests: `supabase/tests/database/employee_assignment_access.test.sql`
 - Anonymous submission database tests: `supabase/tests/database/anonymous_encrypted_submission.test.sql`
 - Reporting authorization database tests: `supabase/tests/database/thresholded_evaluation_reporting.test.sql`
 - Encryption key lifecycle database tests: `supabase/tests/database/encryption_key_lifecycle.test.sql`
+- Production tenant bootstrap database tests: `supabase/tests/database/production_tenant_bootstrap.test.sql`
 - Invitation acceptance migration: `supabase/migrations/20260720232000_user_invitation_acceptance_flow.sql`
 - Invitation acceptance revalidation migration: `supabase/migrations/20260720234500_invitation_acceptance_context_revalidation.sql`
 - Organization administration migration: `supabase/migrations/20260722210000_hierarchy_administration_foundation.sql`
@@ -167,6 +178,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Setup notes: `docs/SUPABASE_SETUP.md`
 - Demo fixture notes: `docs/TEST_FIXTURES.md`
 - Demo fixture script: `scripts/create-demo-fixture.mjs`
+- Production tenant bootstrap operator: `scripts/bootstrap-production-tenant.mjs`
 - Linked remote project ref: `daxaymcmtbmummrxdyjy`
 
 The versioned-template migrations add logical template roots, immutable version snapshots, ordered typed questions, service-role-only lifecycle functions, and exact template-version foreign keys on cycles and assignments. Question mutation guards validate both the source and destination parent so a published question cannot be moved into a draft. Existing cycles are backfilled to archived compatibility versions; new cycles require a published active template through the trusted project boundary. Template tables have RLS enabled and no client-facing policies.
@@ -177,10 +189,11 @@ The versioned-template migrations add logical template roots, immutable version 
 - Supabase auth service boundary: `src/features/authentication/authService.ts`
 - Auth provider and gate: `src/features/authentication/AuthProvider.tsx`, `src/features/authentication/AuthGate.tsx`
 - Turkish auth page: `src/features/authentication/AuthPage.tsx`
+- Turkish password-setup page: `src/features/authentication/PasswordSetupPage.tsx`
 - Own-profile service and gate: `src/features/profiles/profileService.ts`, `src/features/profiles/ProfileGate.tsx`
 - Own-workspace context service and gate: `src/features/workspace/workspaceContextService.ts`, `src/features/workspace/WorkspaceContextGate.tsx`
 
-The auth service is injectable so unit and component tests do not call the network. Local development uses only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`; container deployments inject equivalent public values through `/app-config.js` at startup.
+The auth service is injectable so unit and component tests do not call the network. It observes Supabase password-recovery events and invitation metadata, updates the password through Supabase Auth, and prevents workspace rendering until password setup succeeds. Local development uses only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`; container deployments inject equivalent public values through `/app-config.js` at startup.
 
 The profile service is injectable and reads only the authenticated user's own profile row. A signed-in user without an active profile sees a Turkish invitation onboarding state instead of the dashboard.
 

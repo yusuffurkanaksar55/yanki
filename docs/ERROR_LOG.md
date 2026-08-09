@@ -1,5 +1,67 @@
 # Error Log
 
+## ERR-20260809-046 - Recovery-event test mutated a readonly service contract
+
+### Context
+
+The first full check after adding password-recovery gating compiled the new React test.
+
+### Symptoms
+
+TypeScript rejected assignment to the readonly `onAuthStateChange` field on an `AuthService` stub.
+
+### Root cause
+
+The test attempted to mutate an already constructed typed service object in order to capture the Supabase Auth listener.
+
+### Correct solution
+
+Construct a new immutable `AuthService` value with the desired listener override and preserve the remaining stub methods through object spread.
+
+### Prevention
+
+Treat injectable service contracts as immutable in tests and configure scenario-specific behavior during stub construction.
+
+### Related files
+
+- `src/features/authentication/PasswordSetupPage.test.tsx`
+
+### Related tests
+
+- `npm run typecheck`
+- `npm run check`
+
+## ERR-20260809-045 - Local Supabase status parsing assumed a clean output stream
+
+### Context
+
+A side-effect-free bootstrap readiness check needed local URL and service-role values without writing them to disk or command output.
+
+### Symptoms
+
+The first helper read no service key from `status -o env`; a JSON retry then encountered CLI diagnostics and sandbox telemetry mixed into the captured stream.
+
+### Root cause
+
+The local verification helper treated Supabase CLI status output as a clean machine-only stdout contract. On this Windows runtime, service diagnostics and telemetry failures can use the same captured process stream.
+
+### Correct solution
+
+Run the local-only status command with approved CLI profile access, isolate the JSON object in process, and pass values only through child-process environment variables. The production bootstrap command itself reads approved environment variables directly and never parses CLI status.
+
+### Prevention
+
+Do not derive production secrets from human/status command output. Inject operator secrets from the approved secret manager and keep local status parsing confined to disposable verification helpers.
+
+### Related files
+
+- `scripts/bootstrap-production-tenant.mjs`
+- `.env.operator.example`
+
+### Related tests
+
+- `npm run tenant:bootstrap:check`
+
 ## ERR-20260808-044 - Disposable full restore used a non-superuser role
 
 ### Context
@@ -256,67 +318,6 @@ Keep deployment checks independent of interactive shell PATH when Docker Desktop
 ### Related tests
 
 - `npm run deployment:config`
-
-## ERR-20260807-036 - Deployment contract test expected the previous production-gate wording
-
-### Context
-
-The deployment guide was updated after encrypted submission became implemented.
-
-### Symptoms
-
-The full Vitest run expected the exact phrase `not approved for live evaluation content` while the guide now says `not approved for live employee data`.
-
-### Root cause
-
-The static contract asserted prose from the previous foundation state instead of the current production safety invariant.
-
-### Correct solution
-
-Bind the test to the current explicit live-employee-data prohibition.
-
-### Prevention
-
-Keep documentation contract tests focused on durable security meaning and update them with reviewed lifecycle changes.
-
-### Related files
-
-- `docs/DEPLOYMENT.md`
-- `tests/deployment-foundation.test.mjs`
-
-### Related tests
-
-- `npm test`
-
-## ERR-20260807-035 - Migration security test scanned explanatory prose as schema
-
-### Context
-
-The encrypted submission migration documents that plaintext must never be persisted.
-
-### Symptoms
-
-The full Vitest run failed because the word `plaintext` appeared in comments even though no plaintext column existed.
-
-### Root cause
-
-The old test searched all migration text instead of the anonymous content table definition.
-
-### Correct solution
-
-Extract the `encrypted_evaluation_submissions` definition and reject evaluator, assignment, credential, score, comment, plaintext, and digest column names there.
-
-### Prevention
-
-Test parsed structural boundaries instead of forbidding security vocabulary in comments.
-
-### Related files
-
-- `tests/supabase-foundation.test.mjs`
-
-### Related tests
-
-- `npm test -- --run tests/supabase-foundation.test.mjs`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

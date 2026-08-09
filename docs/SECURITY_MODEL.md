@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, privacy-preserving application quotas, server-side AES-256-GCM encryption, additive key rotation, content-free key health checks, atomic assignment completion, trusted thresholded aggregate reporting, tenant-scoped content retention with legal hold, disposable restore verification, and trusted administration boundaries. Production key escrow and environment-specific recovery acceptance remain incomplete.
+This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, privacy-preserving application quotas, server-side AES-256-GCM encryption, additive key rotation, content-free key health checks, atomic assignment completion, trusted thresholded aggregate reporting, tenant-scoped content retention with legal hold, idempotent production tenant bootstrap, disposable restore verification, and trusted administration boundaries. Production key escrow and environment-specific recovery acceptance remain incomplete.
 
 ## Security Objectives
 
@@ -75,11 +75,13 @@ The trusted function validates the AES-GCM authenticated context and the exact i
 
 The browser Supabase client uses only public project URL and anon key values. It must never receive service-role credentials, database passwords, encryption keys, decrypted payloads, anonymous credential values, or privileged authorization decisions.
 
-The current auth client supports email/password sign-in, password reset request, local-session sign-out, and session-state observation. The profile gate reads only the authenticated user's own profile row through a narrow RLS policy. This improves access gating in the UI, but sensitive authorization still must be enforced in Edge Functions and RLS.
+The current auth client supports email/password sign-in, password reset request, invitation/recovery password update, local-session sign-out, and session-state observation. Invitation metadata and the Supabase `PASSWORD_RECOVERY` event hold the session at a Turkish strong-password setup screen before workspace rendering. The metadata flag is a usability state, not an authorization claim. The profile gate reads only the authenticated user's own profile row through a narrow RLS policy. This improves access gating in the UI, but sensitive authorization still must be enforced in Edge Functions and RLS.
 
 Invitation records store only hashed invitation secrets and remain inaccessible to frontend clients. Raw invitation secrets must never be stored in the database, browser, logs, Git, documentation, or generated UI.
 
 `user-onboarding` uses Supabase Auth for user-facing invitation delivery and email ownership proof. The administration browser never receives a custom action link or raw invitation secret. Invitation creation and revocation require a platform or matching-organization `SYSTEM_ADMIN` role. Acceptance binds the authenticated Auth user id and verified email to the invitation, revalidates expiration and hierarchy context, and calls service-role-only `accept_user_invitation()` for atomic activation. Real email delivery still depends on approved Supabase Auth SMTP settings.
+
+Production tenant bootstrap is not a browser endpoint. The operator requires the server-only service role, explicit confirmation, a stable random request UUID, normalized input, and an exact SHA-256 fingerprint. PostgreSQL verifies that the invited Auth identity has the matching server-controlled app-metadata marker before atomically creating tenant configuration. Existing unmarked identities are rejected, exact reruns are idempotent, and database failure deletes only an Auth identity created by that execution. Initial invitation recovery requires a separate confirmation, renews only the exact unaccepted/unrevoked invitation, and asks Supabase Auth to send recovery mail without exposing an action link.
 
 Organization hierarchy records are identity-domain metadata and remain inaccessible to frontend clients. `organization-administration` validates the caller's authenticated active profile and database-backed platform or matching-organization `SYSTEM_ADMIN` role, then delegates mutations to service-role-only atomic database functions that revalidate the actor. The database rejects manager cycles, invalid role scopes, unsafe unit archival, and removal of the final organization administrator. Demo fixture credentials must be generated at runtime and must not be committed.
 
@@ -120,6 +122,8 @@ The implemented report group is fixed to evaluation cycle plus evaluated subject
 Allowed audit events include configuration and access metadata, such as user account creation, team creation, project creation, cycle opening, assignment batch creation, role scope changes, authorized report access, and encryption key version changes.
 
 Forbidden logs include scores, comments, lessons learned text, decrypted payloads, anonymous credential values, access tokens, passwords, full sensitive request bodies, and evaluator-to-response relationships.
+
+Tenant bootstrap logs may contain request, organization, unit, invitation, and Auth user identifiers plus status. They must not contain administrator email, display name, passwords, service-role keys, SMTP secrets, invitation tokens, raw action links, or Auth response bodies.
 
 Retention policy updates and cleanup executions may audit tenant scope, policy version, configured days, legal-hold/automation state, cutoff date, and execution mode. They must never audit subjects, evaluator identities, content, participation state, or deleted-row counts.
 

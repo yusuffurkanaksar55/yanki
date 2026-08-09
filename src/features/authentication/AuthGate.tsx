@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { tr } from "../../locales/tr/messages";
 import { AuthPage } from "./AuthPage";
 import { useAuth } from "./AuthContext";
+import { PasswordSetupPage } from "./PasswordSetupPage";
 
 type AuthGateRenderProps = {
   readonly userId: string;
@@ -15,8 +16,15 @@ type AuthGateProps = {
 };
 
 export function AuthGate({ children }: AuthGateProps) {
-  const { status, session, userEmail, isSubmitting, signOut, feedback } =
-    useAuth();
+  const {
+    status,
+    session,
+    userEmail,
+    isSubmitting,
+    signOut,
+    feedback,
+    passwordSetupRequired
+  } = useAuth();
 
   if (status === "checking") {
     return (
@@ -56,6 +64,10 @@ export function AuthGate({ children }: AuthGateProps) {
         </section>
       </main>
     );
+  }
+
+  if (passwordSetupRequired) {
+    return <PasswordSetupPage />;
   }
 
   return (

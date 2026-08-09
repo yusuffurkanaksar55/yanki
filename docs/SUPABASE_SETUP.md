@@ -50,11 +50,13 @@ Use `db push --dry-run` before remote changes. Never run destructive linked rese
 
 ## Security Baseline
 
-The applied migrations create foundational authorization tables, safe audit metadata tables, profile and invitation onboarding tables, organization hierarchy tables, project and time-bound evaluation-cycle configuration tables, default-deny evaluation assignment planning tables, and narrow authenticated own-workspace and own-assignment RPCs. They intentionally do not create evaluation submission content tables yet.
+The applied migrations create foundational authorization tables, safe audit metadata tables, profile and invitation onboarding tables, organization hierarchy tables, project and time-bound evaluation-cycle configuration, immutable templates, default-deny assignment planning, one-time anonymous credentials, encrypted submissions, thresholded reporting, retention controls, and content-free tenant bootstrap operations.
 
 The `admin-project-cycles` Edge Function is the first trusted administrative function. It uses `SUPABASE_SERVICE_ROLE_KEY` only in the Edge Function runtime and must not expose that value to frontend code. It supports project/cycle listing and creation, organization member lookup, project member assignment, project-backed evaluation assignment generation, and atomic delegated project-date updates through service-role-only `admin_update_project_dates()`.
 
-The `user-onboarding` Edge Function uses the same trusted boundary for system-admin invitation options, invitation creation, revocation, and authenticated acceptance. Supabase Auth delivers the user-facing invite link. The application does not return a custom raw invitation secret to the administration browser. Acceptance calls service-role-only `accept_user_invitation()` for one atomic identity-domain update.
+The `user-onboarding` Edge Function uses the same trusted boundary for system-admin invitation options, invitation creation, revocation, and authenticated acceptance. Supabase Auth delivers the user-facing invite link. The application does not return a custom raw invitation secret to the administration browser. Every invitation is marked for browser password setup, and acceptance calls service-role-only `accept_user_invitation()` for one atomic identity-domain update.
+
+Production organization creation uses `npm run tenant:bootstrap:check`, `npm run tenant:bootstrap`, and, only for an incomplete initial invitation, `npm run tenant:bootstrap:recover`. These commands require the ignored operator environment and are documented in `docs/DEPLOYMENT.md`. They must never run in frontend code or expose the service-role key, email action link, password, or token.
 
 The `organization-administration` Edge Function handles existing-user role, organization-unit, primary-membership, and direct-manager administration. It invokes service-role-only atomic database functions that revalidate the acting system administrator, reject manager cycles and unsafe unit archival, constrain unit-scoped roles to active memberships, and preserve at least one organization-scoped system administrator.
 
@@ -69,9 +71,9 @@ For local Vite development, configure Supabase Auth with:
   - `http://127.0.0.1:5173`
   - `http://localhost:5173`
 
-The current frontend auth client uses email/password sign-in and password reset request. Authenticated users are gated by their own active `user_profiles` row. Supabase Auth-backed invitation creation/revocation and atomic acceptance are implemented. Microsoft Entra ID remains a future phase.
+The current frontend auth client uses email/password sign-in, password reset request, and strong password update for invitation/recovery sessions. Authenticated users are gated by their own active `user_profiles` row. Supabase Auth-backed invitation creation/revocation and atomic acceptance are implemented. Microsoft Entra ID remains a future phase.
 
-Before production invitation testing, configure or verify the Supabase Auth email provider and send only to an approved test mailbox. The Site URL and redirect allowlist must point back to the application. Do not paste invitation tokens, access tokens, SMTP credentials, or service-role values into Git or chat.
+Before production invitation testing, configure or verify the Supabase Auth email provider and send only to an approved test mailbox. Require at least 12 characters plus upper-case, lower-case, numeric, and symbol classes in the deployment Auth policy. The Site URL and exact HTTPS redirect allowlist must point back to the application. Do not paste invitation tokens, access tokens, SMTP credentials, or service-role values into Git or chat.
 
 Current baseline rules:
 
@@ -85,6 +87,7 @@ Current baseline rules:
 - `get_my_workspace_context()` is executable only by authenticated users and returns only the caller's own non-sensitive profile, role, membership, and manager context.
 - `admin-project-cycles` validates the caller's JWT and active profile before using scoped role records for project/cycle/member/assignment/date administration. Delegated date updates require both the exact project-manager reference and an active matching project-scoped role.
 - `user-onboarding` validates the caller's JWT, recomputes system-admin scope for management actions, and binds acceptance to the invited Auth user id and verified email.
+- Tenant bootstrap tables have no direct API access. Exact status, creation, and initial-invitation renewal are executable only by `service_role` from the trusted operator environment.
 - `organization-administration` recomputes system-admin scope, returns only authorized organization identity metadata, and delegates all mutations to service-role-only atomic RPCs.
 - `PLATFORM` is the global null-id scope; organization, team, project, and evaluation-cycle roles must use explicit `scope_id` values.
 - No plaintext evaluation scores, comments, lessons learned content, or evaluator-to-response linkage are stored.

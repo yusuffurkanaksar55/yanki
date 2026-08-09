@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-08-09
+
+### Added
+
+- Added a service-role-only, fingerprinted, idempotent tenant bootstrap boundary for shared SaaS and dedicated installations.
+- Added a compensated operator command that creates the first Auth invitation, atomically provisions tenant identity/configuration records, and removes only a newly created Auth identity when database provisioning fails.
+- Added explicit initial-invitation recovery without raw action-link output, plus a Turkish strong-password setup gate for invitation and password-recovery sessions.
+- Added 31 pgTAP bootstrap cases, operator unit tests, authentication component/service tests, ADR-0025, and production operations documentation.
+
+### Fixed
+
+- Completed the previously missing browser password-update step after Supabase invitation and password-recovery links.
+
 ## 2026-08-08
 
 ### Added

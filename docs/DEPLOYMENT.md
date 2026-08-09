@@ -54,7 +54,7 @@ Vite variables are normally replaced at build time. This application loads `/app
 2. Provision at least the current official Supabase minimum for a small deployment: 2 CPU cores, 4 GB RAM, and 40 GB SSD. Prefer 4 cores, 8 GB or more RAM, and 80 GB or more SSD. Size from measured load before production approval.
 3. Obtain a reviewed, pinned Supabase self-host release from the official repository. Do not assemble independent latest image tags; Supabase tests the release image set together.
 4. Generate unique production secrets with the official Supabase scripts. Replace every sample password and key. Store secret files outside Git with least-privilege filesystem access.
-5. Configure `SUPABASE_PUBLIC_URL`, `API_EXTERNAL_URL`, `SITE_URL`, allowed redirect URLs, the proxy domain, JWT keys, database credentials, Studio credentials, and optional SMTP settings. Generate an independent 32-byte random AES key and configure it as server-only `EVALUATION_ENCRYPTION_KEY_VERSION_<VERSION>` plus `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION`. Never reuse the linked development key. `EVALUATION_ENCRYPTION_KEYRING` is supported only for backward compatibility.
+5. Configure `SUPABASE_PUBLIC_URL`, `API_EXTERNAL_URL`, `SITE_URL`, exact allowed redirect URLs, the proxy domain, JWT keys, database credentials, Studio credentials, and approved SMTP settings. Require at least 12 characters plus upper-case, lower-case, numeric, and symbol classes in the deployment's Auth password policy. Generate an independent 32-byte random AES key and configure it as server-only `EVALUATION_ENCRYPTION_KEY_VERSION_<VERSION>` plus `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION`. Never reuse the linked development key. `EVALUATION_ENCRYPTION_KEYRING` is supported only for backward compatibility.
 6. Put a TLS reverse proxy or customer load balancer in front of the Supabase gateway and application. Expose only required HTTPS endpoints. Keep Postgres, Studio, and internal service ports on restricted networks.
 7. Start Supabase with its official `run.sh start` workflow and wait for healthy services. Inspect failed service logs before continuing.
 8. Apply this repository's migrations to the dedicated database from a trusted release workspace:
@@ -73,7 +73,7 @@ docker compose --env-file .env.deploy up -d --build --wait
 ```
 
 11. Route the public application domain to the frontend container, verify `/healthz`, sign-in redirects, password reset, invitation delivery when enabled, and all role-denial scenarios. Run synthetic submission and report acceptance, including 413/429 behavior, threshold, self, system-admin, employee, and anonymous denial checks.
-12. Create the initial organization and administrator through an approved bootstrap procedure. A production bootstrap command is not implemented yet; manual service-role writes are not an approved workaround.
+12. Create the initial organization and administrator with the production tenant bootstrap procedure below. Verify that the administrator receives the message, sets a strong password, accepts the invitation, and sees only the new organization scope. Manual service-role table writes are not an approved workaround.
 13. Configure each tenant's evaluation-content policy, schedule `npm run retention:run` in the trusted operator environment, schedule encrypted backups, define backup retention, and perform an environment-specific restore drill before accepting live data. Document recovery time and recovery point objectives.
 14. Configure capacity, availability, certificate, backup, database, Auth, Functions, application health, and anonymous abuse-counter alerts. Apply reverse-proxy/WAF connection and request limits outside the application without collecting IP/device identifiers in the product database. Never collect scores, comments, decrypted payloads, credentials, tokens, or evaluator-to-response mappings in logs.
 15. Run the release acceptance checklist and obtain customer security/operations sign-off.
@@ -89,7 +89,33 @@ docker compose --env-file .env.deploy up -d --build --wait
 
 ## Production Release Gate
 
-This repository now has anonymous encrypted submission storage, additive key rotation, key-health validation, application-level anonymous quotas, content-free aggregate abuse monitoring, scoped thresholded reporting, tenant content-retention controls, and a disposable local restore drill, but it is not approved for live employee data. An independent production key, approved key escrow and environment-specific recovery drill, outer gateway/WAF limits and alert delivery, production bootstrap, scheduled encrypted off-host backups, and broader end-to-end security regression coverage must be completed before production use.
+This repository now has anonymous encrypted submission storage, additive key rotation, key-health validation, application-level anonymous quotas, content-free aggregate abuse monitoring, scoped thresholded reporting, tenant content-retention controls, production tenant bootstrap, and a disposable local restore drill, but it is not approved for live employee data. An independent production key, approved key escrow and environment-specific recovery drill, outer gateway/WAF limits and alert delivery, approved invitation-mail acceptance, scheduled encrypted off-host backups, and broader end-to-end security regression coverage must be completed before production use.
+
+## Production Tenant Bootstrap Operations
+
+1. Configure approved SMTP, the public site URL, the exact bootstrap redirect URL, and the Auth password policy before creating a tenant. Production URLs must use HTTPS; plain HTTP is accepted by the operator only for localhost development. The redirect must open this application so the invited administrator can set a password and then accept the invitation.
+2. Copy `.env.operator.example` to ignored `.env.operator.local`. Obtain a new random UUID for `TENANT_BOOTSTRAP_REQUEST_ID` and keep that UUID plus every normalized input unchanged for retries. Put the service-role key into this file only through the approved secret channel.
+3. Run the side-effect-free preflight:
+
+```bash
+npm run tenant:bootstrap:check
+```
+
+4. Review the organization slug, administrator mailbox, redirect allow-list, and output status. Set `TENANT_BOOTSTRAP_CONFIRM=CREATE_PRODUCTION_TENANT`, then execute:
+
+```bash
+npm run tenant:bootstrap
+```
+
+5. The command returns record identifiers and status only. It never returns the administrator email, password, service-role key, invitation token, or action link. An exact rerun returns `already_completed`; a different payload using the same request UUID is rejected.
+6. The invited identity has an `INVITED` profile but no membership or role until the email-verified user completes the existing invitation acceptance. Verify the final role is `SYSTEM_ADMIN` scoped to the new organization, never `PLATFORM`.
+7. If the initial message expired or was lost, keep every original input and request UUID unchanged, set `TENANT_BOOTSTRAP_RECOVERY_CONFIRM=REISSUE_BOOTSTRAP_INVITATION`, and run:
+
+```bash
+npm run tenant:bootstrap:recover
+```
+
+The recovery command refuses accepted, revoked, unknown, or fingerprint-mismatched requests. It renews the internal invitation and asks Supabase Auth to send password-recovery mail without generating a raw link. Alert and investigate `TENANT_BOOTSTRAP_COMPENSATION_FAILED`; it means the database step failed and the newly created Auth identity could not be removed automatically. If a process crash leaves `TENANT_BOOTSTRAP_ADMIN_EMAIL_ALREADY_EXISTS`, verify through restricted Auth administration that the identity has no profile, membership, role, or completed bootstrap record before deleting it. Never adopt or mark an unexplained existing identity.
 
 ## Evaluation Content Retention Operations
 

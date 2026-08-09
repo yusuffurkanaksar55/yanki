@@ -2,7 +2,7 @@
 
 ## Status
 
-Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed onboarding, configurable hierarchy, own-context RPCs, immutable versioned templates, project/cycle/assignment planning, identity-domain one-time credentials, content-domain encrypted evaluation submissions, thresholded reporting functions, and tenant-scoped evaluation-content retention.
+Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed onboarding, configurable hierarchy, own-context RPCs, immutable versioned templates, project/cycle/assignment planning, identity-domain one-time credentials, content-domain encrypted evaluation submissions, thresholded reporting functions, tenant-scoped evaluation-content retention, and production tenant bootstrap.
 
 Generated TypeScript database types are stored in `src/types/supabase.ts` and should be regenerated after schema changes.
 
@@ -30,6 +30,7 @@ Planned tables:
 - `anonymous_submission_credentials`
 - `encrypted_evaluation_submissions`
 - `organization_evaluation_retention_policies`
+- `tenant_bootstrap_operations`
 - `security_rate_limit_buckets`
 - `security_abuse_event_counters`
 - `result_access_scopes`
@@ -58,6 +59,7 @@ Implemented foundation tables:
 - `anonymous_submission_credentials`
 - `encrypted_evaluation_submissions`
 - `organization_evaluation_retention_policies`
+- `tenant_bootstrap_operations`
 
 Implemented foundation functions:
 
@@ -81,6 +83,9 @@ Implemented foundation functions:
 - `list_manageable_evaluation_retention_policies()`
 - `admin_update_evaluation_retention_policy()`
 - `execute_due_evaluation_content_retention()`
+- `get_tenant_bootstrap_operation()`
+- `bootstrap_organization_tenant()`
+- `renew_tenant_bootstrap_invitation()`
 
 ## Identity Domain
 
@@ -89,6 +94,10 @@ Identity-domain tables store users, roles, organization hierarchy, memberships, 
 `user_profiles` stores identity and onboarding metadata for authenticated users. Authenticated users can read only their own row.
 
 `user_invitations` stores invitation metadata, a server-only correlation hash, the Supabase Auth user id, organization/unit placement, invited role scope, membership kind, and optional manager. It has no frontend client policy. `user-onboarding` creates and revokes invitations, while service-role-only `accept_user_invitation()` atomically activates the profile and creates scoped identity records after Auth user and email validation.
+
+`tenant_bootstrap_operations` stores one content-free idempotency record per successful trusted bootstrap: request UUID, SHA-256 input fingerprint, resulting organization/unit/Auth-user/invitation identifiers, and completion time. It stores no password, service-role key, SMTP secret, invitation token, action link, or evaluation content. RLS is enabled and direct privileges are revoked from browser roles and `service_role`.
+
+`bootstrap_organization_tenant()` serializes provisioning, validates normalized input and the exact Auth user email/server-controlled request marker, rejects preconfigured identities and duplicate tenant slugs, and atomically creates the organization, initial unit, invited administrator profile, organization-scoped system-admin invitation, default retention policy, operation record, and content-free audit event. `get_tenant_bootstrap_operation()` supports exact idempotent status checks. `renew_tenant_bootstrap_invitation()` can extend only an unaccepted and unrevoked initial invitation for the same request/fingerprint. All three functions are service-role-only.
 
 `organizations` stores configurable company roots.
 

@@ -11,7 +11,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 ## Current Implementation Status
 
 - Application UI: initial Turkish dashboard shell implemented.
-- Authentication: typed Supabase Auth client foundation implemented for email/password sign-in, password reset request, local-session sign-out, and session-state gating.
+- Authentication: typed Supabase Auth client foundation implemented for email/password sign-in, password reset request, strong password setup after invitation/recovery, local-session sign-out, and session-state gating.
 - User profile onboarding: Supabase Auth-backed invitation creation/revocation, atomic invitation acceptance, and authenticated profile gate implemented with Turkish pending, inactive, and error states.
 - Organization hierarchy: configurable organizations, units, memberships, manager assignments, trusted existing-user administration, and demo fixture script implemented.
 - Workspace context: authenticated own-context RPC and dashboard context panel implemented.
@@ -26,6 +26,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Aggregate reporting: authorized team leaders, C-Level reviewers, and board reviewers can request closed-cycle subject reports through a trusted Edge Function. Database functions enforce scope, system-admin denial, self-access denial, and the configured anonymity threshold before releasing an identity-free ciphertext batch for server-side decryption and aggregation.
 - Reporting UI: the Turkish dashboard lists authorized closed report targets without participation counts, shows a count-free withheld state below threshold, renders numeric/categorical aggregates above threshold, and never receives raw free-text responses.
 - Evaluation content retention: each organization has a versioned 30-to-3650-day policy, disabled-by-default automatic purge, legal hold, scoped Turkish administration UI, and service-role-only live-database cleanup that returns no submission counts.
+- Production tenant bootstrap: a service-role-only, fingerprinted, idempotent operator command creates an organization, initial unit, first administrator invitation, default retention policy, and content-free audit trail for shared SaaS or dedicated installations. Failed database creation compensates only the Auth identity created by that command, and an explicit recovery command can renew an incomplete initial invitation without printing an action link.
 - Recovery acceptance: a Docker-backed disposable restore drill creates a compressed dump, restores it to a protected temporary database, verifies migration and security invariants, and removes both the target and dump.
 - Delegated project date administration: system administrators and assigned project managers can atomically update project completion and evaluation close dates through a trusted boundary.
 - Deployment portability: one frontend image can receive public Supabase runtime configuration at container startup and run against managed or self-hosted Supabase.
@@ -62,11 +63,11 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 
 ## Current Database Structure
 
-The Supabase migrations additionally create immutable versioned templates, identity-domain `anonymous_submission_credentials`, content-domain `encrypted_evaluation_submissions`, tenant-scoped `organization_evaluation_retention_policies`, short-lived `security_rate_limit_buckets`, and aggregate `security_abuse_event_counters`. Service-role-only RPCs issue credentials, make quota decisions, atomically persist or expire ciphertext, expose safe abuse summaries, and release report batches only after authorization, closure, and threshold checks. Abuse and retention-policy tables store no evaluation content or evaluator linkage. RLS is enabled and direct table privileges remain default-deny, including to `service_role` for sensitive and abuse-control tables.
+The Supabase migrations additionally create immutable versioned templates, identity-domain `anonymous_submission_credentials`, content-domain `encrypted_evaluation_submissions`, tenant-scoped `organization_evaluation_retention_policies`, content-free `tenant_bootstrap_operations`, short-lived `security_rate_limit_buckets`, and aggregate `security_abuse_event_counters`. Service-role-only RPCs issue credentials, make quota decisions, atomically persist or expire ciphertext, bootstrap tenants, expose safe abuse summaries, and release report batches only after authorization, closure, and threshold checks. Abuse, retention-policy, and bootstrap-operation tables store no evaluation content or evaluator linkage. RLS is enabled and direct table privileges remain default-deny, including to `service_role` for sensitive operational tables.
 
 ## Current Authentication Model
 
-The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, own-assignment display and encrypted anonymous submission, thresholded aggregate reports for authorized reviewers, trusted immutable-template and project/cycle administration, system-admin invitation creation/revocation, authenticated invitation acceptance, and trusted existing-user role/hierarchy administration. Real invitation email delivery and acceptance still require an approved mailbox smoke test. Microsoft Entra ID is not implemented yet.
+The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, invitation/recovery password update, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, own-assignment display and encrypted anonymous submission, thresholded aggregate reports for authorized reviewers, trusted immutable-template and project/cycle administration, system-admin invitation creation/revocation, authenticated invitation acceptance, and trusted existing-user role/hierarchy administration. Real invitation email delivery and acceptance still require an approved mailbox smoke test. Microsoft Entra ID is not implemented yet.
 
 ## Current Authorization Model
 
@@ -75,15 +76,16 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 ## Known Limitations
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
-- Additive key rotation, content-free key health, anonymous endpoint quotas, aggregate abuse monitoring, tenant retention automation, and a disposable local backup/restore drill are implemented. Independent production key custody, key-plus-database recovery acceptance, outer gateway/WAF limits and alert delivery, production bootstrap, scheduled production backups, and environment-specific restore acceptance remain incomplete.
+- Additive key rotation, content-free key health, anonymous endpoint quotas, aggregate abuse monitoring, tenant retention automation, production tenant bootstrap, and a disposable local backup/restore drill are implemented. Independent production key custody, key-plus-database recovery acceptance, outer gateway/WAF limits and alert delivery, scheduled production backups, and environment-specific restore acceptance remain incomplete.
 - Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
 - Microsoft Entra ID is not implemented. The current anonymous credential model provides reviewed application-level unlinkability, not blind-signature cryptographic anonymity.
-- The Docker delivery and disposable restore-test foundations exist, but production organization bootstrap, scheduled encrypted off-host backups, release automation, and customer acceptance automation are not implemented.
+- The Docker delivery, production tenant bootstrap, and disposable restore-test foundations exist, but scheduled encrypted off-host backups, release automation, and customer acceptance automation are not implemented.
 - Docker Desktop is available and the local Supabase stack is verified; local migration reset, database lint, and pgTAP authorization tests pass.
 - Synthetic test users were created by running `npm run fixture:demo`. Authenticated administration, project-manager visibility, employee denial, project membership, and assignment-generation smoke checks have been verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
 
+- 2026-08-09: Added idempotent production tenant bootstrap, compensated Auth creation, initial-invitation recovery, and strong password setup for invitation/recovery sessions.
 - 2026-08-08: Added tenant-scoped encrypted evaluation-content retention, legal hold, trusted scheduled cleanup, Turkish policy administration, and a disposable Docker backup/restore acceptance drill.
 - 2026-08-07: Added and deployed privacy-preserving anonymous endpoint quotas, request-size limits, aggregate system-admin monitoring, Turkish feedback states, and live 413/429/authorization verification.
 - 2026-08-07: Added and deployed additive encryption-key rotation, content-free system-admin health checks, safe rotation tooling, and live old/new-key compatibility verification.
@@ -93,6 +95,6 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Current Development Priorities
 
-1. Complete production key escrow/recovery acceptance, outer gateway/WAF limits and alert delivery, production tenant bootstrap, scheduled encrypted backups, environment-specific restore acceptance, and customer acceptance checks.
+1. Complete production key escrow/recovery acceptance, outer gateway/WAF limits and alert delivery, scheduled encrypted backups, environment-specific restore acceptance, and customer acceptance checks.
 2. Configure email delivery when a provider is approved and complete real invitation acceptance verification.
 3. Add broader Playwright workflows and design a separately reviewed disclosure-resistant approach if raw-text themes are ever required.
