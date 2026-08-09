@@ -55,6 +55,16 @@ The repository contains:
 
 Vite variables are normally replaced at build time. This application loads `/app-config.js` before the bundle, so one reviewed image can run against different managed or self-hosted Supabase installations without rebuilding. Only the public Supabase URL and anon or publishable key are written to this file. Service-role, database, SMTP, JWT, and encryption secrets must never enter the frontend container.
 
+## Local Browser Acceptance
+
+Keep Docker Desktop and the local Supabase stack running, install Chromium once with `npm run e2e:install`, then execute:
+
+```bash
+npm run e2e:local
+```
+
+The command refuses non-loopback services, uses Vite port `4173`, starts local Functions with a fresh process-only encryption key, and exercises the critical invitation-to-report workflow through Playwright. Local Mailpit proves message generation and callback handling but is not evidence for production SMTP delivery. Traces and video remain disabled to avoid retaining invitation callback tokens. The runner does not reset the shared local database; its unique synthetic rows are safe for repeated runs, and pgTAP assertions must remain tenant/fixture scoped.
+
 ## Dedicated Installation Procedure
 
 1. Record the customer owner, DNS names, network zones, expected users, retention requirements, backup targets, SMTP decision, recovery objectives, and maintenance window.

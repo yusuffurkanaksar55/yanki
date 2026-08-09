@@ -27,6 +27,8 @@ The recovery-canary function accepts only encrypted synthetic values and reviewe
 
 RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `get_my_workspace_context()` allows authenticated users to read only their own non-sensitive role, unit, and manager context. `user_invitations`, roles, role assignments, audit events, organization hierarchy tables, project tables, evaluation-cycle tables, and evaluation assignment tables remain default-deny to frontend clients. `get_my_evaluation_assignments()` derives the caller from `auth.uid()`, requires an active profile and tenant membership, revalidates the subject's active matching membership, and returns only the caller's non-cancelled assignment display metadata from non-draft cycles.
 
+Table grants are explicitly separated from row authorization. The browser has a table-level `SELECT` capability only for `user_profiles`, still constrained by its own-row RLS policy. Trusted Edge Functions use the service role for a reviewed list of identity/configuration tables; adding a table to that list requires a migration and security review. Sensitive content and operational tables are deliberately excluded even when a service-role RPC exists.
+
 `PLATFORM` is the only null-id global scope. `ORGANIZATION`, `DEPARTMENT`, `UNIT`, `TEAM`, `PROJECT`, and `EVALUATION_CYCLE` scopes must carry an explicit `scope_id`.
 
 The current frontend auth, profile, workspace, and administration gates only control UI visibility. They are not sensitive authorization boundaries.

@@ -12,6 +12,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 
 - Application UI: responsive public product site, dedicated authentication experience, Turkish employee dashboard, and role-aware administration shell implemented.
 - Authentication: typed Supabase Auth client foundation implemented for email/password sign-in, password reset request, strong password setup after invitation/recovery, local-session sign-out, and session-state gating.
+- Browser acceptance: an isolated Playwright runner exercises local Supabase Auth, Mailpit invitation delivery, onboarding, template publication, project assignments, encrypted submission, immediate reporting, access denials, and mobile overflow against a dedicated Vite port.
 - User profile onboarding: Supabase Auth-backed invitation creation/revocation, atomic invitation acceptance, and authenticated profile gate implemented with Turkish pending, inactive, and error states.
 - Organization hierarchy: configurable organizations, units, memberships, manager assignments, trusted existing-user administration, and demo fixture script implemented.
 - Workspace context: authenticated own-context RPC and dashboard context panel implemented.
@@ -39,7 +40,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Authenticated integration verification: synthetic admin, project-manager, and employee accounts have been exercised against the deployed Auth, project, onboarding, and organization-administration boundaries.
 - Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context RPC, project, evaluation-cycle, and evaluation-assignment migrations applied.
 - Edge Functions: `evaluation-submission-credentials` prepares one-time eligibility credentials for authenticated evaluators; `anonymous-evaluation-submissions` applies privacy-preserving quotas before context lookup, validates, encrypts, and atomically redeems identity-free submissions; `security-abuse-monitoring` returns aggregate counters only to active system administrators.
-- Quality checks: lint, typecheck, Vitest, React Testing Library, production build, and documentation foundation tests are implemented.
+- Quality checks: lint, typecheck, Vitest, React Testing Library, Playwright, production build, local schema lint, and Docker-backed pgTAP authorization tests are implemented.
 
 ## Important Business Rules
 
@@ -71,7 +72,7 @@ The Supabase migrations additionally create immutable versioned templates, ident
 
 ## Current Authentication Model
 
-The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, invitation/recovery password update, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, own-assignment display and encrypted anonymous submission, immediate identity-separated aggregate reports for authorized reviewers, trusted immutable-template and project/cycle administration, system-admin invitation creation/revocation, authenticated invitation acceptance, and trusted existing-user role/hierarchy administration. Real invitation email delivery and acceptance still require an approved mailbox smoke test. Microsoft Entra ID is not implemented yet.
+The frontend uses Supabase Auth through injectable typed service boundaries. Implemented client flows include email/password sign-in, password reset request, invitation/recovery password update, local-session sign-out, session-state observation, own-profile lookup, profile-state gating, own-workspace context display, own-assignment display and encrypted anonymous submission, immediate identity-separated aggregate reports for authorized reviewers, trusted immutable-template and project/cycle administration, system-admin invitation creation/revocation, authenticated invitation acceptance, and trusted existing-user role/hierarchy administration. Invitation delivery, callback routing, password setup, and acceptance pass against local Supabase Auth and Mailpit; production SMTP still requires an approved mailbox smoke test. Microsoft Entra ID is not implemented yet.
 
 ## Current Authorization Model
 
@@ -81,7 +82,7 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
 - Additive key rotation, content-free key health, custody-manifest validation, encrypted recovery canaries, scheduled off-site backup tooling, exact-snapshot database-plus-key recovery automation, anonymous endpoint quotas, same-origin gateway limits with direct-bypass enforcement, transition-based alert delivery, aggregate abuse monitoring, tenant retention automation, and production tenant bootstrap are implemented. Real production custody/off-site provider configuration, gateway-token activation/direct-denial, signed production-like recovery acceptance, real alert-receiver/capacity acceptance, and infrastructure availability monitoring remain incomplete.
-- Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
+- Invitation delivery and acceptance pass locally through Supabase Auth and Mailpit, but they have not been smoke-tested with an approved mailbox and production SMTP configuration.
 - Microsoft Entra ID is not implemented. The current anonymous credential model provides reviewed application-level unlinkability, not blind-signature cryptographic anonymity.
 - Docker delivery, signed digest-pinned release automation, production tenant bootstrap, scheduled encrypted off-site backup tooling, and exact-snapshot restore-test foundations exist. The first real version-tag workflow, real remote-provider/systemd acceptance, and broader application workflow acceptance are not complete.
 - Docker Desktop is available and the local Supabase stack is verified; local migration reset, database lint, and pgTAP authorization tests pass.
@@ -89,6 +90,7 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Recent Major Changes
 
+- 2026-08-09: Added isolated Docker-backed Playwright acceptance for the critical invitation-to-report lifecycle, explicit portable identity-domain API grants, and persistent-database-safe pgTAP assertions.
 - 2026-08-09: Added digest-pinned multi-platform GHCR releases, pinned build dependencies, SBOM/provenance, keyless signatures, signed manifests, and standalone customer installation acceptance.
 - 2026-08-09: Added same-origin Supabase gateway limits, sensitive endpoint log suppression, service-role-only aggregate alert summaries, authenticated webhook transitions, and hardened scheduling.
 - 2026-08-09: Added pinned Restic encrypted off-site snapshots, integrity/retention scheduling, and full-id environment-scoped database-plus-key restore automation.
@@ -105,4 +107,4 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 1. Exercise the first version-tag release, then configure real production custody/off-site providers, alert receiver, capacity thresholds, and infrastructure monitoring; complete environment-signed recovery and customer acceptance checks.
 2. Configure email delivery when a provider is approved and complete real invitation acceptance verification.
-3. Add broader Playwright workflows and design a separately reviewed disclosure-resistant approach if raw-text themes are ever required.
+3. Add keyboard/accessibility and deployed-environment Playwright coverage, and design a separately reviewed disclosure-resistant approach if raw-text themes are ever required.

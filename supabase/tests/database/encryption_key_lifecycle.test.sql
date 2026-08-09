@@ -40,8 +40,17 @@ select ok(
 
 select is(
   public.list_referenced_evaluation_encryption_key_versions(),
-  array[]::text[],
-  'The inventory returns an empty array without stored ciphertext'
+  (
+    select coalesce(
+      array_agg(key_usage.encryption_key_version order by key_usage.encryption_key_version),
+      array[]::text[]
+    )
+    from (
+      select distinct submission.encryption_key_version
+      from public.encrypted_evaluation_submissions submission
+    ) key_usage
+  ),
+  'The inventory returns the exact distinct key versions referenced by stored ciphertext'
 );
 
 select * from finish();

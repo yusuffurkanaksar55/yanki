@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AdministrationPage } from "../features/administration/AdministrationPage";
 import type { EvaluationTemplateService } from "../features/administration/evaluationTemplateService";
 import type { HierarchyAdministrationService } from "../features/administration/hierarchyAdministrationService";
@@ -103,11 +103,27 @@ export function App({
 }
 
 function useHashRoute(): AppRoute {
+  const authCallbackPendingRef = useRef(
+    typeof window !== "undefined" && isAuthCallbackLocation(window.location)
+  );
   const [route, setRoute] = useState(readRouteFromHash);
 
   useEffect(() => {
     function handleHashChange() {
-      setRoute(readRouteFromHash());
+      const nextRoute = readRouteFromHash();
+
+      if (authCallbackPendingRef.current && nextRoute === "marketing") {
+        authCallbackPendingRef.current = false;
+        window.history.replaceState(
+          window.history.state,
+          "",
+          `${window.location.pathname}${window.location.search}#login`
+        );
+        setRoute("login");
+        return;
+      }
+
+      setRoute(nextRoute);
     }
 
     window.addEventListener("hashchange", handleHashChange);
@@ -137,5 +153,25 @@ function readRouteFromHash(): AppRoute {
     return "login";
   }
 
+  if (isAuthCallbackLocation(window.location)) {
+    return "login";
+  }
+
   return "marketing";
+}
+
+function isAuthCallbackLocation(location: Location): boolean {
+  const hashParameters = new URLSearchParams(location.hash.slice(1));
+  const searchParameters = new URLSearchParams(location.search);
+
+  return (
+    hashParameters.has("access_token")
+    || hashParameters.has("refresh_token")
+    || hashParameters.has("error")
+    || hashParameters.has("error_code")
+    || ["invite", "recovery"].includes(hashParameters.get("type") ?? "")
+    || searchParameters.has("code")
+    || searchParameters.has("error")
+    || searchParameters.has("error_code")
+  );
 }

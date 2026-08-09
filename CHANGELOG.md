@@ -6,6 +6,11 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added an isolated Docker-backed Playwright acceptance runner covering local Auth invitation delivery, onboarding, immutable-template/project setup, encrypted evaluation submission, immediate aggregate reporting, access denials, and mobile overflow.
+- Added explicit portable API privileges for own-profile browser reads and trusted identity/configuration Edge Function access, while preserving direct sensitive-table denial.
+- Added local-only environment guards, process-scoped E2E encryption keys, Mailpit invitation verification, and persistent-database-safe pgTAP assertions.
+- Added ADR-0031 documenting explicit browser and service-role table capabilities.
+
 - Added a public Turkish Yankı product site with an original full-bleed visual, workflow, security, deployment, and authenticated workspace entry sections.
 - Added immediate identity-separated aggregate reporting for active and completed cycles, with a safe `EMPTY` state before the first encrypted submission.
 - Added ADR-0030 documenting the removal of the group-size threshold, preserved authorization boundaries, and sparse-group inference risk.
@@ -31,6 +36,9 @@ All notable changes to this project are documented in this file.
 - Added 31 pgTAP bootstrap cases, operator unit tests, authentication component/service tests, ADR-0025, and production operations documentation.
 
 ### Fixed
+
+- Preserved the authentication route while Supabase clears invitation/recovery callback parameters, preventing a verified invite from falling back to the public site.
+- Scoped database test assertions to their own fixture data so local browser runs and demo tenants do not make pgTAP results order-dependent.
 
 - Redesigned the authentication screen, collapsed password recovery until requested, and added a clear return path to the product site.
 - Replaced clipped horizontal mobile workspace navigation with stable equal-width navigation targets and removed remaining horizontal page overflow.

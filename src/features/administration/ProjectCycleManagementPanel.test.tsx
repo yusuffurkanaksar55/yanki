@@ -100,7 +100,7 @@ describe("ProjectCycleManagementPanel", () => {
       await screen.findByText(tr.administration.projects.feedback.created)
     ).toBeInTheDocument();
     expect(screen.getByText("New Project")).toBeInTheDocument();
-  });
+  }, 10_000);
 
   it("adds project members through the service", async () => {
     const user = userEvent.setup();

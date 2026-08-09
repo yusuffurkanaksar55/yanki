@@ -13,7 +13,7 @@ The target system is a single-page web application with a trusted backend bounda
 - Database: Supabase PostgreSQL with Row Level Security enabled for all exposed tables.
 - Trusted server code: Supabase Edge Functions for sensitive validation, anonymous credential handling, encryption, decryption, aggregation, and reporting.
 - Runtime delivery: one Docker image serving the static SPA through Nginx, configured at container startup with public Supabase values.
-- Tests: Vitest and React Testing Library for frontend and documentation checks, plus Docker-backed Supabase pgTAP tests for database authorization. Playwright is planned for later workflow phases.
+- Tests: Vitest and React Testing Library for frontend and documentation checks, Docker-backed Supabase pgTAP tests for database authorization, and Playwright for the critical local browser lifecycle.
 
 ## Deployment Topologies
 
@@ -25,6 +25,12 @@ Both topologies use the same migrations, Edge Functions, and tenant authorizatio
 ## Runtime Configuration
 
 `/app-config.js` is loaded before the Vite bundle. A container entrypoint writes only the public Supabase URL and anon or publishable key. Local Vite development falls back to `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. A partial runtime configuration is rejected to prevent accidental mixing between customer and build-time environments.
+
+## Local Browser Acceptance
+
+`npm run e2e:local` accepts only loopback Supabase, PostgreSQL, Mailpit, and application URLs. It reads the running local Supabase status, creates a process-scoped random `LOCAL_E2E` AES key, starts Functions with an ignored temporary environment file, and serves Vite on isolated port `4173` so developer servers remain untouched. The temporary secret file is removed in cleanup.
+
+Playwright provisions unique synthetic tenants and actors directly through the local database/Auth administration boundary, then uses only visible browser workflows for invitation creation, real local email verification, password setup, invitation acceptance, template/project administration, evaluation submission, and reporting. Traces and video are disabled because invitation callbacks contain short-lived Auth tokens; failure screenshots contain UI state only. Synthetic local rows are intentionally retained for inspection and are removed by the normal disposable database reset when desired.
 
 ## Container Release Architecture
 

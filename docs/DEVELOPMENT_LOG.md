@@ -1,5 +1,44 @@
 # Development Log
 
+## 2026-08-09 - Critical Browser Lifecycle Acceptance
+
+### Objective
+
+Add a repeatable browser-level acceptance gate for the highest-risk invitation-to-report workflow while preserving local developer servers, secret boundaries, tenant isolation, and the direct sensitive-table deny model.
+
+### Changes
+
+- Added an isolated Playwright runner for local Supabase, Mailpit, Edge Functions, PostgreSQL, and Vite port `4173`, with strict loopback guards and a process-scoped random E2E encryption key.
+- Covered administrator invitation, real local Auth email verification, password setup, atomic onboarding, immutable template publication, project/member/assignment creation, employee submission, immediate reviewer aggregation, administrator/self denial, raw-text withholding, and mobile overflow.
+- Preserved the authentication route while Supabase clears invitation/recovery callback parameters and added focused routing regression tests.
+- Made pgTAP ciphertext/key-inventory assertions fixture scoped so persistent local demo and E2E data cannot make database tests order-dependent.
+- Added ADR-0031 and explicit portable API privileges for own-profile browser reads plus reviewed service-role identity/configuration access.
+
+### Database changes
+
+Applied `20260809223000_explicit_identity_domain_privileges.sql` locally and to linked project `daxaymcmtbmummrxdyjy`. The browser receives only own-profile `SELECT` subject to RLS; trusted service code receives the reviewed identity/configuration table capabilities. Sensitive content and operational tables remain excluded.
+
+### Security impact
+
+Positive. Clean and dedicated installations no longer depend on historical Supabase grants, invitation callback tokens are not retained in Playwright traces/video, the E2E harness rejects non-loopback services, and sensitive-table direct access remains denied. Synthetic local records contain no real employee data.
+
+### Tests performed
+
+- `npm run e2e:local`: one critical Playwright workflow passed end to end, including mobile screenshots and access denials.
+- Full `npm run check`: 51 Vitest files and 224 tests, lint, typecheck, production build, and bounded-memory verification.
+- `npm run deployment:config`, local/linked schema lint, migration dry-run/list parity, and 185 pgTAP cases across eight suites passed.
+- Linked migration `20260809223000` applied successfully; local and remote migration histories match.
+
+### Result
+
+The critical synthetic user journey now has one-command browser acceptance on the local Docker stack, and fresh Supabase deployments receive the same explicit authorization capabilities as the linked project.
+
+### Remaining work
+
+- Run the same synthetic acceptance against a production-like staging deployment with approved SMTP and gateway enforcement.
+- Add keyboard/accessibility and deployed-container Playwright coverage.
+- Complete the remaining production provider, recovery, monitoring, and first signed-release gates before live employee use.
+
 ## 2026-08-09 - Public Product Site And Immediate Aggregate Reporting
 
 ### Objective
@@ -155,41 +194,3 @@ The portable gateway and content-free alert delivery contract is implemented for
 - Configure real production custody/off-site and alert providers and complete signed acceptance.
 - Configure approved invitation email delivery and test a real mailbox flow.
 - Add immutable release publishing and broader Playwright/customer acceptance coverage.
-
-## 2026-08-09 - Encrypted Off-Site Backup And Environment Restore Automation
-
-### Objective
-
-Create scheduled, independently stored encrypted PostgreSQL snapshots for SaaS and dedicated installations, detect failed exports, apply bounded retention/integrity checks, and prove exact-snapshot recovery with every separately custodied evaluation key without writing a plaintext host dump.
-
-### Changes
-
-- Added pinned Restic `0.19.1` tooling, a checksum-verified Windows installer under ignored `.tools`, remote-repository enforcement, and Docker/native database source modes that keep database URLs out of process arguments.
-- Added explicit-confirmation repository initialization, fail-aware encrypted snapshot creation, configurable repository data-subset checking, exact-environment retention/prune, and full-snapshot-id restore acceptance.
-- Extracted shared streaming and restored-database security/key-canary verification for local and off-site drills.
-- Added a fail-fast hardened systemd oneshot service plus persistent daily timer, ADR-0027, focused tests, and managed/dedicated operations documentation.
-
-### Database changes
-
-None. This change operates entirely in the trusted deployment/backup boundary and adds no browser or service-role database access.
-
-### Security impact
-
-Positive. Restic observes the `pg_dump` exit status, encrypts before remote persistence, and returns no repository locator or credential. Production rejects local repositories, retention is scoped to exact environment metadata, restore rejects `latest`, and every drill revalidates database privileges plus independently recovered keys.
-
-### Tests performed
-
-- Full `npm run check`: 45 Vitest files and 190 tests, lint, typecheck, production build, and bounded-memory verification; Docker Compose configuration validation also passed.
-- 24 focused Vitest cases plus a final 13-case rerun after normalizing cross-platform Restic snapshot paths.
-- Checksum-verified Restic `0.19.1` installation on the D: project drive.
-- Full local encrypted repository lifecycle with process-only random credentials: one 869,602-byte dump created an encrypted snapshot, a 100% repository data check passed, scoped retention/prune passed, and the exact snapshot restored with all security and key-canary checks before target/repository cleanup.
-
-### Result
-
-The repository has executable scheduling and environment-scoped restore automation for both deployment topologies. A real remote provider, production systemd host, alert route, and signed isolated recovery evidence remain environment acceptance work.
-
-### Remaining work
-
-- Configure approved production secret/off-site providers and run a timed isolated recovery drill.
-- Add outer gateway/WAF limits and alert delivery without sensitive request logging.
-- Complete approved invitation-email and immutable release/customer acceptance work.

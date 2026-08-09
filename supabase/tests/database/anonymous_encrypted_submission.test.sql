@@ -662,16 +662,20 @@ select is(
 select is(
   (
     select count(*)::integer
-    from public.encrypted_evaluation_submissions
+    from public.encrypted_evaluation_submissions submission
+    where submission.organization_id = '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+      and submission.evaluation_cycle_id = '4ccccccc-cccc-4ccc-8ccc-cccccccccccc'
   ),
   1,
-  'Exactly one encrypted anonymous submission is persisted'
+  'Exactly one encrypted anonymous submission is persisted for the fixture cycle'
 );
 
 select is(
   (
     select pg_typeof(submission.encrypted_payload)::text
     from public.encrypted_evaluation_submissions submission
+    where submission.organization_id = '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+      and submission.evaluation_cycle_id = '4ccccccc-cccc-4ccc-8ccc-cccccccccccc'
     limit 1
   ),
   'bytea',

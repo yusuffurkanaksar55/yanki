@@ -1,5 +1,166 @@
 # Error Log
 
+## ERR-20260809-062 - Project creation UI test timed out only under the full suite
+
+### Context
+
+The final 51-file Vitest quality gate ran after Playwright and privilege-regression coverage were added.
+
+### Symptoms
+
+The project-cycle creation interaction passed alone in about three seconds but exceeded Vitest's five-second default twice under the fully parallel suite; all assertions and the other 223 tests passed.
+
+### Root cause
+
+The scenario performs many realistic `userEvent` interactions and async rerenders. Shared jsdom CPU load pushed its valid runtime slightly beyond a global timeout intended for smaller unit tests.
+
+### Correct solution
+
+Set a 10-second timeout only on this long interaction test. Do not change production behavior or increase the global test timeout.
+
+### Prevention
+
+Keep expensive interaction workflows focused, use per-test budgets for known long scenarios, and require both focused and full-suite passes before treating a timeout as resolved.
+
+### Related files
+
+- `src/features/administration/ProjectCycleManagementPanel.test.tsx`
+
+### Related tests
+
+- `npm test -- --run src/features/administration/ProjectCycleManagementPanel.test.tsx`
+- `npm run check`
+
+## ERR-20260809-061 - Fresh Supabase stacks lacked required API table privileges
+
+### Context
+
+The first clean local Playwright lifecycle provisioned a tenant and then exercised the real profile and administration APIs.
+
+### Symptoms
+
+Authenticated own-profile reads and service-role identity/configuration table operations failed before their RLS or trusted authorization logic could run, while the older linked project continued to work.
+
+### Root cause
+
+Historical Supabase projects had implicit API table grants that were not present in the fresh local stack. RLS policies and a service-role JWT do not themselves create table-level privileges.
+
+### Correct solution
+
+Add a versioned migration granting authenticated users only profile `SELECT` subject to own-row RLS, and granting the service role CRUD only on the reviewed identity/configuration tables required by trusted Edge Functions. Keep every sensitive content and operational table excluded.
+
+### Prevention
+
+Treat table privileges as source-controlled capabilities, test required positive grants and sensitive negative exclusions, and validate every migration from a clean Supabase stack.
+
+### Related files
+
+- `supabase/migrations/20260809223000_explicit_identity_domain_privileges.sql`
+- `tests/identity-domain-privileges.test.mjs`
+- `docs/decisions/ADR-0031-use-explicit-api-table-privileges.md`
+
+### Related tests
+
+- `npm run e2e:local`
+- `npm run supabase:lint:local`
+- `npm run supabase:lint:linked`
+
+## ERR-20260809-060 - Persistent E2E data broke global-empty pgTAP assumptions
+
+### Context
+
+The database authorization suite ran after successful browser acceptance had retained synthetic encrypted submissions for inspection.
+
+### Symptoms
+
+Two pgTAP assertions expected exactly one submission globally and no referenced key versions globally, so they failed even though the tested fixture and key inventory behavior were correct.
+
+### Root cause
+
+The tests assumed a freshly reset database instead of isolating assertions to their own tenant/cycle or comparing inventory to the actual stored distinct versions.
+
+### Correct solution
+
+Scope the submission count and payload-type assertions to the fixed fixture organization/cycle, and compare the key inventory function with the exact distinct versions currently referenced by ciphertext.
+
+### Prevention
+
+Database tests must remain deterministic on a persistent local stack containing demo and prior E2E tenants; global counts are allowed only when emptiness is itself established inside the transaction.
+
+### Related files
+
+- `supabase/tests/database/anonymous_encrypted_submission.test.sql`
+- `supabase/tests/database/encryption_key_lifecycle.test.sql`
+
+### Related tests
+
+- `npm run supabase:test:local`
+
+## ERR-20260809-059 - Supabase callback cleanup returned invited users to the public site
+
+### Context
+
+Playwright redeemed a real local Supabase Auth invitation and opened the callback in the application.
+
+### Symptoms
+
+The password-setup screen appeared briefly, then Supabase removed the token hash and the root hash router rendered the public product page.
+
+### Root cause
+
+The route parser recognized only application hashes. It did not treat Auth callback parameters as an authentication route or preserve that route through the one-time SDK hash cleanup.
+
+### Correct solution
+
+Recognize implicit and PKCE invitation/recovery/error callback parameters, remember the pending callback for one cleanup transition, and normalize the cleared URL to `#login` without retaining tokens.
+
+### Prevention
+
+Exercise real Auth callback URLs in browser acceptance and retain focused route tests for both initial callback recognition and post-consumption hash cleanup.
+
+### Related files
+
+- `src/app/App.tsx`
+- `src/app/App.test.tsx`
+- `tests/e2e/critical-lifecycle.e2e.ts`
+
+### Related tests
+
+- `npm test -- --run src/app/App.test.tsx`
+- `npm run e2e:local`
+
+## ERR-20260809-058 - Windows Node runner could not spawn command shims reliably
+
+### Context
+
+The first local E2E orchestrator launched Supabase and Playwright through Windows `npx.cmd` child processes under Node.js 24.
+
+### Symptoms
+
+Direct shim spawning returned `EINVAL`; shell mode introduced deprecation/no-output behavior, and generic termination could leave the Function process alive.
+
+### Root cause
+
+The runner depended on platform command shims and process-tree behavior instead of invoking installed JavaScript CLI entrypoints directly and owning the child tree explicitly.
+
+### Correct solution
+
+Invoke the installed Supabase and Playwright CLI modules with `process.execPath`, and on Windows terminate only the tracked child process tree with `taskkill` during cleanup.
+
+### Prevention
+
+Keep local orchestration shell-free, use repository-pinned CLI entrypoints, track child PIDs, and test cleanup without touching unrelated developer servers.
+
+### Related files
+
+- `scripts/run-local-e2e.mjs`
+- `scripts/lib/local-e2e-environment.mjs`
+
+### Related tests
+
+- `tests/local-e2e-environment.test.mjs`
+- `npm run e2e:local`
+
 ## ERR-20260809-057 - Reporting smoke lacked local account aliases
 
 ### Context
@@ -153,163 +314,6 @@ Run `nginx -t` inside the rebuilt runtime image after every map, hostname, or ge
 ### Related tests
 
 - `docker compose --env-file deploy/compose.env.example run --rm --no-deps web nginx -t`
-
-## ERR-20260809-052 - Node typecheck imported a Deno-only test dependency
-
-### Context
-
-The first direct-bypass token test imported the Edge Function TypeScript helper from a TypeScript Vitest file.
-
-### Symptoms
-
-Vitest and ESLint passed, but the application `tsc` project reported unknown `Deno` globals and rejected the explicit `.ts` import extension.
-
-### Root cause
-
-The TypeScript test pulled a Deno runtime module into the Node/browser application type graph even though the production Edge Function source is intentionally outside that graph.
-
-### Correct solution
-
-Keep the behavior test in JavaScript, let Vitest transform the imported Edge module at runtime, and stub the Deno environment only for each test. The application type graph remains unchanged.
-
-### Prevention
-
-Test cross-runtime Edge helpers through JavaScript runtime tests or a dedicated Deno typecheck configuration; do not merge Deno globals into the browser application project.
-
-### Related files
-
-- `supabase/functions/_shared/sensitiveGateway.ts`
-- `tests/sensitive-gateway.test.mjs`
-
-### Related tests
-
-- `npm run typecheck`
-- `npx vitest run tests/sensitive-gateway.test.mjs`
-
-## ERR-20260809-051 - Static gateway upstream blocked Nginx startup
-
-### Context
-
-The first real Docker image acceptance ran `nginx -t` after Compose and the application image build succeeded.
-
-### Symptoms
-
-Nginx rejected the generated configuration because the documentation-only upstream hostname did not resolve at container startup.
-
-### Root cause
-
-A static hostname in `proxy_pass` is resolved while Nginx loads its configuration. A temporary Supabase DNS outage would therefore prevent the frontend and health endpoint from starting even though no API request had been made.
-
-### Correct solution
-
-Enable the official image's local resolver discovery, inject those resolver addresses into the template, and use a variable-backed upstream so DNS is resolved at request time and refreshed with a bounded validity period.
-
-### Prevention
-
-Run the generated Nginx configuration inside the exact runtime image and test startup with a deliberately unresolved documentation hostname.
-
-### Related files
-
-- `Dockerfile`
-- `deploy/nginx.conf`
-
-### Related tests
-
-- `docker compose --env-file deploy/compose.env.example run --rm --no-deps web nginx -t`
-
-## ERR-20260809-050 - Alert state read error dropped its internal cause
-
-### Context
-
-The first focused gateway and alert quality run passed all tests and type checking, then ESLint inspected the new state-file boundary.
-
-### Symptoms
-
-The `preserve-caught-error` rule rejected a generic state-read error because the caught filesystem error was not attached as its internal cause.
-
-### Root cause
-
-The public error text was intentionally generic to avoid exposing a sensitive operator path, but the implementation also discarded the original error object needed for trusted diagnostics.
-
-### Correct solution
-
-Keep the generic outward message and attach the caught filesystem error through the standard `Error` `cause` option.
-
-### Prevention
-
-At trusted operator boundaries, redact outward messages without discarding structured internal error chains.
-
-### Related files
-
-- `scripts/lib/security-alerting.mjs`
-
-### Related tests
-
-- `npm run lint`
-
-## ERR-20260809-049 - Restic stdin snapshot path differed on Windows
-
-### Context
-
-The first full encrypted off-site restore acceptance selected the exact newly created Restic snapshot after snapshot creation, integrity checking, and retention passed.
-
-### Symptoms
-
-The restore command stopped before creating the disposable database because snapshot metadata did not match the expected root-relative stdin filename.
-
-### Root cause
-
-Restic records `--stdin-filename` under the current Windows drive path, while the validator assumed Unix-style root-relative or bare paths. Snapshot id, hostname, and all tags were correct.
-
-### Correct solution
-
-Normalize Windows and Unix path separators and compare the final filename, while continuing to require one full snapshot id, the exact environment hostname, and every purpose/environment/format tag.
-
-### Prevention
-
-Treat backup-tool metadata as a cross-platform contract and test it with the real pinned binary on every supported operator OS. Keep identity checks independent of harmless platform path prefixes.
-
-### Related files
-
-- `scripts/lib/offsite-backup.mjs`
-- `scripts/verify-offsite-backup-restore-acceptance.mjs`
-
-### Related tests
-
-- `tests/offsite-backup.test.ts`
-- `npm run backup:offsite:restore:acceptance`
-
-## ERR-20260809-048 - RLS migration form did not match the repository guard
-
-### Context
-
-The full Vitest suite scanned every `create table public...` migration and required a corresponding machine-detectable RLS statement.
-
-### Symptoms
-
-The new recovery-canary table had RLS enabled in PostgreSQL and passed pgTAP, but `tests/supabase-foundation.test.mjs` failed to recognize the statement.
-
-### Root cause
-
-The migration split `alter table public.evaluation_encryption_recovery_canaries enable row level security;` across two lines, while the existing static guard intentionally matches the canonical one-line form.
-
-### Correct solution
-
-Keep the reviewed RLS behavior unchanged and express the statement in the repository's canonical single-line migration form.
-
-### Prevention
-
-Run the full repository suite, not only database tests, after adding a public table. Follow machine-checked migration conventions for RLS and privilege statements.
-
-### Related files
-
-- `supabase/migrations/20260809153000_encryption_recovery_canaries.sql`
-- `tests/supabase-foundation.test.mjs`
-
-### Related tests
-
-- `npm test`
-- `npm run check`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

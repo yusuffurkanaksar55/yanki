@@ -96,6 +96,8 @@ Identity-domain tables store users, roles, organization hierarchy, memberships, 
 
 `user_profiles` stores identity and onboarding metadata for authenticated users. Authenticated users can read only their own row.
 
+API privileges for the identity domain are versioned explicitly. `authenticated` has `SELECT` only on `user_profiles`, where RLS enforces own-row access. `service_role` has direct CRUD only on the reviewed identity/configuration tables needed by trusted Edge Functions. Sensitive content and operational tables are not included in that grant and continue to require their narrow functions.
+
 `user_invitations` stores invitation metadata, a server-only correlation hash, the Supabase Auth user id, organization/unit placement, invited role scope, membership kind, and optional manager. It has no frontend client policy. `user-onboarding` creates and revokes invitations, while service-role-only `accept_user_invitation()` atomically activates the profile and creates scoped identity records after Auth user and email validation.
 
 `tenant_bootstrap_operations` stores one content-free idempotency record per successful trusted bootstrap: request UUID, SHA-256 input fingerprint, resulting organization/unit/Auth-user/invitation identifiers, and completion time. It stores no password, service-role key, SMTP secret, invitation token, action link, or evaluation content. RLS is enabled and direct privileges are revoked from browser roles and `service_role`.

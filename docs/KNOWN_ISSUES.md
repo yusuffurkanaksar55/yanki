@@ -60,24 +60,25 @@ Medium
 
 ### Description
 
-The `user-onboarding` Edge Function, invitation administration UI, invitation revocation, and atomic acceptance database function are deployed. Live administration listing and authorization denial checks pass, but a real invitation was not sent to an arbitrary or invalid address during automated verification.
+The `user-onboarding` Edge Function, invitation administration UI, invitation revocation, and atomic acceptance database function are deployed. A Docker-backed Playwright workflow now verifies real local Supabase Auth invitation delivery through Mailpit, callback routing, password setup, atomic acceptance, role/unit/manager activation, and subsequent evaluation access. Production SMTP delivery to an approved mailbox is still unverified.
 
 ### Impact
 
-Supabase Auth SMTP delivery, invite-link session creation, and the final invited-user acceptance interaction are not yet verified end to end.
+The application flow is verified end to end locally, but provider authentication, deliverability, spam handling, production redirect URLs, and approved-mailbox receipt are not yet verified.
 
 ### Workaround
 
-Use the current synthetic accounts for existing authenticated workflow testing. Do not claim production invitation delivery until an approved test mailbox receives and accepts an invitation.
+Use `npm run e2e:local` for repeatable application-flow verification. Do not claim production invitation delivery until an approved test mailbox receives and accepts an invitation through the production SMTP configuration.
 
 ### Planned resolution
 
-Confirm Supabase Auth email provider and redirect settings, send one invitation to an approved test mailbox, set the invited account password through the Supabase flow, accept the invitation in the application, and verify profile, role, unit membership, and manager context.
+Configure the approved Supabase Auth email provider and redirect settings, then repeat the now-automated flow once with an approved production-like mailbox and retain content-free delivery evidence.
 
 ### Related tests
 
 - Authenticated `list_user_administration` live smoke test
 - `tests/user-onboarding-function.test.mjs`
+- `tests/e2e/critical-lifecycle.e2e.ts`
 - `src/features/administration/UserInvitationManagementPanel.test.tsx`
 - `src/features/profiles/ProfileGate.test.tsx`
 

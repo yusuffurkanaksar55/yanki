@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { tr } from "../locales/tr/messages";
@@ -145,6 +145,44 @@ describe("App", () => {
 
     expect(
       await screen.findByRole("heading", { name: tr.auth.pageTitle })
+    ).toBeInTheDocument();
+  });
+
+  it("mounts authentication for an invitation callback instead of the public site", async () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/#access_token=invitation-token&type=invite"
+    );
+
+    render(<App authService={createAuthServiceStub(null)} />);
+
+    expect(
+      await screen.findByRole("heading", { name: tr.auth.pageTitle })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { level: 1, name: tr.app.name })
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the authentication route when Supabase clears an invitation hash", async () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/#access_token=invitation-token&type=invite"
+    );
+
+    render(<App authService={createAuthServiceStub(null)} />);
+    await screen.findByRole("heading", { name: tr.auth.pageTitle });
+
+    act(() => {
+      window.history.replaceState(null, "", "/");
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+
+    expect(window.location.hash).toBe("#login");
+    expect(
+      screen.getByRole("heading", { name: tr.auth.pageTitle })
     ).toBeInTheDocument();
   });
 

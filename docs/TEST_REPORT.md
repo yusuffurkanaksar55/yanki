@@ -1,5 +1,50 @@
 # Test Report
 
+## 2026-08-09 - Critical Local Browser Lifecycle And Portable Privileges
+
+### Environment
+
+- Windows 11, Node.js 24, Vite 8, React 19, Playwright Chromium, Docker Desktop, Supabase CLI 2.109.1, local Supabase/PostgreSQL/Functions/Mailpit, and linked synthetic Supabase.
+
+### Commands executed
+
+- `npm run e2e:local`
+- `npm run check`
+- `npm run deployment:config`
+- `npm run supabase:lint:local` and `npm run supabase:test:local`
+- `npm run supabase:push:dry-run`, linked migration push/list, and `npm run supabase:lint:linked`
+
+### Passed
+
+- Playwright completed one critical browser workflow: invitation creation, local email verification, password setup, acceptance, template publication, project assignments, encrypted submission, immediate aggregate reporting, administrator/self denial, raw-text withholding, and mobile overflow.
+- Full application checks passed 51 Vitest files and 224 tests, lint, typecheck, production build, and bounded-memory verification.
+- Local and linked schema lint reported no errors; all 185 pgTAP cases passed across eight suites on a persistent database containing prior E2E ciphertext.
+- Migration dry-run identified only `20260809223000`; it applied to the linked project and local/remote histories now match.
+- Docker Compose configuration validation passed.
+
+### Failed And Corrected
+
+- The project-cycle creation UI test passed alone but exceeded the five-second default twice under full parallel load; a 10-second timeout is now scoped only to that interaction-heavy test.
+- Hash-only navigation kept the already-mounted assignment inbox stale after an administrator generated assignments; the acceptance flow now performs the same full refresh a returning employee uses.
+- Submission success closes its modal and renders feedback in the inbox; the test now asserts the real page-level behavior.
+- The first mobile assertion required equality even when document width was safely smaller than viewport width; it now rejects only actual overflow.
+- Persistent E2E ciphertext exposed two global-empty pgTAP assumptions; both assertions are now fixture/inventory scoped and pass with existing local data.
+
+### Security checks
+
+- Verified invitation callback tokens are not captured in Playwright traces/video and every E2E service URL is loopback-only.
+- Verified raw text never reaches the reviewer UI, administrators cannot obtain reports, and users cannot access reports about themselves.
+- Verified browser own-profile capability remains RLS constrained and sensitive content/operational tables are excluded from the explicit service-role table grant.
+
+### Skipped
+
+- No production employee data, production encryption key, approved SMTP mailbox, production gateway token, or customer server was used.
+
+### Remaining risks
+
+- Local Mailpit proves application callback behavior, not production email deliverability.
+- The production build passes but retains the known large JavaScript chunk warning.
+
 ## 2026-08-09 - Public Site, Responsive Navigation, And Immediate Reporting
 
 ### Environment
@@ -179,44 +224,3 @@
 ### Remaining risks
 
 - Production thresholds must be tuned against company egress/NAT and peak submission windows. Provider/load-balancer logs and webhook retention need separate privacy review, and timer/container/Supabase availability must alert through infrastructure independent of the application database.
-
-## 2026-08-09 - Encrypted Off-Site Backup And Exact-Snapshot Restore
-
-### Environment
-
-- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1, and Docker Desktop local Supabase.
-- Checksum-verified Restic 0.19.1 under ignored `.tools/restic` on the D: project drive.
-- Disposable local Restic repository and process-only random repository/evaluation keys; the repository was removed after acceptance.
-
-### Commands executed
-
-- Focused off-site configuration/boundary and shared restore Vitest suites
-- `npm run lint`, `npm run typecheck`, `npm run backup:tool:install`
-- `npm run check`, `npm run deployment:config`
-- Explicit repository init, encrypted snapshot, 100% data integrity check, scoped retention/prune, and off-site restore acceptance scripts
-
-### Passed
-
-- Remote repository validation, local acceptance-only override, database-URL argument secrecy, fail-aware source mode, environment-scoped retention, integrity subset validation, full snapshot metadata, and safe JSON summary tests passed.
-- The official Windows Restic archive matched the pinned SHA-256 and reported version 0.19.1 from ignored D: storage.
-- A 869,602-byte PostgreSQL custom dump created an encrypted snapshot with no plaintext host file; Restic stored 869,966 new repository bytes and a 100% repository data check passed.
-- Exact environment host/tags/filename and full snapshot id were verified before restore. Stream hash/size matched, all reviewed database privileges passed, one independently keyed canary decrypted, and the disposable database plus local repository were removed.
-- Full application checks passed 45 Vitest files and 190 tests, lint, typecheck, production build, bounded-memory verification, and Docker Compose configuration validation.
-
-### Failed And Corrected
-
-- The first exact-snapshot validation assumed Restic stdin paths were root-relative on every OS. Windows records the stdin filename under the current drive path. Validation now normalizes both separators and compares the final filename while still requiring the full snapshot id, exact host, and all tags; the complete rerun passed.
-
-### Security checks
-
-- Verified database URLs remain in `PGDATABASE`, repository/password values are absent from arguments/reports, and local repositories require an exact acceptance-only override.
-- Verified snapshot creation uses `--stdin-from-command`, retention filters exact host plus combined tags, restore never uses `latest`, and neither backup nor restore creates a plaintext dump file.
-- Verified restored system-admin/browser boundaries and every recovery canary before target deletion.
-
-### Skipped
-
-- No real S3/Azure/other remote provider or production systemd host was configured; this requires approved provider credentials and infrastructure.
-
-### Remaining risks
-
-- Production release still requires remote-provider immutability/access review, monitored timer execution, storage-object backup if adopted, aligned legal/retention policy, and signed production-like RPO/RTO evidence.
