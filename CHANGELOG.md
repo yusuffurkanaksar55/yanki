@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-08-08
+
+### Added
+
+- Added tenant-scoped encrypted evaluation-content retention with a 30-to-3650-day policy, disabled-by-default automatic purge, legal hold, versioned configuration, and content-free run metadata.
+- Added a trusted retention administration Edge Function, typed service, Turkish system-administrator panel, and service-role-only scheduled cleanup that returns no submission/deletion counts.
+- Added an explicit-confirmation operator command shared by SaaS and dedicated deployments.
+- Added a disposable Docker backup/restore acceptance command that streams without a host dump file, verifies restored migrations and security privileges, records a stream hash, and removes the temporary database.
+- Added 21 pgTAP retention cases, service/component/security tests, ADR-0024, and recovery/retention operations documentation.
+
+### Fixed
+
+- Switched the disposable full-Supabase restore from the non-superuser `postgres` role to local Supabase's `supabase_admin` role after the first drill exposed a protected `realtime` function setting.
+
 ## 2026-08-07
 
 ### Added

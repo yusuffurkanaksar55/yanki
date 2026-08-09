@@ -9,6 +9,9 @@ import {
 } from "../workspace/workspaceAuthorization";
 import { EvaluationTemplateManagementPanel } from "./EvaluationTemplateManagementPanel";
 import type { EvaluationTemplateService } from "./evaluationTemplateService";
+import { EvaluationRetentionManagementPanel } from
+  "./EvaluationRetentionManagementPanel";
+import type { EvaluationRetentionService } from "./evaluationRetentionService";
 import type { HierarchyAdministrationService } from "./hierarchyAdministrationService";
 import { ProjectCycleManagementPanel } from "./ProjectCycleManagementPanel";
 import type { ProjectCycleService } from "./projectCycleService";
@@ -20,6 +23,7 @@ import type { UserAdministrationService } from "./userAdministrationService";
 
 type AdministrationPageProps = {
   readonly evaluationTemplateService?: EvaluationTemplateService;
+  readonly evaluationRetentionService?: EvaluationRetentionService;
   readonly hierarchyAdministrationService?: HierarchyAdministrationService;
   readonly isSigningOut?: boolean;
   readonly onSignOut?: () => Promise<void>;
@@ -32,6 +36,7 @@ type AdministrationPageProps = {
 };
 
 export function AdministrationPage({
+  evaluationRetentionService,
   evaluationTemplateService,
   hierarchyAdministrationService,
   isSigningOut = false,
@@ -179,6 +184,12 @@ export function AdministrationPage({
 
         {canManageTemplates ? (
           <SecurityOperationsPanel service={securityOperationsService} />
+        ) : null}
+
+        {canManageTemplates ? (
+          <EvaluationRetentionManagementPanel
+            service={evaluationRetentionService}
+          />
         ) : null}
 
         <section

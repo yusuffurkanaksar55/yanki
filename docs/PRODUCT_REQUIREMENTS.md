@@ -46,6 +46,10 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 - Raw free-text answers are not returned in aggregate reports; only their non-empty response count is exposed after threshold enforcement.
 - Anonymous submission abuse controls must protect valid credentials from invalid-traffic exhaustion and must not retain IP, device, user, assignment, credential digest, request body, or evaluation content.
 - Active system administrators may see only aggregate invalid-credential and rate-limited request counts, never request-level records or evaluation content.
+- Each company may configure how long encrypted evaluation content remains in the live database, within an approved supported range.
+- Legal hold must suspend content deletion for the selected company.
+- Retention administration and audit output must not reveal submission counts, subjects, evaluator identities, or evaluation content.
+- Deletion from the live database must not be represented as immediate erasure from retained backups; backup expiry is an independent infrastructure control.
 
 ## Roles
 
@@ -103,7 +107,7 @@ No role is a singleton. A tenant may have multiple users with the same role when
 
 ## Remaining Production Scope
 
-- Additive key rotation and content-free health checks are complete. Production key custody, escrow/recovery acceptance, and retention automation are not complete.
+- Additive key rotation, content-free health checks, tenant retention automation, and a disposable local restore drill are complete. Production key custody, key-plus-database recovery acceptance, scheduled encrypted backups, and environment-specific restore acceptance are not complete.
 - Application-level anonymous submission quotas and content-free monitoring are complete. Production gateway/WAF limits and alert delivery are not complete.
 - Real invitation email delivery awaits an approved provider and mailbox.
 - The current one-time credential model provides application-level unlinkability; blind-signature cryptographic anonymity is not claimed.

@@ -582,6 +582,50 @@ export type Database = {
           },
         ]
       }
+      organization_evaluation_retention_policies: {
+        Row: {
+          automatic_purge_enabled: boolean
+          last_purge_completed_at: string | null
+          last_purge_cutoff_on: string | null
+          legal_hold: boolean
+          organization_id: string
+          policy_version: number
+          retention_days: number
+          updated_at: string
+          updated_by_user_id: string | null
+        }
+        Insert: {
+          automatic_purge_enabled?: boolean
+          last_purge_completed_at?: string | null
+          last_purge_cutoff_on?: string | null
+          legal_hold?: boolean
+          organization_id: string
+          policy_version?: number
+          retention_days?: number
+          updated_at?: string
+          updated_by_user_id?: string | null
+        }
+        Update: {
+          automatic_purge_enabled?: boolean
+          last_purge_completed_at?: string | null
+          last_purge_cutoff_on?: string | null
+          legal_hold?: boolean
+          organization_id?: string
+          policy_version?: number
+          retention_days?: number
+          updated_at?: string
+          updated_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_evaluation_retention_policies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_unit_memberships: {
         Row: {
           created_at: string
@@ -1140,6 +1184,16 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_update_evaluation_retention_policy: {
+        Args: {
+          actor_user_id: string
+          managed_automatic_purge_enabled: boolean
+          managed_legal_hold: boolean
+          managed_organization_id: string
+          managed_retention_days: number
+        }
+        Returns: Json
+      }
       admin_update_project_dates: {
         Args: {
           actor_user_id: string
@@ -1203,6 +1257,7 @@ export type Database = {
         }
         Returns: number
       }
+      execute_due_evaluation_content_retention: { Args: never; Returns: Json }
       get_anonymous_submission_abuse_summary: {
         Args: { actor_user_id: string }
         Returns: Json
@@ -1235,6 +1290,10 @@ export type Database = {
           credential_digest_hex: string
           managed_assignment_id: string
         }
+        Returns: Json
+      }
+      list_manageable_evaluation_retention_policies: {
+        Args: { actor_user_id: string }
         Returns: Json
       }
       list_my_evaluation_report_targets: {

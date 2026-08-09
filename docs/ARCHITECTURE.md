@@ -91,6 +91,14 @@ At or above threshold, the database releases an identity-free ciphertext batch p
 
 Encryption key rotation is additive. Trusted Functions merge the legacy JSON keyring with immutable per-version environment secrets and use a separate active-version selector for new ciphertext. A service-role-only inventory releases only distinct referenced version identifiers to `encryption-key-health`; the system-administrator UI receives only booleans and total version counts, never versions, keys, ciphertext, or content.
 
+## Evaluation Content Retention Architecture
+
+`organization_evaluation_retention_policies` stores tenant configuration only: retention days, automatic-purge state, legal hold, policy version, and content-free run metadata. The browser has no direct table access. `evaluation-retention-administration` authenticates an active system administrator, limits organizations by platform or exact tenant scope, and delegates updates to a service-role-only function that repeats authorization.
+
+Destructive execution is not exposed to the browser. A portable operator command calls `execute_due_evaluation_content_retention()` with the server-only service role. The database serializes runs, skips disabled and legally held policies, and deletes only expired `encrypted_evaluation_submissions` rows. It returns the number of organization policies processed, never submission/deletion counts or content. Live deletion does not erase existing backups; backup retention and key custody remain separate infrastructure controls.
+
+The backup/restore acceptance command streams a compressed dump directly from the local Supabase database container into a guarded `_restore_acceptance` database. It records only stream size/hash and boolean checks, writes no dump file to host storage, verifies migrations plus content/retention privilege boundaries, and removes the temporary database in a `finally` path.
+
 ## Localization
 
 User-facing Turkish strings must be centralized under a future localization module such as `src/locales/tr/`. Code identifiers, internal errors, tests, and technical artifacts remain English.
@@ -131,6 +139,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Thresholded decryption and aggregate reporting Edge Function: `supabase/functions/evaluation-reports/index.ts`
 - Content-free encryption key health Edge Function: `supabase/functions/encryption-key-health/index.ts`
 - Aggregate anonymous abuse monitoring Edge Function: `supabase/functions/security-abuse-monitoring/index.ts`
+- Evaluation retention administration Edge Function: `supabase/functions/evaluation-retention-administration/index.ts`
 - User onboarding Edge Function: `supabase/functions/user-onboarding/index.ts`
 - Organization administration Edge Function: `supabase/functions/organization-administration/index.ts`
 - Initial migration: `supabase/migrations/20260719132911_initial_security_foundation.sql`
@@ -146,6 +155,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Thresholded reporting migrations: `supabase/migrations/20260807103000_thresholded_evaluation_reporting.sql`, `supabase/migrations/20260807111500_reporting_close_metadata_fix.sql`
 - Encryption key lifecycle migration: `supabase/migrations/20260807143000_encryption_key_lifecycle.sql`
 - Anonymous endpoint abuse-control migration: `supabase/migrations/20260807170000_anonymous_endpoint_abuse_protection.sql`
+- Evaluation content retention migration: `supabase/migrations/20260808120000_evaluation_content_retention.sql`
 - Database authorization tests: `supabase/tests/database/employee_assignment_access.test.sql`
 - Anonymous submission database tests: `supabase/tests/database/anonymous_encrypted_submission.test.sql`
 - Reporting authorization database tests: `supabase/tests/database/thresholded_evaluation_reporting.test.sql`

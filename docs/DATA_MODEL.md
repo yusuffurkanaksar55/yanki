@@ -2,7 +2,7 @@
 
 ## Status
 
-Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed onboarding, configurable hierarchy, own-context RPCs, immutable versioned templates, project/cycle/assignment planning, identity-domain one-time credentials, content-domain encrypted evaluation submissions, and thresholded reporting functions.
+Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed onboarding, configurable hierarchy, own-context RPCs, immutable versioned templates, project/cycle/assignment planning, identity-domain one-time credentials, content-domain encrypted evaluation submissions, thresholded reporting functions, and tenant-scoped evaluation-content retention.
 
 Generated TypeScript database types are stored in `src/types/supabase.ts` and should be regenerated after schema changes.
 
@@ -29,6 +29,7 @@ Planned tables:
 - `evaluation_assignments`
 - `anonymous_submission_credentials`
 - `encrypted_evaluation_submissions`
+- `organization_evaluation_retention_policies`
 - `security_rate_limit_buckets`
 - `security_abuse_event_counters`
 - `result_access_scopes`
@@ -56,6 +57,7 @@ Implemented foundation tables:
 - `evaluation_assignments`
 - `anonymous_submission_credentials`
 - `encrypted_evaluation_submissions`
+- `organization_evaluation_retention_policies`
 
 Implemented foundation functions:
 
@@ -76,6 +78,9 @@ Implemented foundation functions:
 - `get_encrypted_evaluation_report_batch()`
 - `consume_anonymous_submission_request()`
 - `get_anonymous_submission_abuse_summary()`
+- `list_manageable_evaluation_retention_policies()`
+- `admin_update_evaluation_retention_policy()`
+- `execute_due_evaluation_content_retention()`
 
 ## Identity Domain
 
@@ -128,6 +133,10 @@ Reporting adds no plaintext or materialized result table. `list_my_evaluation_re
 `list_referenced_evaluation_encryption_key_versions()` is executable only by `service_role`. It returns distinct key-version identifiers required by stored ciphertext, with no ciphertext, content, identity, per-version count, or timestamp. Trusted key-health code compares this inventory to server-only secret configuration and exposes only aggregate health status to system administrators.
 
 `security_rate_limit_buckets` stores one-day operational buckets keyed only by a 32-byte non-reversible hash. Known credentials use isolated buckets; invalid credentials use one global invalid-only bucket. `security_abuse_event_counters` stores five-minute aggregate invalid-credential and rate-limited counts retained for seven days. Neither table stores an IP address, device identifier, user, organization, assignment, credential digest, request body, evaluation content, or linkage to a submission. RLS is enabled and direct privileges are revoked from browser roles and `service_role`.
+
+`organization_evaluation_retention_policies` stores one row per tenant with a 30-to-3650-day live-content lifetime, disabled-by-default automation, legal hold, monotonically increasing policy version, updater, update time, and content-free last-purge metadata. It stores no submission count, subject, evaluator, credential, ciphertext, or content. Direct privileges are revoked from browser roles and `service_role`.
+
+`execute_due_evaluation_content_retention()` is service-role-only. It serializes executions, skips disabled and legally held policies, deletes only ciphertext whose date-only `stored_on` precedes the current cutoff, and returns no submission/deletion count. Configuration and execution audit records also omit participation and content. Backup expiry remains outside this live-database model.
 
 `consume_anonymous_submission_request()` is the service-role-only quota decision boundary. `get_anonymous_submission_abuse_summary()` is also service-role-only and repeats active system-administrator authorization before returning only aggregate counts and policy constants.
 

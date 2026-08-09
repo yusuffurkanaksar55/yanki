@@ -337,6 +337,49 @@ export const tr = {
         genericError: "Beklenmeyen bir güvenlik operasyonu hatası oluştu."
       }
     },
+    retention: {
+      sectionLabel: "Değerlendirme verisi saklama politikası",
+      eyebrow: "Veri yaşam döngüsü",
+      title: "Şifreli değerlendirme verisi saklama",
+      description:
+        "Her firma, şifreli değerlendirme içeriğinin canlı veritabanında ne kadar süre tutulacağını belirler. Yasal bekletme etkinse otomatik temizleme durur.",
+      loading: "Saklama politikaları yükleniyor.",
+      empty: "Yönetilebilecek aktif bir organizasyon bulunamadı.",
+      form: {
+        organization: "Organizasyon",
+        retentionDays: "Saklama süresi (gün)",
+        automaticPurge: "Otomatik temizlemeyi etkinleştir",
+        automaticPurgeDescription:
+          "Güvenilir operatör zamanlayıcısı, süresi dolan şifreli içeriği canlı veritabanından kaldırır.",
+        legalHold: "Yasal bekletme uygula",
+        legalHoldDescription:
+          "Hukuki veya denetim gereksinimi boyunca bu organizasyon için temizleme yapılmaz.",
+        save: "Politikayı kaydet",
+        saving: "Kaydediliyor"
+      },
+      status: {
+        title: "Uygulama durumu",
+        policyVersion: "Politika sürümü",
+        lastPurge: "Son tamamlanan temizleme",
+        lastCutoff: "Son temizlenen tarih sınırı",
+        never: "Henüz çalıştırılmadı"
+      },
+      backupNotice:
+        "Canlı veritabanından kaldırılan içerik, mevcut şifreli yedeklerin saklama süresi dolana kadar yedeklerde bulunabilir. Yedek imha süresi altyapı politikasıyla ayrıca uygulanır.",
+      validation: {
+        retentionDays: "Saklama süresi 30 ile 3650 gün arasında olmalıdır."
+      },
+      feedback: {
+        saved: "Değerlendirme verisi saklama politikası güncellendi.",
+        EVALUATION_RETENTION_SESSION_REQUIRED:
+          "Oturum doğrulanamadı. Lütfen tekrar giriş yap.",
+        EVALUATION_RETENTION_LIST_FAILED:
+          "Saklama politikaları okunamadı.",
+        EVALUATION_RETENTION_UPDATE_FAILED:
+          "Saklama politikası güncellenemedi.",
+        genericError: "Beklenmeyen bir veri yaşam döngüsü hatası oluştu."
+      }
+    },
     users: {
       sectionLabel: "Kullanıcı ve davet yönetimi",
       eyebrow: "Kimlik yönetimi",

@@ -1,5 +1,38 @@
 # Error Log
 
+## ERR-20260808-044 - Disposable full restore used a non-superuser role
+
+### Context
+
+The first executable backup/restore acceptance drill dumped the complete local Supabase database and restored it into a guarded disposable database.
+
+### Symptoms
+
+`pg_restore` stopped at `realtime.list_changes` because the local `postgres` role could not set the protected `log_min_messages` function parameter.
+
+### Root cause
+
+Supabase's local `postgres` role can create databases but is intentionally not a superuser. A full Supabase schema contains platform-owned functions whose settings require the local `supabase_admin` management role during restore.
+
+### Correct solution
+
+Make the restore user explicit and default the local drill to `supabase_admin`. Keep `--no-owner`, preserve grants, stream directly into a protected `_restore_acceptance` target without a host dump file, verify application security invariants, and always remove the target.
+
+### Prevention
+
+Run the disposable restore drill after schema/security changes and before release. Production restores must use the deployment's approved Supabase recovery role and isolated infrastructure rather than assuming a role named `postgres` is privileged.
+
+### Related files
+
+- `scripts/verify-backup-restore-acceptance.mjs`
+- `.env.operator.example`
+- `docs/DEPLOYMENT.md`
+
+### Related tests
+
+- `tests/backup-restore-acceptance.test.mjs`
+- `npm run backup:restore:acceptance`
+
 ## ERR-20260807-043 - Hosted oversized request reached gateway timeout
 
 ### Context
@@ -284,36 +317,6 @@ Test parsed structural boundaries instead of forbidding security vocabulary in c
 ### Related tests
 
 - `npm test -- --run tests/supabase-foundation.test.mjs`
-
-## ERR-20260807-034 - Inline PowerShell secret transfer removed keyring JSON quotes
-
-### Context
-
-The anonymous encryption function required a versioned JSON keyring in Supabase Secrets.
-
-### Symptoms
-
-The first live submission returned `EVALUATION_ENCRYPTION_KEYRING_INVALID`.
-
-### Root cause
-
-PowerShell/CLI argument parsing removed the inner JSON quote characters from the inline value.
-
-### Correct solution
-
-Upload both values through a uniquely named temporary env file under the verified system temp directory and delete it immediately after success.
-
-### Prevention
-
-Use env-file secret transfer for structured values and retain safe configuration error codes that never reveal secret contents.
-
-### Related files
-
-- `supabase/functions/anonymous-evaluation-submissions/index.ts`
-
-### Related tests
-
-- `npm run smoke:submissions`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

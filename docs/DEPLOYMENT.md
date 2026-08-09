@@ -74,7 +74,7 @@ docker compose --env-file .env.deploy up -d --build --wait
 
 11. Route the public application domain to the frontend container, verify `/healthz`, sign-in redirects, password reset, invitation delivery when enabled, and all role-denial scenarios. Run synthetic submission and report acceptance, including 413/429 behavior, threshold, self, system-admin, employee, and anonymous denial checks.
 12. Create the initial organization and administrator through an approved bootstrap procedure. A production bootstrap command is not implemented yet; manual service-role writes are not an approved workaround.
-13. Schedule encrypted backups, define retention, and perform a restore drill before accepting live data. Document recovery time and recovery point objectives.
+13. Configure each tenant's evaluation-content policy, schedule `npm run retention:run` in the trusted operator environment, schedule encrypted backups, define backup retention, and perform an environment-specific restore drill before accepting live data. Document recovery time and recovery point objectives.
 14. Configure capacity, availability, certificate, backup, database, Auth, Functions, application health, and anonymous abuse-counter alerts. Apply reverse-proxy/WAF connection and request limits outside the application without collecting IP/device identifiers in the product database. Never collect scores, comments, decrypted payloads, credentials, tokens, or evaluator-to-response mappings in logs.
 15. Run the release acceptance checklist and obtain customer security/operations sign-off.
 
@@ -89,7 +89,24 @@ docker compose --env-file .env.deploy up -d --build --wait
 
 ## Production Release Gate
 
-This repository now has deployed anonymous encrypted submission storage, additive key rotation, key-health validation, application-level anonymous quotas, content-free aggregate abuse monitoring, and scoped thresholded reporting, but it is not approved for live employee data. An independent production key, approved key escrow and recovery drill, outer gateway/WAF limits and alert delivery, production bootstrap, backup/restore automation, retention policy, and broader end-to-end security regression coverage must be completed before production use.
+This repository now has anonymous encrypted submission storage, additive key rotation, key-health validation, application-level anonymous quotas, content-free aggregate abuse monitoring, scoped thresholded reporting, tenant content-retention controls, and a disposable local restore drill, but it is not approved for live employee data. An independent production key, approved key escrow and environment-specific recovery drill, outer gateway/WAF limits and alert delivery, production bootstrap, scheduled encrypted off-host backups, and broader end-to-end security regression coverage must be completed before production use.
+
+## Evaluation Content Retention Operations
+
+- Configure policies only through the authenticated administration UI or reviewed trusted boundary. The default is 730 days with automatic purge disabled; the supported range is 30 to 3650 days.
+- Legal hold always prevents operator cleanup for the tenant, even when automatic purge is enabled.
+- Copy `.env.operator.example` to ignored `.env.operator.local`, replace placeholders through the approved secret channel, and run `npm run retention:run` only in a trusted server/runner. Never place these values in frontend runtime configuration.
+- Schedule the command at least daily in SaaS operations or the customer-controlled cron/Task Scheduler. Alert on command failure, not on deleted-row counts.
+- The operator response contains the execution date and number of organization policies processed only. It does not contain submission/deletion counts or content.
+- A live-database purge does not remove retained backups. Document backup expiry separately and retain historical encryption keys until every applicable backup window has ended.
+
+## Backup And Restore Acceptance
+
+- Start the local Supabase stack and apply all migrations before the repository-level drill.
+- Set `BACKUP_RESTORE_ACCEPTANCE_CONFIRM=RUN_DISPOSABLE_BACKUP_RESTORE_ACCEPTANCE`, then run `npm run backup:restore:acceptance`.
+- The default drill uses `supabase_admin` inside `supabase_db_anonim_degerlendirme`, creates only `yanki_restore_acceptance`, streams a compressed custom-format dump directly into restore without writing it to host storage, verifies migration and security invariants, and removes the temporary database.
+- Override the container, database user, source, or target only in a reviewed disposable environment. The target name must end in `_restore_acceptance` and must never equal the source database.
+- This local drill validates mechanics, schema, and restored privileges. Every SaaS or dedicated production environment still needs scheduled encrypted off-host backups, key escrow, documented RPO/RTO, and a restore into isolated infrastructure using its approved Supabase recovery procedure.
 
 ## Anonymous Abuse-Control Operations
 

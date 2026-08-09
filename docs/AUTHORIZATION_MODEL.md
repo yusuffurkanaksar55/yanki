@@ -49,11 +49,13 @@ Project date updates are available to platform/matching-organization system admi
 
 `encryption-key-health` requires an authenticated active `SYSTEM_ADMIN`. Its service-role-only inventory can inspect only distinct key-version identifiers referenced by ciphertext. The browser receives configuration validity, active/historical coverage booleans, and total version counts; it receives no version names, keys, ciphertext, content, identities, or per-version usage.
 
+`evaluation-retention-administration` requires an authenticated active `SYSTEM_ADMIN`. Platform administrators can list/update active-organization policies; organization administrators are limited to their exact tenant. PostgreSQL repeats scope authorization for every update. Browser roles and `service_role` have no direct policy-table privileges. The browser cannot execute content deletion. Only the trusted operator can call `execute_due_evaluation_content_retention()`, which skips disabled or legally held tenants and exposes no submission/deletion count.
+
 ## Roles
 
 ### `SYSTEM_ADMIN`
 
-Can manage scoped user invitations, hierarchy, projects, project memberships, templates, assignments, cycles, and configuration. Can view only content-free global abuse counters and encryption-key health. Cannot read evaluation content, lessons learned content, decrypted payloads, raw individual responses, or request-level abuse records.
+Can manage scoped user invitations, hierarchy, projects, project memberships, templates, assignments, cycles, retention policies, and configuration. Can view only content-free global abuse counters, encryption-key health, and retention execution metadata. Cannot trigger destructive retention from the browser or read evaluation content, lessons learned content, decrypted payloads, raw individual responses, participation counts, or request-level abuse records.
 
 ### `EMPLOYEE`
 

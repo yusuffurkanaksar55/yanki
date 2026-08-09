@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, privacy-preserving application quotas, server-side AES-256-GCM encryption, additive key rotation, content-free key health checks, atomic assignment completion, trusted thresholded aggregate reporting, and trusted administration boundaries. Production key escrow and recovery acceptance remain incomplete.
+This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, privacy-preserving application quotas, server-side AES-256-GCM encryption, additive key rotation, content-free key health checks, atomic assignment completion, trusted thresholded aggregate reporting, tenant-scoped content retention with legal hold, disposable restore verification, and trusted administration boundaries. Production key escrow and environment-specific recovery acceptance remain incomplete.
 
 ## Security Objectives
 
@@ -121,9 +121,13 @@ Allowed audit events include configuration and access metadata, such as user acc
 
 Forbidden logs include scores, comments, lessons learned text, decrypted payloads, anonymous credential values, access tokens, passwords, full sensitive request bodies, and evaluator-to-response relationships.
 
+Retention policy updates and cleanup executions may audit tenant scope, policy version, configured days, legal-hold/automation state, cutoff date, and execution mode. They must never audit subjects, evaluator identities, content, participation state, or deleted-row counts.
+
 ## Database Visibility
 
 Database readers may see ciphertext and non-sensitive metadata only. Database encryption protects stored content from direct database inspection, but a party controlling both application code and encryption secrets could alter the system to access content. This limitation must remain documented and must not be hidden in product claims.
+
+Tenant retention deletes expired ciphertext from the live logical database only. Existing WAL, snapshots, replicas, and backups remain subject to independently configured infrastructure retention. Historical encryption keys cannot be retired until both live references and approved backup-retention windows are exhausted.
 
 ## Tenant Isolation
 
@@ -139,6 +143,6 @@ In customer-managed installations, the customer controls the host, database, app
 
 - Complete live invitation email delivery and acceptance verification with an approved test mailbox.
 - Add narrowly scoped Supabase RLS policies only after server-side authorization flows are designed.
-- Configure an independent production key, approved secret-manager escrow, a successful key-plus-database recovery drill, and ciphertext retention procedures before production.
+- Configure an independent production key, approved secret-manager escrow, scheduled encrypted backups, and a successful environment-specific key-plus-database recovery drill before production.
 - Add outer gateway/WAF limits for credential preparation and anonymous redemption, plus alert delivery without sensitive request logging.
 - Add executable cross-tenant database tests against a running local or dedicated Supabase stack.

@@ -1,5 +1,44 @@
 # Development Log
 
+## 2026-08-09 - Tenant Evaluation Retention And Restore Acceptance
+
+### Objective
+
+Expire encrypted evaluation content under tenant control without exposing participation or allowing browser-triggered deletion, and prove that a backup can be restored into a disposable database without weakening reviewed privileges.
+
+### Changes
+
+- Added tenant-scoped 30-to-3650-day retention policies with a 730-day default, disabled-by-default automation, legal hold, policy versioning, and content-free run metadata.
+- Added scoped retention administration in PostgreSQL, an authenticated Edge Function, typed frontend service, and Turkish system-administrator panel.
+- Added a service-role-only scheduled operator boundary with advisory locking, count-free audit metadata, and no browser deletion action.
+- Added explicit-confirmation retention and disposable Docker backup/restore commands, a separate server-only environment example, ADR-0024, and deployment/recovery documentation.
+- Added 21 pgTAP retention cases plus service, component, static security, and backup/restore acceptance tests.
+
+### Database changes
+
+Applied `20260808120000_evaluation_content_retention.sql` locally and to project `daxaymcmtbmummrxdyjy`. Retention configuration has RLS and no direct privileges, including for `service_role`; destructive execution is available only through the narrow service-role function.
+
+### Security impact
+
+Positive. Legal hold blocks deletion, tenant administrators manage configuration without reading content, browsers cannot invoke cleanup, and no submission/deletion count leaves the operator boundary. Live-database deletion is explicitly separated from backup expiry and historical-key retirement.
+
+### Tests performed
+
+- `npm run lint`, `npm run typecheck`, 153 Vitest cases, production build, and full `npm run check`.
+- Local migration-up, local/linked schema lint, and `npm run supabase:test:local`: 134 pgTAP cases across six suites.
+- Disposable Docker dump/restore drill with migration, table, function, and restored privilege verification. The final 640,718-byte compressed stream was hashed while flowing directly into restore, no host dump file was written, and a separate catalog query confirmed the disposable database was removed.
+- Remote dry-run/push/list, linked type generation, Edge Function deployment, and live admin/non-admin/anonymous smoke verification.
+
+### Result
+
+Tenant retention administration is active in the linked synthetic project with the 730-day policy and automatic purge disabled. The live Edge Function allowed the scoped HR administrator, denied the employee and unauthenticated caller, and exposed no evaluation-domain data. The destructive live operator command was intentionally not executed; deletion behavior is proven with disposable local ciphertext fixtures.
+
+### Remaining work
+
+- Configure production scheduling only after approved retention contracts, backup expiry, monitoring, and change control exist.
+- Complete independent production key escrow/recovery, gateway/WAF limits and alerts, tenant bootstrap, and environment-specific backup recovery acceptance.
+- Complete approved invitation-email and visual browser verification.
+
 ## 2026-08-07 - Privacy-Preserving Anonymous Abuse Protection
 
 ### Objective
@@ -153,43 +192,3 @@ The linked migration is current and both new Edge Functions are active. The live
 - Implement trusted thresholded reporting, self-access denial, and scoped reviewer authorization.
 - Replace the development key before live use and add rotation, recovery, rate limiting, retention, and backup acceptance.
 - Complete visual browser verification when the Codex browser runtime path issue is resolved.
-
-## 2026-08-06 - Immutable Versioned Evaluation Templates
-
-### Objective
-
-Allow organization-scoped administrators to define reusable evaluation questions while permanently preserving the exact published configuration used by every cycle and assignment.
-
-### Changes
-
-- Added tenant-scoped logical templates, version snapshots, ordered questions, all documented question types, editable drafts, and published-version mutation guards that validate both the old and new question parent.
-- Added service-role-only atomic draft-save, publish, and clone functions with repeated system-admin scope checks and safe audit metadata.
-- Added the authenticated `evaluation-templates` Edge Function, typed frontend service, and Turkish template management panel.
-- Required project-cycle creation to select an active published version in the same organization and copied that exact id to every assignment.
-- Backfilled existing cycles and assignments to archived compatibility versions without changing their identity-domain behavior.
-- Added template metadata to project and employee assignment views, regenerated linked database types, and added ADR-0019.
-
-### Database changes
-
-Applied `20260806234500_versioned_evaluation_templates.sql` to Supabase project `daxaymcmtbmummrxdyjy`. The migration adds three default-deny tables, three service-role-only lifecycle functions, database immutability and scope triggers, and required version foreign keys on cycles and assignments. The follow-up `20260807001500_template_immutability_hardening.sql` prevents moving a question out of a published version by checking both sides of an update.
-
-### Security impact
-
-Positive. Browser clients have no template-table privileges. Published configuration cannot be updated or deleted in PostgreSQL. Cycles reject draft or cross-tenant versions, assignments reject version drift, and administration still cannot read evaluation response content.
-
-### Tests performed
-
-- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `npm run check`.
-- Clean local Supabase reset, local schema lint, and both pgTAP suites.
-- Linked dry-run, migration push/list, generated types, linked lint, and sequential Edge Function deploys.
-- `npm run smoke:templates` twice with a synthetic admin to verify creation, publication, legacy cycle metadata, anonymous denial, and idempotency.
-
-### Result
-
-Vitest passes 21 files and 91 tests. pgTAP passes 26 database cases. Local `public` schema lint and linked schema lint are clean. Live verification published the reusable four-question `Genel Proje Değerlendirmesi` v1 and the second run created no duplicate. The local UI remains available at `http://127.0.0.1:5173/`; browser visual inspection was blocked by the existing Codex runtime kernel-assets error.
-
-### Remaining work
-
-- Implement anonymous credentials and encrypted submissions before completion mutation or reporting.
-- Complete invitation email delivery when an approved provider and mailbox are available.
-- Add visual and end-to-end browser coverage when the Codex browser runtime is available.

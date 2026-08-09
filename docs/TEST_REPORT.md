@@ -1,5 +1,53 @@
 # Test Report
 
+## 2026-08-09 - Tenant Evaluation Retention And Restore Acceptance
+
+### Environment
+
+- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
+- Docker Desktop local Supabase PostgreSQL stack and disposable restore database.
+- Linked Supabase project `daxaymcmtbmummrxdyjy` with synthetic users only.
+
+### Commands executed
+
+- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run check`
+- Local migration-up, `npm run supabase:test:local`, and local/linked database lint
+- `npm run backup:restore:acceptance` with explicit disposable-target confirmation
+- Remote migration dry-run/push/list, `npm run supabase:types`, Edge Function deployment
+- `npm run smoke:retention` with process-only synthetic HR-admin and employee credentials
+
+### Passed
+
+- Vitest passed 38 files and 153 tests, including retention service/component boundaries and backup/restore safeguards.
+- pgTAP passed 134 cases across six suites; 21 new cases verify default policy, tenant scope, grants, legal hold, expiry deletion, retained current content, count-free audit metadata, and idempotency.
+- Local and linked schema lint reported no errors; local and remote migration histories include `20260808120000`.
+- The final disposable restore streamed 640,718 compressed bytes directly from `pg_dump` into `pg_restore`, wrote no host dump file, verified migration history, encrypted-content and retention tables, operator function presence, ciphertext browser-read denial, and browser retention-execution denial, then removed the target database. A separate catalog query returned zero matching disposable databases.
+- The live scoped administrator listed and updated the 730-day disabled policy; the employee received `403`, the unauthenticated caller received `401`, and no evaluation-domain data was returned.
+
+### Failed And Corrected
+
+- The first full restore used local Supabase's non-superuser `postgres` role and failed on a protected `realtime.list_changes` function setting. The drill now uses `supabase_admin`; the complete restore and cleanup passed.
+- The first full Vitest run found server-only placeholders in the frontend `.env.example` and a multiline RLS statement outside the repository's canonical assertion. Server variables moved to `.env.operator.example`, and the migration now uses the canonical RLS form.
+- The first live anonymous smoke expected the function's JSON error, but hosted JWT verification rejected the missing token at the gateway. The smoke now asserts the security-relevant `401` status for that path.
+- Supabase CLI profile telemetry writes were sandbox-denied on first local/linked checks; approved reruns passed. The first linked type-generation attempt therefore produced an empty redirected file; the approved rerun regenerated all 1,464 lines from the live schema.
+- The migration push repeated the known non-fatal `pg-delta` temporary CA warning. Migration list and linked lint independently confirmed successful application.
+
+### Security checks
+
+- Verified policy tables and destructive functions are inaccessible to browser roles and direct `service_role` table access.
+- Verified legal hold prevents deletion and cleanup removes only ciphertext older than the date-only tenant cutoff.
+- Verified no subject, evaluator, content, participation, submission count, or deleted-row count appears in policy, audit, operator, or frontend output.
+- Verified live deletion and backup expiry are documented as separate controls.
+
+### Skipped
+
+- The destructive operator RPC was not called against the live project; a safety review correctly rejected a production-capable deletion test. Equivalent behavior passed with disposable local ciphertext fixtures.
+- Automated visual browser verification remains subject to the existing Codex browser runtime kernel-path issue.
+
+### Remaining risks
+
+- Production backup scheduling, key-plus-database recovery, retention scheduler monitoring, gateway/WAF controls, alert delivery, bootstrap, and approved invitation email remain release blockers.
+
 ## 2026-08-07 - Privacy-Preserving Anonymous Abuse Protection
 
 ### Environment
@@ -195,50 +243,3 @@
 ### Remaining risks
 
 - Thresholded reporting, trusted decryption, reviewer scope/self-access enforcement, production key rotation/recovery, rate limiting, retention, and backup acceptance remain production blockers.
-
-## 2026-08-06 - Immutable Versioned Evaluation Templates
-
-### Environment
-
-- Workspace: `D:\Projects\anonim_degerlendirme`
-- Runtime: Node.js v24.14.0
-- Supabase CLI: 2.109.1
-- Docker Desktop: local Supabase PostgreSQL stack
-- Linked Supabase project: `daxaymcmtbmummrxdyjy`
-
-### Commands executed
-
-- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run check`
-- `npx supabase start`, `npx supabase db reset --local`, `npx supabase test db`, `npx supabase db lint --local`
-- Linked migration dry-run, push, list, type generation, and linked lint
-- Sequential deploys for `admin-project-cycles` and `evaluation-templates`
-- `npm run smoke:templates` twice
-
-### Passed
-
-- Vitest passed 21 files and 91 tests; TypeScript, ESLint, production build, and memory checks passed.
-- Clean local reset applied every migration through `20260807001500_template_immutability_hardening.sql`.
-- pgTAP passed 26 cases across employee assignment access and template lifecycle suites.
-- Template tests cover default-deny privileges, service-role grants, non-empty publication, published metadata/question immutability, rejection of moving a published question into a draft, cloning, draft-cycle rejection, exact cycle binding, assignment copy, drift rejection, and audit events.
-- Local `public` schema lint and linked database lint reported no schema errors; local and remote migration versions match.
-- Both Edge Functions compiled and deployed. Live synthetic verification published four questions, returned exact version metadata for the existing cycle, denied anonymous administration, and passed idempotently on the second run.
-
-### Failed
-
-- The first pgTAP run exposed a missing early return in the version insert trigger and an old test fixture without the newly required version id; both were corrected without weakening the production constraint.
-- Parallel Edge Function deploy commands reported success, but only one function remained registered. Sequential redeployment corrected the remote state.
-- Migration push repeated the known non-fatal Supabase CLI pg-delta temporary certificate warning. Migration listing and linked lint confirmed the applied state.
-- Local Docker verification temporarily stopped when the full system drive mounted Docker's WSL data disk read-only. Temporary completed installers and crash dumps were removed, the ext4 volume was repaired with the documented WSL `e2fsck` workflow, and a clean reset plus all 26 database tests then passed.
-- Codex browser control again failed before navigation with the known kernel-assets path error.
-
-### Security checks
-
-- Verified published metadata and question rows are database-immutable.
-- Verified authenticated browsers have no direct template-table access and anonymous Edge Function calls are denied.
-- Verified tenant scope and active publication before cycle creation, plus exact template-version inheritance and drift rejection for assignments.
-- Verified no employee response, evaluator-to-response mapping, credential, encryption key, or service-role credential was introduced.
-
-### Remaining risks
-
-- Template selection does not authorize submission; anonymous credentials and encrypted payload persistence remain production blockers.
-- Automated visual and full browser end-to-end coverage remain incomplete.

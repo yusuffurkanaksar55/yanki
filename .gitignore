@@ -4,6 +4,7 @@ coverage/
 .env
 .env.*
 !.env.example
+!.env.operator.example
 .secrets/
 .supabase/
 supabase/.branches/

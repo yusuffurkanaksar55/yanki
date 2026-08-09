@@ -8,7 +8,7 @@ High
 
 ### Description
 
-One-time anonymous submission, additive key rotation, content-free key health, application-level anonymous quotas, aggregate abuse monitoring, and trusted thresholded reporting are implemented and live-smoke-tested. Independent production key custody, escrow/recovery acceptance, retention, outer gateway/WAF controls and alert delivery, production bootstrap, and backup/restore acceptance are not implemented yet.
+One-time anonymous submission, additive key rotation, content-free key health, application-level anonymous quotas, aggregate abuse monitoring, trusted thresholded reporting, tenant retention with legal hold, and a disposable local restore drill are implemented. Independent production key custody, key-plus-database recovery acceptance, outer gateway/WAF controls and alert delivery, production bootstrap, scheduled encrypted off-host backups, and environment-specific restore acceptance are not implemented yet.
 
 ### Impact
 
@@ -20,7 +20,7 @@ Continue development and synthetic acceptance testing only. Do not use the linke
 
 ### Planned resolution
 
-Create an independent production key, complete approved key escrow/recovery drills, and add outer gateway/WAF limits, alert delivery, retention, production bootstrap, backup/restore acceptance, and approved invitation-mail verification.
+Create an independent production key, complete approved key escrow/recovery drills, and add outer gateway/WAF limits, alert delivery, production bootstrap, scheduled encrypted backups, environment-specific restore acceptance, and approved invitation-mail verification.
 
 ### Related tests
 
