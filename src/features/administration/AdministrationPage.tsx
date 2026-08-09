@@ -1,3 +1,16 @@
+import { useState, type ReactNode } from "react";
+import {
+  Archive,
+  Boxes,
+  FileStack,
+  FolderKanban,
+  LayoutDashboard,
+  Settings,
+  ShieldCheck,
+  Users,
+  type LucideIcon
+} from "lucide-react";
+import { ApplicationShell } from "../../components/ApplicationShell";
 import { tr } from "../../locales/tr/messages";
 import type {
   WorkspaceContext,
@@ -35,6 +48,20 @@ type AdministrationPageProps = {
   readonly workspaceContext: WorkspaceContext;
 };
 
+type AdministrationModuleId =
+  | "users"
+  | "hierarchy"
+  | "projects"
+  | "templates"
+  | "security"
+  | "retention";
+
+type AdministrationModule = {
+  readonly icon: LucideIcon;
+  readonly id: AdministrationModuleId;
+  readonly label: string;
+};
+
 export function AdministrationPage({
   evaluationRetentionService,
   evaluationTemplateService,
@@ -48,237 +75,219 @@ export function AdministrationPage({
   userEmail,
   workspaceContext
 }: AdministrationPageProps) {
+  const [activeModule, setActiveModule] =
+    useState<AdministrationModuleId>("projects");
+
   if (!canAccessAdministration(workspaceContext)) {
     return <AdministrationBlockedPage />;
   }
 
   const administrationRoles = getAdministrationRoles(workspaceContext);
-  const canManageTemplates = workspaceContext.roles.some(
+  const canManagePlatform = workspaceContext.roles.some(
     (role) => role.roleCode === "SYSTEM_ADMIN"
   );
+  const modules = getAdministrationModules(canManagePlatform);
 
   return (
-    <div className="min-h-screen bg-mist text-ink">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-6 py-5 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-normal text-pine">
-              {tr.app.kicker}
-            </p>
-            <p className="mt-1 text-xl font-semibold">{tr.app.name}</p>
-          </div>
-          <div className="flex flex-col gap-3 md:items-end">
-            <nav
-              aria-label={tr.navigation.primaryAriaLabel}
-              className="flex flex-wrap gap-2"
-            >
-              <a
-                className="rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2"
-                href="#dashboard"
-              >
-                {tr.navigation.dashboard}
-              </a>
-              <a
-                aria-current="page"
-                className="rounded-md bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-900"
-                href="#administration"
-              >
-                {tr.navigation.administration}
-              </a>
-            </nav>
-            {onSignOut ? (
-              <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
-                {profileDisplayName ? (
-                  <span>
-                    {tr.dashboard.session.profile}{" "}
-                    <strong className="font-semibold text-slate-800">
-                      {profileDisplayName}
-                    </strong>
-                  </span>
-                ) : null}
-                {userEmail ? (
-                  <span>
-                    {tr.dashboard.session.signedInAs}{" "}
-                    <strong className="font-semibold text-slate-800">
-                      {userEmail}
-                    </strong>
-                  </span>
-                ) : null}
-                <button
-                  className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:text-slate-400"
-                  disabled={isSigningOut}
-                  onClick={() => {
-                    void onSignOut();
-                  }}
-                  type="button"
-                >
-                  {isSigningOut
-                    ? tr.dashboard.session.signingOut
-                    : tr.dashboard.session.signOut}
-                </button>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto w-full max-w-7xl px-6 py-8">
-        <section className="grid gap-5 lg:grid-cols-[1fr_22rem] lg:items-start">
-          <div>
-            <p className="text-sm font-semibold text-coral">
-              {tr.administration.eyebrow}
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold md:text-4xl">
-              {tr.administration.title}
-            </h1>
-            <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
-              {tr.administration.summary}
-            </p>
-          </div>
-
-          <aside
+    <ApplicationShell
+      isSigningOut={isSigningOut}
+      navigationItems={[
+        {
+          href: "#dashboard",
+          icon: LayoutDashboard,
+          label: tr.navigation.dashboard
+        },
+        {
+          href: "#administration",
+          icon: Settings,
+          isActive: true,
+          label: tr.navigation.administration
+        }
+      ]}
+      onSignOut={onSignOut}
+      profileDisplayName={profileDisplayName}
+      userEmail={userEmail}
+    >
+      <main className="mx-auto w-full max-w-[92rem] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <section className="border-b border-slate-200 pb-7">
+          <p className="section-kicker">{tr.administration.eyebrow}</p>
+          <h1 className="mt-2 text-3xl font-bold text-slate-950">
+            {tr.administration.title}
+          </h1>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 sm:text-base">
+            {tr.administration.summary}
+          </p>
+          <div
             aria-label={tr.administration.roles.sectionLabel}
-            className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+            className="mt-5 flex flex-wrap gap-2"
           >
-            <h2 className="text-base font-semibold">
-              {tr.administration.roles.title}
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              {tr.administration.roles.description}
-            </p>
-            <ul className="mt-4 space-y-2">
-              {administrationRoles.map((role) => (
-                <li
-                  className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-700"
-                  key={`${role.roleCode}-${role.scopeType}-${role.scopeId ?? "global"}`}
-                >
-                  {formatRole(role)}
-                </li>
-              ))}
-            </ul>
-          </aside>
+            {administrationRoles.map((role) => (
+              <span
+                className="rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200"
+                key={`${role.roleCode}-${role.scopeType}-${role.scopeId ?? "global"}`}
+              >
+                {formatRole(role)}
+              </span>
+            ))}
+          </div>
         </section>
 
-        <UserInvitationManagementPanel
-          service={userAdministrationService}
-          workspaceContext={workspaceContext}
-        />
-
-        <RoleHierarchyManagementPanel
-          service={hierarchyAdministrationService}
-          workspaceContext={workspaceContext}
-        />
-
-        {canManageTemplates ? (
-          <EvaluationTemplateManagementPanel
-            service={evaluationTemplateService}
-            workspaceContext={workspaceContext}
-          />
-        ) : null}
-
-        <ProjectCycleManagementPanel
-          evaluationTemplateService={evaluationTemplateService}
-          service={projectCycleService}
-          workspaceContext={workspaceContext}
-        />
-
-        {canManageTemplates ? (
-          <SecurityOperationsPanel service={securityOperationsService} />
-        ) : null}
-
-        {canManageTemplates ? (
-          <EvaluationRetentionManagementPanel
-            service={evaluationRetentionService}
-          />
-        ) : null}
-
-        <section
-          aria-label={tr.administration.workflowsSectionLabel}
-          className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4"
-        >
-          {tr.administration.workflows.map((workflow) => (
-            <article
-              className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
-              key={workflow.title}
+        <div className="grid min-w-0 gap-7 pt-6 xl:grid-cols-[14rem_minmax(0,1fr)] xl:items-start">
+          <nav
+            aria-label={tr.administration.moduleNavigationLabel}
+            className="min-w-0 max-w-full"
+          >
+            <div
+              className="scrollbar-none flex w-full max-w-full gap-2 overflow-x-auto pb-1 xl:block xl:space-y-1"
+              role="tablist"
             >
-              <p className="text-xs font-semibold uppercase tracking-normal text-pine">
-                {workflow.status}
-              </p>
-              <h2 className="mt-2 text-lg font-semibold">{workflow.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {workflow.description}
-              </p>
-              <ul className="mt-4 space-y-2">
-                {workflow.items.map((item) => (
-                  <li className="text-sm leading-6 text-slate-700" key={item}>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </article>
-          ))}
-        </section>
+              {modules.map((module) => {
+                const Icon = module.icon;
+                const isActive = module.id === activeModule;
 
-        <section className="mt-8 grid gap-4 lg:grid-cols-[1fr_1fr]">
-          <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold">
-              {tr.administration.datePolicy.title}
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              {tr.administration.datePolicy.description}
-            </p>
-            <dl className="mt-5 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-md bg-slate-50 p-4">
-                <dt className="text-sm font-semibold text-slate-800">
-                  {tr.administration.datePolicy.projectCompletionLabel}
-                </dt>
-                <dd className="mt-2 text-sm text-slate-600">
-                  {tr.administration.datePolicy.configuredBy}
-                </dd>
-              </div>
-              <div className="rounded-md bg-slate-50 p-4">
-                <dt className="text-sm font-semibold text-slate-800">
-                  {tr.administration.datePolicy.evaluationCloseLabel}
-                </dt>
-                <dd className="mt-2 text-sm text-slate-600">
-                  {tr.administration.datePolicy.configuredBy}
-                </dd>
-              </div>
-            </dl>
-          </article>
+                return (
+                  <button
+                    aria-controls={`administration-panel-${module.id}`}
+                    aria-selected={isActive}
+                    className={`flex min-h-11 shrink-0 items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-semibold transition focus-ring xl:w-full ${
+                      isActive
+                        ? "bg-emerald-50 text-pine"
+                        : "text-slate-600 hover:bg-white hover:text-slate-950"
+                    }`}
+                    id={`administration-tab-${module.id}`}
+                    key={module.id}
+                    onClick={() => setActiveModule(module.id)}
+                    role="tab"
+                    type="button"
+                  >
+                    <Icon aria-hidden="true" size={18} strokeWidth={1.8} />
+                    <span>{module.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
 
-          <article className="rounded-lg border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-emerald-950">
-              {tr.administration.safeguards.title}
-            </h2>
-            <ul className="mt-4 space-y-3">
-              {tr.administration.safeguards.items.map((item) => (
-                <li className="text-sm leading-6 text-emerald-950" key={item}>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </article>
-        </section>
+          <section
+            aria-labelledby={`administration-tab-${activeModule}`}
+            className="min-w-0 [&>section]:mt-0"
+            id={`administration-panel-${activeModule}`}
+            role="tabpanel"
+          >
+            {renderAdministrationModule(activeModule, {
+              evaluationRetentionService,
+              evaluationTemplateService,
+              hierarchyAdministrationService,
+              projectCycleService,
+              securityOperationsService,
+              userAdministrationService,
+              workspaceContext
+            })}
+          </section>
+        </div>
       </main>
-    </div>
+    </ApplicationShell>
+  );
+}
+
+function getAdministrationModules(
+  canManagePlatform: boolean
+): readonly AdministrationModule[] {
+  const modules: AdministrationModule[] = [
+    { icon: FolderKanban, id: "projects", label: tr.administration.modules.projects }
+  ];
+
+  if (canManagePlatform) {
+    modules.push(
+      { icon: Users, id: "users", label: tr.administration.modules.users },
+      { icon: Boxes, id: "hierarchy", label: tr.administration.modules.hierarchy },
+      { icon: FileStack, id: "templates", label: tr.administration.modules.templates },
+      { icon: ShieldCheck, id: "security", label: tr.administration.modules.security },
+      { icon: Archive, id: "retention", label: tr.administration.modules.retention }
+    );
+  }
+
+  return modules;
+}
+
+function renderAdministrationModule(
+  activeModule: AdministrationModuleId,
+  services: {
+    readonly evaluationRetentionService?: EvaluationRetentionService;
+    readonly evaluationTemplateService?: EvaluationTemplateService;
+    readonly hierarchyAdministrationService?: HierarchyAdministrationService;
+    readonly projectCycleService?: ProjectCycleService;
+    readonly securityOperationsService?: SecurityOperationsService;
+    readonly userAdministrationService?: UserAdministrationService;
+    readonly workspaceContext: WorkspaceContext;
+  }
+): ReactNode {
+  if (activeModule === "users") {
+    return (
+      <UserInvitationManagementPanel
+        service={services.userAdministrationService}
+        workspaceContext={services.workspaceContext}
+      />
+    );
+  }
+
+  if (activeModule === "hierarchy") {
+    return (
+      <RoleHierarchyManagementPanel
+        service={services.hierarchyAdministrationService}
+        workspaceContext={services.workspaceContext}
+      />
+    );
+  }
+
+  if (activeModule === "templates") {
+    return (
+      <EvaluationTemplateManagementPanel
+        service={services.evaluationTemplateService}
+        workspaceContext={services.workspaceContext}
+      />
+    );
+  }
+
+  if (activeModule === "security") {
+    return <SecurityOperationsPanel service={services.securityOperationsService} />;
+  }
+
+  if (activeModule === "retention") {
+    return (
+      <EvaluationRetentionManagementPanel
+        service={services.evaluationRetentionService}
+      />
+    );
+  }
+
+  return (
+    <ProjectCycleManagementPanel
+      evaluationTemplateService={services.evaluationTemplateService}
+      service={services.projectCycleService}
+      workspaceContext={services.workspaceContext}
+    />
   );
 }
 
 function AdministrationBlockedPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-mist px-6 text-ink">
-      <section className="w-full max-w-lg rounded-lg border border-amber-200 bg-white p-6 shadow-sm">
-        <h1 className="text-xl font-semibold">
+      <section className="surface-panel w-full max-w-lg p-6">
+        <div className="flex h-11 w-11 items-center justify-center rounded-md bg-amber-50 text-amber">
+          <ShieldCheck aria-hidden="true" size={22} strokeWidth={1.8} />
+        </div>
+        <h1 className="mt-5 text-xl font-bold text-slate-950">
           {tr.administration.blocked.title}
         </h1>
-        <p className="mt-3 text-sm leading-6 text-slate-700">
+        <p className="mt-2 text-sm leading-6 text-slate-600">
           {tr.administration.blocked.description}
         </p>
         <a
-          className="mt-5 inline-flex rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2"
+          className="mt-5 inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 focus-ring"
           href="#dashboard"
         >
+          <LayoutDashboard aria-hidden="true" size={18} strokeWidth={1.8} />
           {tr.administration.blocked.backLink}
         </a>
       </section>

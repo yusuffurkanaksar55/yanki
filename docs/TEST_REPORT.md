@@ -1,5 +1,45 @@
 # Test Report
 
+## 2026-08-09 - Product UI And Responsive Layout Verification
+
+### Environment
+
+- Windows 11, Node.js 24, Vite 8, React 19, Vitest, and the Codex in-app Chromium browser.
+- Local Vite server with the linked synthetic Supabase project and the synthetic HR administrator account.
+
+### Commands executed
+
+- Focused App, AuthPage, and AdministrationPage Vitest suites
+- `npm run lint`, `npm run typecheck`, and `npm run check`
+- In-app browser inspection at 1440x900 and 390x844
+
+### Passed
+
+- Full application checks passed 49 Vitest files and 215 tests, lint, typecheck, production build, and bounded-memory verification.
+- Authentication, dashboard, project administration, and every system-administration module rendered under the intended permissions.
+- The generated authentication image loaded at both breakpoints; current page reload and module navigation produced no new browser warning or error.
+- Dashboard and administration document widths stayed within the tested mobile viewport after the grid minimum-width correction.
+
+### Failed And Corrected
+
+- Initial responsive inspection found the administration tab row expanding the mobile grid to 751 pixels; `min-width: 0` and bounded overflow now keep the page within the viewport.
+- Initial desktop inspection found project assignment metrics compressed and overlapping; the split project layout now starts only at the 2XL breakpoint.
+- Project status and date fields initially exposed raw API values; they now use centralized Turkish labels and locale formatting.
+- Transitional hot-reload errors occurred while dependent locale/component edits were incomplete; a clean reload and complete module pass produced no current console errors.
+
+### Security checks
+
+- Project managers receive only the project module; platform-only user, hierarchy, template, security, and retention modules remain absent.
+- Removed visible implementation notes without weakening server-side authorization or changing sensitive data flows.
+
+### Skipped
+
+- No permanent screenshot-baseline suite or automated keyboard-only browser workflow was added in this change.
+
+### Remaining risks
+
+- The production build remains valid but reports a bundle-size warning; route-level code splitting should be added before the administration surface grows materially.
+
 ## 2026-08-09 - Signed Container Release And Customer Acceptance
 
 ### Environment
@@ -178,52 +218,3 @@
 ### Remaining risks
 
 - Production acceptance still requires approved primary and recovery custody providers, scheduled encrypted off-host backups, an isolated environment restore, documented RPO/RTO, and signed two-person evidence.
-
-## 2026-08-09 - Production Tenant Bootstrap And Password Setup
-
-### Environment
-
-- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
-- Docker Desktop local Supabase PostgreSQL/Auth/Mailpit stack rebuilt from migrations and seed.
-- Linked Supabase project `daxaymcmtbmummrxdyjy` with synthetic users only.
-- Vite development server inspected with the Codex in-app browser at desktop and 390 x 844 mobile viewports.
-
-### Commands executed
-
-- `npm run check`, `npm run deployment:config`, `npm run supabase:lint:local`
-- `npx supabase db reset --local --yes`, `npm run supabase:test:local`
-- `node scripts/bootstrap-production-tenant.mjs --check` with process-only local Supabase configuration and synthetic nonexisting identity
-- Focused bootstrap/operator/password component and auth-service Vitest runs
-- Remote migration dry-run/push/list, linked type generation/schema lint, and `user-onboarding` function deploy/list
-
-### Passed
-
-- Vitest passed 41 files and 167 tests, including deterministic normalization/fingerprinting, explicit confirmation, Auth marker creation, compensation, invitation recovery, strong-password validation, password updates, `PASSWORD_RECOVERY` event gating, and password-setup session exit.
-- pgTAP passed 165 cases across seven suites; 31 bootstrap cases verify RLS/grants, atomic records, default retention, no premature role/membership, idempotency, fingerprint conflict, Auth marker enforcement, duplicate-slug denial, safe renewal, acceptance, and exact organization-admin scope.
-- A clean local database reset applied all migrations through `20260809120000`; local schema lint reported no errors.
-- Side-effect-free operator preflight returned `ready` and `administratorIdentity: available` without creating a user or tenant.
-- Docker Compose validation passed. Desktop and 390 px mobile browser inspection showed readable layouts, no horizontal overflow, and no console warning/error entries.
-- Local and remote migration histories include `20260809120000`; linked schema lint reported no errors, generated types include every bootstrap table/function, and `user-onboarding` is active at version 8.
-
-### Failed And Corrected
-
-- The first recovery-event component test reassigned a readonly Auth service field. The test now constructs a new immutable stub with the listener override; full typecheck passes.
-- Initial local operator-check helpers assumed a clean Supabase CLI status stream. CLI diagnostics and sandbox telemetry polluted parsing; the approved rerun parsed the local JSON envelope in process and passed. Production commands read secrets directly from the approved operator environment and do not parse CLI status output.
-- Docker Compose and local Supabase lint initially hit expected workspace sandbox process/profile restrictions. Approved reruns passed unchanged.
-- Remote migration push repeated the known non-fatal `pg-delta` temporary CA cache warning. Migration list and linked lint independently confirmed successful application.
-- Vite again reported the existing non-blocking warning for a JavaScript chunk above 500 kB.
-
-### Security checks
-
-- Verified browser roles cannot read bootstrap operation state or execute status/create/renew functions; direct `service_role` table access is also denied.
-- Verified no role or membership is granted before exact email-verified invitation acceptance and the accepted role is organization-scoped, never platform-scoped.
-- Verified operator output excludes administrator email, passwords, tokens, action links, service-role keys, and Auth response bodies.
-- Verified invitation renewal is limited to the original request/fingerprint and rejected after acceptance or revocation.
-
-### Skipped
-
-- No real tenant or Auth identity was created in the linked project. Real invitation delivery, password setup, and mailbox acceptance require an approved SMTP provider and mailbox.
-
-### Remaining risks
-
-- Production SMTP, redirect allow-list, Auth password policy, and mailbox acceptance remain release gates alongside key recovery, WAF/alerts, scheduled backups, and environment-specific restore acceptance.

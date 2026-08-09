@@ -1,12 +1,13 @@
 export const tr = {
   app: {
-    name: "Anonim Değerlendirme Platformu",
-    kicker: "İç değerlendirme sistemi"
+    name: "Yankı",
+    kicker: "Anonim değerlendirme",
+    accountFallback: "Kullanıcı hesabı"
   },
   navigation: {
     primaryAriaLabel: "Ana gezinme",
-    dashboard: "Kontrol paneli",
-    cycles: "Süreçler",
+    dashboard: "Genel bakış",
+    cycles: "Görevler",
     projects: "Projeler",
     reports: "Raporlar",
     administration: "Yönetim"
@@ -126,61 +127,19 @@ export const tr = {
     }
   },
   dashboard: {
-    eyebrow: "Hazırlık görünümü",
-    title: "Değerlendirme kontrol paneli",
+    eyebrow: "Çalışma alanı",
+    title: "Değerlendirmelerine göz at",
     summary:
-      "Organizasyon, proje ve değerlendirme görevleri güvenli yetkilendirme sınırlarıyla yönetilir.",
-    actions: {
-      newCycle: "Yeni süreç",
-      manageTemplates: "Şablonları yönet"
-    },
+      "Bekleyen görevlerini tamamla ve yetkin dahilindeki toplu sonuçları incele.",
     metricsSectionLabel: "Durum özetleri",
     metrics: {
+      loading: "Durum yükleniyor",
       activeCycles: {
-        label: "Açık süreç",
-        detail: "Size görev atanmış ve değerlendirmeye açık süreçler."
+        label: "Açık süreç"
       },
       pendingAssignments: {
-        label: "Bekleyen atama",
-        detail: "Açık veya yakında başlayacak değerlendirme görevleri."
-      },
-      threshold: {
-        label: "Anonimlik eşiği",
-        detail: "Varsayılan güvenlik alt sınırı."
-      },
-      secureStorage: {
-        label: "Şifreli saklama",
-        value: "Aktif",
-        detail: "Yanıtlar güvenilir backend sınırında şifrelenerek saklanır."
+        label: "Bekleyen görev"
       }
-    },
-    workflow: {
-      title: "Kurulum sırası",
-      description:
-        "Hassas değerlendirme akışları başlamadan önce temel güvenlik parçaları tamamlanacak.",
-      badge: "Güvenli gönderim aktif",
-      steps: [
-        "Kimlik doğrulama ve davetli kayıt altyapısı",
-        "Rol ve kapsam tabanlı yetkilendirme",
-        "Supabase RLS politikaları",
-        "Anonim credential ve şifreli gönderim akışı"
-      ]
-    },
-    privacy: {
-      title: "Gizlilik durumu",
-      threshold:
-        "Yeterli sayıda anonim değerlendirme bulunmadığı sürece sonuçlar gösterilmeyecek."
-    },
-    readiness: {
-      identitySeparation: "Kimlik ve içerik ayrımı",
-      encryptionBoundary: "Server-side şifreleme sınırı",
-      runtimeAuth: "Çalışan yetkilendirme kontrolleri",
-      databasePolicies: "Veritabanı RLS politikaları"
-    },
-    status: {
-      documented: "Belgelendi",
-      notStarted: "Başlamadı",
-      implemented: "Uygulandı"
     },
     session: {
       profile: "Profil",
@@ -190,9 +149,8 @@ export const tr = {
     },
     workspace: {
       sectionLabel: "Çalışma bağlamı",
-      title: "Çalışma bağlamı",
-      description:
-        "Bu oturum için tanımlı rol, organizasyon ve yönetici bilgileri.",
+      eyebrow: "Organizasyon",
+      title: "Çalışma bilgilerin",
       labels: {
         roles: "Roller",
         memberships: "Birimler",
@@ -229,83 +187,27 @@ export const tr = {
       }
     },
     administration: {
-      title: "Yönetim görünümü",
-      description:
-        "Bu hesapta yönetim rolü var. Organizasyon, davet, proje ve değerlendirme süresi ayarları ayrı yönetim akışında ilerleyecek."
+      action: "Yönetimi aç"
     }
   },
   administration: {
-    eyebrow: "Korumalı yönetim",
+    eyebrow: "Yankı yönetimi",
     title: "Yönetim alanı",
     summary:
-      "Davet, rol, organizasyon, proje ve değerlendirme süresi ayarları için ayrı yönetim görünümü.",
+      "Kullanıcıları, organizasyon yapısını ve değerlendirme süreçlerini tek yerden yönet.",
+    moduleNavigationLabel: "Yönetim modülleri",
+    modules: {
+      projects: "Projeler",
+      users: "Kullanıcılar",
+      hierarchy: "Organizasyon",
+      templates: "Şablonlar",
+      security: "Güvenlik",
+      retention: "Veri saklama"
+    },
     roles: {
       sectionLabel: "Yönetim rolleri",
       title: "Etkin yönetim kapsamı",
       description: "Bu oturumda yönetim görünümünü açan rol ve kapsamlar."
-    },
-    workflowsSectionLabel: "Yönetim iş akışları",
-    workflows: [
-      {
-        status: "Canlı temel",
-        title: "Kullanıcı ve davetler",
-        description:
-          "Davet oluşturma ve profil aktivasyonu güvenilir backend üzerinden ilerler.",
-        items: [
-          "Davet oluşturma",
-          "Davet iptali",
-          "Profil aktivasyonu"
-        ]
-      },
-      {
-        status: "Canlı temel",
-        title: "Rol ve hiyerarşi",
-        description:
-          "Birimler, ana üyelikler, doğrudan yönetici ilişkileri ve kapsamlı roller güvenilir backend üzerinden yönetilir.",
-        items: [
-          "Birim yönetimi",
-          "Rol kapsamı",
-          "Yönetici ilişkisi"
-        ]
-      },
-      {
-        status: "Model temeli",
-        title: "Projeler",
-        description:
-          "Proje adı, proje müdürü, proje üyeleri ve proje bitiş tarihi yönetim akışına hazırlanıyor.",
-        items: [
-          "Proje kaydı",
-          "Proje üyeleri",
-          "Proje bitiş tarihi"
-        ]
-      },
-      {
-        status: "Tarih bazlı",
-        title: "Değerlendirme süreleri",
-        description:
-          "Değerlendirmeler sabit kişi sayısına bağlı olmadan açılabilecek ve kapanış tarihiyle sınırlandırılacak.",
-        items: [
-          "Açılış zamanı",
-          "Kapanış tarihi",
-          "Anonimlik eşiği"
-        ]
-      }
-    ],
-    datePolicy: {
-      title: "Proje ve değerlendirme tarihleri",
-      description:
-        "Proje tamamlanma tarihi ve son değerlendirme tarihi yönetim akışının temel tarih alanlarıdır.",
-      projectCompletionLabel: "Proje bitiş tarihi",
-      evaluationCloseLabel: "Değerlendirme kapanış tarihi",
-      configuredBy: "Admin veya yetkilendirilmiş proje müdürü"
-    },
-    safeguards: {
-      title: "Güvenlik sınırı",
-      items: [
-        "Yönetim görünümü değerlendirme içeriği okumaz.",
-        "Hassas işlemler frontend rol kontrolüne bırakılmaz.",
-        "Edge Function ve RLS kontrolleri eklenmeden üretim işlemi açılmaz."
-      ]
     },
     securityOperations: {
       sectionLabel: "Şifreleme anahtarı sağlığı",
@@ -497,7 +399,7 @@ export const tr = {
       form: {
         newTitle: "Yeni şablon",
         editTitle: "Taslak sürümü düzenle",
-        organizationId: "Organizasyon ID",
+        organizationId: "Organizasyon",
         name: "Şablon adı",
         description: "Açıklama",
         questionsTitle: "Sorular",
@@ -551,9 +453,14 @@ export const tr = {
     },
     projects: {
       sectionLabel: "Proje ve değerlendirme süreci yönetimi",
+      statusLabels: {
+        ACTIVE: "Aktif",
+        ARCHIVED: "Arşivlendi",
+        COMPLETED: "Tamamlandı"
+      },
       form: {
         title: "Yeni proje süreci",
-        organizationId: "Organizasyon ID",
+        organizationId: "Organizasyon",
         projectName: "Proje adı",
         projectCode: "Proje kodu",
         projectCompletedOn: "Proje bitiş tarihi",
@@ -561,7 +468,7 @@ export const tr = {
         templateVersion: "Yayınlanmış şablon sürümü",
         templateVersionPlaceholder: "Şablon sürümü seç",
         noPublishedTemplate: "Bu organizasyon için yayınlanmış şablon yok",
-        projectManagerUserId: "Proje müdürü kullanıcı ID",
+        projectManagerUserId: "Proje müdürü",
         opensAt: "Açılış zamanı",
         closesAt: "Kapanış zamanı",
         submit: "Proje süreci oluştur",
@@ -635,41 +542,31 @@ export const tr = {
     },
     blocked: {
       title: "Yönetim yetkisi yok",
-      description:
-        "Bu görünüm için yönetim rolü gerekir. Nihai izinler yine trusted backend ve RLS tarafından doğrulanacaktır.",
+      description: "Bu alanı görüntülemek için yönetim yetkisi gerekir.",
       backLink: "Kontrol paneline dön"
     }
   },
   auth: {
     loading: "Oturum durumu kontrol ediliyor.",
-    pageTitle: "Güvenli giriş",
+    eyebrow: "Dürüst geri bildirim",
+    pageTitle: "Her ses duyulsun, kimse işaret edilmesin.",
     pageSummary:
-      "Şirket hesabınla giriş yaparak yalnızca sana atanmış değerlendirme işlemlerine erişebilirsin.",
-    securityHighlights: [
-      {
-        title: "Yetkili erişim",
-        description:
-          "Hassas işlemler yalnızca doğrulanmış oturumla başlatılacak."
-      },
-      {
-        title: "Gizlilik sınırı",
-        description:
-          "Değerlendirme içerikleri frontend tarafında saklanmayacak."
-      }
-    ],
+      "Sana atanan değerlendirmeleri tamamla, ekibinin gelişimine güvenle katkı sağla.",
     configuration: {
       title: "Bağlantı ayarları eksik"
     },
     signIn: {
+      eyebrow: "Hesabın",
       title: "Oturum aç",
-      description:
-        "Supabase Auth e-posta ve şifre girişinin ilk temel akışı."
+      description: "Şirket hesabınla Yankı çalışma alanına devam et."
     },
     form: {
       emailLabel: "E-posta adresi",
       passwordLabel: "Şifre",
       signInButton: "Giriş yap",
-      submitting: "İşleniyor"
+      submitting: "Giriş yapılıyor",
+      showPassword: "Şifreyi göster",
+      hidePassword: "Şifreyi gizle"
     },
     passwordReset: {
       title: "Şifremi unuttum",
@@ -700,7 +597,7 @@ export const tr = {
       passwordResetRequested:
         "Şifre sıfırlama bağlantısı e-posta adresine gönderildiyse kısa süre içinde ulaşacaktır.",
       configurationError:
-        "Supabase bağlantı ayarları eksik veya hatalı. .env.local dosyasını kontrol et.",
+        "Bağlantı kurulamadı. Lütfen sistem yöneticinle iletişime geç.",
       AUTH_SESSION_READ_FAILED:
         "Oturum bilgisi okunurken bir hata oluştu.",
       AUTH_SIGN_IN_FAILED:

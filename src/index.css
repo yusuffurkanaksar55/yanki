@@ -13,16 +13,70 @@
       BlinkMacSystemFont,
       "Segoe UI",
       sans-serif;
-    background: #f6f8fb;
+    background: #f3f6f4;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
     margin: 0;
     min-width: 320px;
+    background: #f3f6f4;
+    color: #17202a;
   }
 
   button,
   a {
     min-height: 2.5rem;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  ::selection {
+    background: #cce7df;
+    color: #173c35;
+  }
+}
+
+@layer components {
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-pine focus-visible:ring-offset-2;
+  }
+
+  .icon-button {
+    @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-transparent text-slate-500 transition hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900 focus-ring disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .app-input {
+    @apply min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-pine focus:ring-2 focus:ring-pine/15 disabled:cursor-not-allowed disabled:bg-slate-100;
+  }
+
+  .surface-panel {
+    @apply rounded-lg border border-slate-200 bg-white shadow-sm;
+  }
+
+  .section-kicker {
+    @apply text-xs font-bold uppercase text-coral;
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 }

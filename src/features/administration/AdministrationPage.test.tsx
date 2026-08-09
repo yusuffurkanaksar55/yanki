@@ -1,12 +1,14 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { tr } from "../../locales/tr/messages";
 import type { ProjectCycleService } from "./projectCycleService";
+import type { UserAdministrationService } from "./userAdministrationService";
 import type { WorkspaceContext } from "../workspace/workspaceContextService";
 import { AdministrationPage } from "./AdministrationPage";
 
 describe("AdministrationPage", () => {
-  it("renders administration workflows for users with an administration role", () => {
+  it("renders focused administration modules for users with an administration role", () => {
     render(
       <AdministrationPage
         projectCycleService={createProjectCycleServiceStub()}
@@ -31,10 +33,32 @@ describe("AdministrationPage", () => {
         name: tr.administration.projects.form.title
       })
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByText(tr.administration.datePolicy.evaluationCloseLabel)
-    ).toBeInTheDocument();
     expect(screen.getByText("Proje müdürü / Proje")).toBeInTheDocument();
+  });
+
+  it("switches between administration modules without stacking every panel", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AdministrationPage
+        projectCycleService={createProjectCycleServiceStub()}
+        userAdministrationService={createUserAdministrationServiceStub()}
+        workspaceContext={createSystemAdminWorkspaceContext()}
+      />
+    );
+
+    await user.click(
+      screen.getByRole("tab", { name: tr.administration.modules.users })
+    );
+
+    expect(
+      screen.getByRole("region", { name: tr.administration.users.sectionLabel })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", {
+        name: tr.administration.projects.sectionLabel
+      })
+    ).not.toBeInTheDocument();
   });
 
   it("blocks users without an administration role", () => {
@@ -76,6 +100,20 @@ function createEmployeeWorkspaceContext(): WorkspaceContext {
   };
 }
 
+function createSystemAdminWorkspaceContext(): WorkspaceContext {
+  return {
+    roles: [
+      {
+        roleCode: "SYSTEM_ADMIN",
+        scopeType: "PLATFORM",
+        scopeId: null
+      }
+    ],
+    memberships: [],
+    managers: []
+  };
+}
+
 function createProjectCycleServiceStub(): ProjectCycleService {
   return {
     addProjectMember: vi.fn(),
@@ -84,5 +122,18 @@ function createProjectCycleServiceStub(): ProjectCycleService {
     listOrganizationMembers: vi.fn(async () => []),
     listProjectCycles: vi.fn(async () => []),
     updateProjectDates: vi.fn()
+  };
+}
+
+function createUserAdministrationServiceStub(): UserAdministrationService {
+  return {
+    createInvitation: vi.fn(),
+    listUserAdministration: vi.fn(async () => ({
+      invitations: [],
+      members: [],
+      organizations: [],
+      units: []
+    })),
+    revokeInvitation: vi.fn()
   };
 }

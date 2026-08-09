@@ -97,6 +97,20 @@ export function ProjectCycleManagementPanel({
     () => workspaceContext.memberships[0]?.organizationId ?? "",
     [workspaceContext.memberships]
   );
+  const organizationOptions = useMemo(
+    () => Array.from(
+      new Map(
+        workspaceContext.memberships.map((membership) => [
+          membership.organizationId,
+          {
+            id: membership.organizationId,
+            name: membership.organizationName
+          }
+        ])
+      ).values()
+    ),
+    [workspaceContext.memberships]
+  );
   const canLoadOrganizationMembers = useMemo(
     () => workspaceContext.roles.some((role) => role.roleCode === "SYSTEM_ADMIN"),
     [workspaceContext.roles]
@@ -327,7 +341,7 @@ export function ProjectCycleManagementPanel({
     <section
       aria-label={tr.administration.projects.sectionLabel}
       className={`mt-8 grid gap-4 ${
-        canCreateProjectCycles ? "lg:grid-cols-[0.95fr_1.05fr]" : ""
+        canCreateProjectCycles ? "2xl:grid-cols-[0.9fr_1.1fr]" : ""
       }`}
     >
       {canCreateProjectCycles ? (
@@ -341,14 +355,22 @@ export function ProjectCycleManagementPanel({
           {tr.administration.projects.form.title}
         </h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <TextField
-            label={tr.administration.projects.form.organizationId}
-            name="organizationId"
-            onChange={setFormState}
-            required
-            type="text"
-            value={formState.organizationId}
-          />
+          {organizationOptions.length > 0 ? (
+            <OrganizationSelectField
+              onChange={setFormState}
+              options={organizationOptions}
+              value={formState.organizationId}
+            />
+          ) : (
+            <TextField
+              label={tr.administration.projects.form.organizationId}
+              name="organizationId"
+              onChange={setFormState}
+              required
+              type="text"
+              value={formState.organizationId}
+            />
+          )}
           <TextField
             label={tr.administration.projects.form.projectName}
             name="projectName"
@@ -469,6 +491,39 @@ export function ProjectCycleManagementPanel({
         />
       </section>
     </section>
+  );
+}
+
+function OrganizationSelectField({
+  onChange,
+  options,
+  value
+}: {
+  readonly onChange: (
+    updater: (current: FormState) => FormState
+  ) => void;
+  readonly options: readonly { readonly id: string; readonly name: string }[];
+  readonly value: string;
+}) {
+  return (
+    <label className="block text-sm font-semibold text-slate-800">
+      {tr.administration.projects.form.organizationId}
+      <select
+        className="mt-2 min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900 shadow-sm focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20"
+        onChange={(event) => {
+          const organizationId = event.target.value;
+          onChange((current) => ({ ...current, organizationId }));
+        }}
+        required
+        value={value}
+      >
+        {options.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.name}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
@@ -674,7 +729,7 @@ function ProjectList({
               ) : null}
             </div>
             <span className="w-fit rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
-              {project.status}
+              {formatProjectStatus(project.status)}
             </span>
           </div>
           <dl className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -1124,10 +1179,37 @@ function ProjectDate({
         {label}
       </dt>
       <dd className="mt-1 text-sm text-slate-700">
-        {value ?? tr.administration.projects.list.noDate}
+        {formatProjectDate(value)}
       </dd>
     </div>
   );
+}
+
+function formatProjectStatus(status: string): string {
+  return (
+    tr.administration.projects.statusLabels[
+      status as keyof typeof tr.administration.projects.statusLabels
+    ] ?? status
+  );
+}
+
+function formatProjectDate(value: string | null): string {
+  if (!value) {
+    return tr.administration.projects.list.noDate;
+  }
+
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(`${value}T00:00:00`)
+    : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("tr-TR", {
+    dateStyle: "medium",
+    ...(value.includes("T") ? { timeStyle: "short" as const } : {})
+  }).format(date);
 }
 
 function toDraft(formState: FormState): ProjectCycleDraft {

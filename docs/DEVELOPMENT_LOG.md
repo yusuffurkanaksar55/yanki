@@ -1,5 +1,43 @@
 # Development Log
 
+## 2026-08-09 - Product UI Foundation And Responsive Administration
+
+### Objective
+
+Replace the development-oriented frontend shell with a clear, distinctive, and responsive product interface while preserving the existing authorization and evaluation workflows.
+
+### Changes
+
+- Added a shared responsive application shell with Yankı branding, Lucide navigation, account context, desktop sidebar, and compact mobile navigation.
+- Rebuilt the authentication surface around an optimized project-owned visual asset, accessible form controls, password visibility, and non-technical Turkish copy.
+- Simplified the employee dashboard to real assignment metrics, tasks, reports, and organization context; removed inactive buttons, implementation readiness lists, and frontend security notes.
+- Converted the stacked administration page into permission-aware modules, localized project status/date output, and organization-name selectors for project/template creation.
+- Corrected mobile grid minimum sizing and desktop project-layout breakpoints after browser inspection found horizontal overflow and compressed assignment metrics.
+
+### Database changes
+
+None.
+
+### Security impact
+
+Neutral to positive. Existing server and RLS authorization boundaries are unchanged, unauthorized administration modules are no longer presented, and technical infrastructure details are no longer exposed in normal user copy.
+
+### Tests performed
+
+- Full `npm run check`: 49 Vitest files and 215 tests, lint, typecheck, production build, and bounded-memory verification.
+- Focused application, authentication, and administration suites passed 11 tests.
+- In-app browser verification at 1440x900 and 390x844 covered authentication, dashboard, all six system-administration modules, image loading, horizontal overflow, localized project status, and fresh-load console errors.
+
+### Result
+
+The current authentication, employee, and administration surfaces now share a coherent product identity and remain usable without horizontal page overflow at tested desktop and mobile sizes. Future product features should extend this shell rather than reintroducing standalone page layouts.
+
+### Remaining work
+
+- Add route-level code splitting to reduce the current production bundle warning as the administration surface grows.
+- Add persistent Playwright workflows for authenticated visual regression and keyboard navigation.
+- Validate final copy and visual identity with representative customer users before production launch.
+
 ## 2026-08-09 - Signed Digest-Pinned Container Release Automation
 
 ### Objective
@@ -153,41 +191,3 @@ The repository and linked synthetic project now have the default-deny canary sch
 - Select and configure the real production primary secret manager and independently controlled recovery/offline escrow.
 - Schedule encrypted off-host backups and complete a signed isolated environment restore with approved RPO/RTO.
 - Complete gateway/WAF alerts and approved invitation-email acceptance.
-
-## 2026-08-09 - Idempotent Production Tenant Bootstrap
-
-### Objective
-
-Provision a company and its first administrator through one portable trusted workflow without browser privileges, manual table writes, password/token output, duplicate tenants, or silent elevation of an existing Auth identity.
-
-### Changes
-
-- Added a fingerprinted service-role-only bootstrap transaction that creates the organization, initial unit, invited administrator profile, organization-admin invitation, default retention policy, content-free operation state, and audit event.
-- Added a side-effect-free preflight plus explicit-confirmation operator command with exact-request replay, server-controlled Auth markers, and compensation for a newly created Auth identity when database provisioning fails.
-- Added an explicit initial-invitation recovery command that renews only an exact incomplete bootstrap and requests Supabase recovery mail without generating a raw action link.
-- Added a Turkish strong-password gate for invitation metadata and Supabase `PASSWORD_RECOVERY` sessions; normal administrator invitations now set the same password-setup metadata.
-- Raised the local Auth baseline to 12 characters with upper/lower/numeric/symbol requirements and documented equivalent production configuration.
-
-### Database changes
-
-Applied `20260809120000_production_tenant_bootstrap.sql` locally and to project `daxaymcmtbmummrxdyjy`. It adds default-deny `tenant_bootstrap_operations`, exact status/bootstrap/renewal functions, safe audit events, and service-role-only execution grants. A clean local reset applied every migration successfully, and linked schema lint passed.
-
-### Security impact
-
-Positive. Browser roles cannot inspect or execute bootstrap state. The first administrator receives no membership or role before email-verified invitation acceptance. Existing unmarked identities are rejected, action links and credentials never enter command output, and retries require the original request UUID plus exact fingerprint.
-
-### Tests performed
-
-- Full `npm run check`: 41 Vitest files and 167 tests, lint, typecheck, production build, and memory check.
-- Clean local Supabase reset, local schema lint, and 165 pgTAP cases across seven suites, including 31 bootstrap cases.
-- Side-effect-free local `tenant:bootstrap:check` returned `ready` with an available administrator identity.
-- Docker Compose configuration validation and in-app browser inspection at desktop and 390 px mobile width; no horizontal overflow or browser console errors were observed.
-- Remote migration dry-run/push/list, linked type generation, linked schema lint, and `user-onboarding` deployment/version verification.
-
-### Result
-
-The tenant bootstrap foundation is active in the linked synthetic project for shared SaaS and dedicated installation workflows. `user-onboarding` is active at version 8 with password-setup metadata. No live tenant or Auth identity was created.
-
-### Remaining work
-
-- Complete approved SMTP/mailbox acceptance, independent production key recovery, gateway/WAF alerts, scheduled encrypted off-host backups, and environment-specific restore acceptance.

@@ -50,12 +50,13 @@ describe("App", () => {
     ).toBeInTheDocument();
     expect(profileService.getOwnProfile).toHaveBeenCalledWith("user-id");
     expect(
-      screen.getByRole("navigation", { name: tr.navigation.primaryAriaLabel })
-    ).toBeInTheDocument();
+      screen.getAllByRole("navigation", {
+        name: tr.navigation.primaryAriaLabel
+      }).length
+    ).toBeGreaterThan(0);
     expect(
-      screen.getByRole("button", { name: tr.dashboard.actions.newCycle })
-    ).toBeInTheDocument();
-    expect(screen.getByText(tr.dashboard.privacy.threshold)).toBeInTheDocument();
+      screen.getByRole("link", { name: tr.dashboard.administration.action })
+    ).toHaveAttribute("href", "#administration");
     expect(screen.getByText("person@example.com")).toBeInTheDocument();
     expect(screen.getByText("Person Example")).toBeInTheDocument();
     expect(screen.getByText(tr.dashboard.workspace.title)).toBeInTheDocument();
@@ -64,12 +65,14 @@ describe("App", () => {
     expect(
       await screen.findByRole("heading", { name: "Proje Değerlendirmesi" })
     ).toBeInTheDocument();
-    const administrationLink = screen.getByRole("link", {
+    const administrationLinks = screen.getAllByRole("link", {
       name: tr.navigation.administration
     });
 
-    expect(administrationLink).toBeInTheDocument();
-    expect(administrationLink).toHaveAttribute("href", "#administration");
+    expect(administrationLinks.length).toBeGreaterThan(0);
+    for (const administrationLink of administrationLinks) {
+      expect(administrationLink).toHaveAttribute("href", "#administration");
+    }
   });
 
   it("renders the protected administration shell for an administration route", async () => {
@@ -90,12 +93,13 @@ describe("App", () => {
       await screen.findByRole("heading", { name: tr.administration.title })
     ).toBeInTheDocument();
     expect(
-      screen.getByText(tr.administration.datePolicy.evaluationCloseLabel)
-    ).toBeInTheDocument();
+      screen.getByRole("tab", { name: tr.administration.modules.projects })
+    ).toHaveAttribute("aria-selected", "true");
     expect(
-      screen.getAllByText(tr.administration.datePolicy.projectCompletionLabel)
-        .length
-    ).toBeGreaterThan(0);
+      screen.getByRole("region", {
+        name: tr.administration.projects.sectionLabel
+      })
+    ).toBeInTheDocument();
   });
 
   it("blocks the administration route when the workspace has no administration role", async () => {

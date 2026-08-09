@@ -6,6 +6,9 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added a responsive Yankı application shell, original authentication artwork, Lucide navigation, accessible account controls, and centralized Turkish product copy.
+- Added permission-aware administration modules so project, user, hierarchy, template, security, and retention workflows no longer render as one stacked page.
+- Added organization-name selectors plus localized project status and date presentation to project and template administration.
 - Added a tag-only multi-platform GHCR release workflow with full-SHA Action pins, digest-pinned Node/Nginx bases, max-mode provenance, SPDX SBOM, Cosign keyless image/manifest signatures, and optional GitHub artifact attestations.
 - Added a signed release manifest, SHA-256 inventory, no-build customer Compose package, and standalone installation acceptance that verifies origin, integrity, OCI labels, Nginx, runtime public configuration, health, and cleanup.
 - Added ADR-0029 plus publisher/customer release and rollback operations documentation.
@@ -26,6 +29,8 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- Removed inactive dashboard actions, implementation-readiness panels, technical frontend notes, and raw API status/date output from user-facing screens.
+- Fixed mobile administration overflow and desktop project-metric compression found during responsive browser verification.
 - Completed the previously missing browser password-update step after Supabase invitation and password-recovery links.
 
 ## 2026-08-08

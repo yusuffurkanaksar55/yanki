@@ -60,6 +60,20 @@ export function EvaluationTemplateManagementPanel({
       ?? "",
     [workspaceContext.memberships, workspaceContext.roles]
   );
+  const organizationOptions = useMemo(
+    () => Array.from(
+      new Map(
+        workspaceContext.memberships.map((membership) => [
+          membership.organizationId,
+          {
+            id: membership.organizationId,
+            name: membership.organizationName
+          }
+        ])
+      ).values()
+    ),
+    [workspaceContext.memberships]
+  );
   const [formState, setFormState] = useState<TemplateFormState>(() =>
     createInitialFormState(defaultOrganizationId)
   );
@@ -205,13 +219,21 @@ export function EvaluationTemplateManagementPanel({
         </div>
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <TemplateTextField
-            label={tr.administration.templates.form.organizationId}
-            name="organizationId"
-            onChange={setFormState}
-            required
-            value={formState.organizationId}
-          />
+          {organizationOptions.length > 0 ? (
+            <TemplateOrganizationSelect
+              onChange={setFormState}
+              options={organizationOptions}
+              value={formState.organizationId}
+            />
+          ) : (
+            <TemplateTextField
+              label={tr.administration.templates.form.organizationId}
+              name="organizationId"
+              onChange={setFormState}
+              required
+              value={formState.organizationId}
+            />
+          )}
           <TemplateTextField
             label={tr.administration.templates.form.name}
             name="name"
@@ -540,6 +562,39 @@ function TemplateList({
         </article>
       ))}
     </div>
+  );
+}
+
+function TemplateOrganizationSelect({
+  onChange,
+  options,
+  value
+}: {
+  readonly onChange: (
+    updater: (current: TemplateFormState) => TemplateFormState
+  ) => void;
+  readonly options: readonly { readonly id: string; readonly name: string }[];
+  readonly value: string;
+}) {
+  return (
+    <label className="block text-sm font-semibold text-slate-800">
+      {tr.administration.templates.form.organizationId}
+      <select
+        className="mt-2 min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900 shadow-sm focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20"
+        onChange={(event) => {
+          const organizationId = event.target.value;
+          onChange((current) => ({ ...current, organizationId }));
+        }}
+        required
+        value={value}
+      >
+        {options.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.name}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
