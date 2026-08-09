@@ -2,7 +2,7 @@
 
 ## Status
 
-Authorization is documented and implemented through default-deny tables, narrow own-context RPCs, record-backed scoped administration, immutable templates, authenticated one-time submission preparation, anonymous atomic redemption, thresholded scoped aggregate reporting, and service-role-only tenant bootstrap.
+Authorization is documented and implemented through default-deny tables, narrow own-context RPCs, record-backed scoped administration, immutable templates, authenticated one-time submission preparation, anonymous atomic redemption, thresholded scoped aggregate reporting, service-role-only tenant bootstrap, and service-role-only encrypted recovery-canary refresh.
 
 ## Principles
 
@@ -21,7 +21,9 @@ Dedicated customer installations retain the same checks. Physical infrastructure
 
 ## Current Database Foundation
 
-The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`. The project/evaluation-cycle migration creates `projects`, `project_memberships`, and `evaluation_cycles`. The evaluation assignment migration creates `evaluation_assignments`. The production bootstrap migration creates content-free `tenant_bootstrap_operations` and narrow service-role functions.
+The initial migration creates `app_roles`, `scope_types`, and `user_role_assignments` for future scoped authorization. The profile/invitation migration creates `user_profiles` and `user_invitations`. The organization hierarchy migration creates `organizations`, `organization_units`, `organization_unit_memberships`, and `manager_assignments`. The project/evaluation-cycle migration creates `projects`, `project_memberships`, and `evaluation_cycles`. The evaluation assignment migration creates `evaluation_assignments`. The production bootstrap migration creates content-free `tenant_bootstrap_operations` and narrow service-role functions. The recovery migration creates synthetic encrypted `evaluation_encryption_recovery_canaries` with no direct API privileges and one service-role-only refresh function.
+
+The recovery-canary function accepts only encrypted synthetic values and reviewed cryptographic metadata. It cannot read the table or any evaluation-domain table. Browsers cannot execute it, while the disposable database recovery role reads canaries directly only inside isolated operator infrastructure after restore.
 
 RLS is enabled on all public tables. `user_profiles` allows authenticated users to select only their own row through `auth.uid() = user_id`. `get_my_workspace_context()` allows authenticated users to read only their own non-sensitive role, unit, and manager context. `user_invitations`, roles, role assignments, audit events, organization hierarchy tables, project tables, evaluation-cycle tables, and evaluation assignment tables remain default-deny to frontend clients. `get_my_evaluation_assignments()` derives the caller from `auth.uid()`, requires an active profile and tenant membership, revalidates the subject's active matching membership, and returns only the caller's non-cancelled assignment display metadata from non-draft cycles.
 

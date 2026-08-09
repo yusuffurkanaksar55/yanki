@@ -1,5 +1,68 @@
 # Error Log
 
+## ERR-20260809-048 - RLS migration form did not match the repository guard
+
+### Context
+
+The full Vitest suite scanned every `create table public...` migration and required a corresponding machine-detectable RLS statement.
+
+### Symptoms
+
+The new recovery-canary table had RLS enabled in PostgreSQL and passed pgTAP, but `tests/supabase-foundation.test.mjs` failed to recognize the statement.
+
+### Root cause
+
+The migration split `alter table public.evaluation_encryption_recovery_canaries enable row level security;` across two lines, while the existing static guard intentionally matches the canonical one-line form.
+
+### Correct solution
+
+Keep the reviewed RLS behavior unchanged and express the statement in the repository's canonical single-line migration form.
+
+### Prevention
+
+Run the full repository suite, not only database tests, after adding a public table. Follow machine-checked migration conventions for RLS and privilege statements.
+
+### Related files
+
+- `supabase/migrations/20260809153000_encryption_recovery_canaries.sql`
+- `tests/supabase-foundation.test.mjs`
+
+### Related tests
+
+- `npm test`
+- `npm run check`
+
+## ERR-20260809-047 - Local recovery helper used an unavailable RNG API
+
+### Context
+
+The first executable combined database/key recovery drill generated a process-only disposable AES key from PowerShell.
+
+### Symptoms
+
+Windows PowerShell reported that the static `RandomNumberGenerator.Fill` method was unavailable. Because later commands succeeded, the compound helper also returned exit code zero after using the still zero-filled test buffer.
+
+### Root cause
+
+The helper assumed a newer .NET cryptography API and did not stop immediately after a PowerShell method error.
+
+### Correct solution
+
+Use the compatible `RandomNumberGenerator.Create().GetBytes()` API, dispose the generator, refresh the encrypted canary, and explicitly propagate every child process exit code. The corrected drill used a real random 32-byte key and passed.
+
+### Prevention
+
+Keep production keys in the approved secret manager rather than generating them in shell helpers. For disposable Windows verification, use APIs supported by Windows PowerShell and make compound acceptance helpers fail fast.
+
+### Related files
+
+- `scripts/provision-encryption-recovery-canaries.mjs`
+- `scripts/verify-key-database-recovery-acceptance.mjs`
+
+### Related tests
+
+- `npm run encryption:recovery:acceptance`
+
 ## ERR-20260809-046 - Recovery-event test mutated a readonly service contract
 
 ### Context
@@ -255,69 +318,6 @@ Keep static security tests bound to ownership boundaries and invariants rather t
 ### Related tests
 
 - `npm test`
-
-## ERR-20260807-038 - Trusted report batch omitted cycle close metadata
-
-### Context
-
-The first live thresholded reporting smoke test successfully passed database authorization and decryption preparation.
-
-### Symptoms
-
-`evaluation-reports` stopped with `REPORT_CLOSE_MISSING` before returning an aggregate.
-
-### Root cause
-
-The applied thresholded batch function returned report identity, threshold, questions, and ciphertext but omitted the non-sensitive cycle close timestamp required by the typed report response.
-
-### Correct solution
-
-Add a forward-only compatibility migration that keeps the reviewed threshold/authorization implementation owner-only, delegates through the public service-role boundary, and appends the database-derived close timestamp.
-
-### Prevention
-
-Assert every required safe report metadata field in pgTAP and run the complete live encrypted submission-to-report path after deployment.
-
-### Related files
-
-- `supabase/migrations/20260807111500_reporting_close_metadata_fix.sql`
-- `supabase/tests/database/thresholded_evaluation_reporting.test.sql`
-
-### Related tests
-
-- `npm run supabase:test:local`
-- `npm run smoke:reports`
-
-## ERR-20260807-037 - User-scoped Docker installation was absent from PATH
-
-### Context
-
-The final deployment configuration check used `docker compose` through the npm quality command.
-
-### Symptoms
-
-The command reported that `docker` was not recognized even though Docker Desktop and the local Supabase stack were running.
-
-### Root cause
-
-Docker Desktop was installed under the current user's local application directory, and its CLI directory was not present in this PowerShell process PATH.
-
-### Correct solution
-
-Resolve the user-scoped and standard Windows Docker CLI locations in a Node validation wrapper, then invoke Compose without shell quoting.
-
-### Prevention
-
-Keep deployment checks independent of interactive shell PATH when Docker Desktop uses a supported non-default install location.
-
-### Related files
-
-- `package.json`
-- `scripts/validate-compose-config.mjs`
-
-### Related tests
-
-- `npm run deployment:config`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

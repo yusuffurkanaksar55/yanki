@@ -2,6 +2,11 @@ import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
+import {
+  loadCustodiedEncryptionKeys,
+  readKeyCustodyManifest,
+  verifyEncryptionRecoveryCanaries
+} from "./lib/encryption-key-custody.mjs";
 
 const expectedConfirmation = "RUN_DISPOSABLE_BACKUP_RESTORE_ACCEPTANCE";
 const confirmation = process.env.BACKUP_RESTORE_ACCEPTANCE_CONFIRM;
@@ -21,6 +26,8 @@ const targetDatabase = process.env.BACKUP_ACCEPTANCE_TARGET_DATABASE?.trim()
   || "yanki_restore_acceptance";
 const databaseUser = process.env.BACKUP_ACCEPTANCE_DATABASE_USER?.trim()
   || "supabase_admin";
+const requireEncryptionRecovery =
+  process.env.BACKUP_RESTORE_REQUIRE_ENCRYPTION_RECOVERY === "true";
 
 if (!/^[a-z][a-z0-9_]*_restore_acceptance$/u.test(targetDatabase)) {
   fail(
@@ -104,6 +111,8 @@ try {
         to_regclass('public.organization_evaluation_retention_policies') is not null,
       'retentionExecutorPresent',
         to_regprocedure('public.execute_due_evaluation_content_retention()') is not null,
+      'recoveryCanariesPresent',
+        to_regclass('public.evaluation_encryption_recovery_canaries') is not null,
       'browserCiphertextReadDenied',
         not has_table_privilege(
           'authenticated',
@@ -115,6 +124,18 @@ try {
           'authenticated',
           'public.execute_due_evaluation_content_retention()',
           'EXECUTE'
+        ),
+      'browserRecoveryCanaryReadDenied',
+        not has_table_privilege(
+          'authenticated',
+          'public.evaluation_encryption_recovery_canaries',
+          'SELECT'
+        ),
+      'serviceRecoveryCanaryReadDenied',
+        not has_table_privilege(
+          'service_role',
+          'public.evaluation_encryption_recovery_canaries',
+          'SELECT'
         )
     );`
   ]).trim();
@@ -124,8 +145,11 @@ try {
     "encryptedSubmissionsPresent",
     "retentionPoliciesPresent",
     "retentionExecutorPresent",
+    "recoveryCanariesPresent",
     "browserCiphertextReadDenied",
-    "browserRetentionExecutionDenied"
+    "browserRetentionExecutionDenied",
+    "browserRecoveryCanaryReadDenied",
+    "serviceRecoveryCanaryReadDenied"
   ];
 
   if (expectedChecks.some((check) => verificationResult[check] !== true)) {
@@ -136,10 +160,52 @@ try {
     );
   }
 
+  let encryptionRecovery;
+
+  if (requireEncryptionRecovery) {
+    const manifest = await readKeyCustodyManifest(
+      process.env.EVALUATION_KEY_CUSTODY_MANIFEST_PATH
+    );
+    const keys = loadCustodiedEncryptionKeys(manifest);
+    const canaryRows = JSON.parse(runDocker([
+      "exec",
+      containerName,
+      "psql",
+      "--username",
+      databaseUser,
+      "--dbname",
+      targetDatabase,
+      "--tuples-only",
+      "--no-align",
+      "--command",
+      `select coalesce(
+        jsonb_agg(
+          jsonb_build_object(
+            'encryptionKeyVersion', canary.encryption_key_version,
+            'encryptedCanary', encode(canary.encrypted_canary, 'base64'),
+            'nonce', encode(canary.nonce, 'base64'),
+            'canaryDigest', encode(canary.canary_digest, 'base64'),
+            'contextVersion', canary.context_version
+          ) order by canary.encryption_key_version
+        ),
+        '[]'::jsonb
+      )
+      from public.evaluation_encryption_recovery_canaries canary
+      where canary.environment_id = ${quoteSqlLiteral(manifest.environmentId)};`
+    ]).trim());
+
+    encryptionRecovery = await verifyEncryptionRecoveryCanaries(
+      manifest,
+      keys,
+      canaryRows
+    );
+  }
+
   acceptanceReport = {
     dumpStreamSha256: dumpStream.sha256,
     dumpStreamSizeBytes: dumpStream.sizeBytes,
     disposableTargetRemoved: true,
+    encryptionRecovery: encryptionRecovery ?? { required: false },
     restoreVerified: true,
     temporaryDumpWritten: false,
     verification: verificationResult
@@ -248,4 +314,8 @@ function waitForProcess(child, label, errorChunks) {
 
 function fail(message) {
   throw new Error(message);
+}
+
+function quoteSqlLiteral(value) {
+  return `'${value.replaceAll("'", "''")}'`;
 }

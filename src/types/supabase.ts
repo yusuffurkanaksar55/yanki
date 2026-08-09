@@ -373,6 +373,36 @@ export type Database = {
           },
         ]
       }
+      evaluation_encryption_recovery_canaries: {
+        Row: {
+          canary_digest: string
+          context_version: number
+          encrypted_canary: string
+          encryption_key_version: string
+          environment_id: string
+          nonce: string
+          refreshed_at: string
+        }
+        Insert: {
+          canary_digest: string
+          context_version?: number
+          encrypted_canary: string
+          encryption_key_version: string
+          environment_id: string
+          nonce: string
+          refreshed_at?: string
+        }
+        Update: {
+          canary_digest?: string
+          context_version?: number
+          encrypted_canary?: string
+          encryption_key_version?: string
+          environment_id?: string
+          nonce?: string
+          refreshed_at?: string
+        }
+        Relationships: []
+      }
       evaluation_template_questions: {
         Row: {
           created_at: string
@@ -1408,6 +1438,10 @@ export type Database = {
       require_active_system_admin: {
         Args: { actor_user_id: string; managed_organization_id: string }
         Returns: undefined
+      }
+      upsert_evaluation_encryption_recovery_canaries: {
+        Args: { managed_canaries: Json; managed_environment_id: string }
+        Returns: number
       }
     }
     Enums: {

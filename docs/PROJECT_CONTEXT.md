@@ -27,7 +27,8 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Reporting UI: the Turkish dashboard lists authorized closed report targets without participation counts, shows a count-free withheld state below threshold, renders numeric/categorical aggregates above threshold, and never receives raw free-text responses.
 - Evaluation content retention: each organization has a versioned 30-to-3650-day policy, disabled-by-default automatic purge, legal hold, scoped Turkish administration UI, and service-role-only live-database cleanup that returns no submission counts.
 - Production tenant bootstrap: a service-role-only, fingerprinted, idempotent operator command creates an organization, initial unit, first administrator invitation, default retention policy, and content-free audit trail for shared SaaS or dedicated installations. Failed database creation compensates only the Auth identity created by that command, and an explicit recovery command can renew an incomplete initial invitation without printing an action link.
-- Recovery acceptance: a Docker-backed disposable restore drill creates a compressed dump, restores it to a protected temporary database, verifies migration and security invariants, and removes both the target and dump.
+- Recovery acceptance: a Docker-backed disposable restore drill streams a compressed dump into a protected temporary database without a host dump file, verifies migration and security invariants, optionally decrypts identity-free synthetic canaries with independently recovered keys, and always removes the target.
+- Key custody: a provider-neutral, credential-free manifest requires independent primary/recovery references and two custodian roles for every version. A service-role-only RPC stores encrypted random canaries; combined restore acceptance verifies every manifest key without reading evaluation content or logging key/version details.
 - Delegated project date administration: system administrators and assigned project managers can atomically update project completion and evaluation close dates through a trusted boundary.
 - Deployment portability: one frontend image can receive public Supabase runtime configuration at container startup and run against managed or self-hosted Supabase.
 - Multi-tenant integrity: `organizations.id` is the company boundary; project memberships carry explicit organization scope and identity-bearing relationships require active matching organization membership.
@@ -76,7 +77,7 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 ## Known Limitations
 
 - Git is initialized and `main` tracks `origin/main` at `https://github.com/yusuffurkanaksar55/yanki.git`.
-- Additive key rotation, content-free key health, anonymous endpoint quotas, aggregate abuse monitoring, tenant retention automation, production tenant bootstrap, and a disposable local backup/restore drill are implemented. Independent production key custody, key-plus-database recovery acceptance, outer gateway/WAF limits and alert delivery, scheduled production backups, and environment-specific restore acceptance remain incomplete.
+- Additive key rotation, content-free key health, custody-manifest validation, encrypted recovery canaries, local database-plus-key recovery acceptance, anonymous endpoint quotas, aggregate abuse monitoring, tenant retention automation, and production tenant bootstrap are implemented. Real production custody-provider configuration, outer gateway/WAF limits and alert delivery, scheduled production backups, and environment-specific restore acceptance remain incomplete.
 - Real invitation email delivery and invited-user acceptance have not been smoke-tested with an approved mailbox and production SMTP configuration.
 - Microsoft Entra ID is not implemented. The current anonymous credential model provides reviewed application-level unlinkability, not blind-signature cryptographic anonymity.
 - The Docker delivery, production tenant bootstrap, and disposable restore-test foundations exist, but scheduled encrypted off-host backups, release automation, and customer acceptance automation are not implemented.
@@ -85,6 +86,7 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Recent Major Changes
 
+- 2026-08-09: Added provider-neutral independent key custody validation, encrypted synthetic recovery canaries, and a content-free combined database/key restore acceptance drill.
 - 2026-08-09: Added idempotent production tenant bootstrap, compensated Auth creation, initial-invitation recovery, and strong password setup for invitation/recovery sessions.
 - 2026-08-08: Added tenant-scoped encrypted evaluation-content retention, legal hold, trusted scheduled cleanup, Turkish policy administration, and a disposable Docker backup/restore acceptance drill.
 - 2026-08-07: Added and deployed privacy-preserving anonymous endpoint quotas, request-size limits, aggregate system-admin monitoring, Turkish feedback states, and live 413/429/authorization verification.
@@ -95,6 +97,6 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Current Development Priorities
 
-1. Complete production key escrow/recovery acceptance, outer gateway/WAF limits and alert delivery, scheduled encrypted backups, environment-specific restore acceptance, and customer acceptance checks.
+1. Configure a real production secret manager/offline escrow, then complete outer gateway/WAF limits and alert delivery, scheduled encrypted backups, environment-specific recovery acceptance, and customer acceptance checks.
 2. Configure email delivery when a provider is approved and complete real invitation acceptance verification.
 3. Add broader Playwright workflows and design a separately reviewed disclosure-resistant approach if raw-text themes are ever required.

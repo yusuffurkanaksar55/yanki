@@ -151,6 +151,17 @@ The recovery command refuses accepted, revoked, unknown, or fingerprint-mismatch
 - Back up all key versions through the approved secret manager and test recovery together with a database restore. A database backup without its keys is unrecoverable; a key backup without access controls defeats database-at-rest confidentiality.
 - Never print key values in CI logs, shell history, support bundles, browser configuration, or customer handover documents.
 
+Custody and recovery sequence:
+
+1. Copy `deploy/evaluation-key-custody.manifest.example.json` to the ignored path `.secrets/evaluation-key-custody.manifest.json`. Give the deployment a stable environment id and include every active or decrypt-only key version.
+2. Replace the example references with an approved primary secret-manager reference and an independently controlled recovery/offline-escrow reference. Declare different primary and recovery control domains; two records under the same administrative control do not qualify as independent custody. References are identifiers only and must not contain credentials, query strings, fragments, or key values. Assign at least two distinct custodian roles.
+3. Inject every key into the trusted operator process as `EVALUATION_ENCRYPTION_KEY_VERSION_<VERSION>`. Set `EVALUATION_KEY_CUSTODY_MANIFEST_PATH` and run `npm run encryption:custody:validate`. The result must report one active key, independent recovery custody, two-person control, and no key material in the manifest.
+4. After the migration is active, set `EVALUATION_RECOVERY_CANARY_CONFIRM=UPSERT_ENCRYPTION_RECOVERY_CANARIES` and run `npm run encryption:recovery:canary`. This writes only encrypted random canaries through the service-role RPC and reads no evaluation content.
+5. Restore the approved database backup into isolated Supabase/PostgreSQL infrastructure. Configure the Docker container/source/guarded target values for that isolated environment, recover all manifest keys through the approved custody channels, set `KEY_DATABASE_RECOVERY_ACCEPTANCE_CONFIRM=RUN_KEY_DATABASE_RECOVERY_ACCEPTANCE`, and run `npm run encryption:recovery:acceptance`.
+6. Accept the drill only when every custodied key decrypts its restored canary, all restored privilege checks pass, no host dump is written, and the disposable target is removed. Archive only the count/boolean/hash report through the approved evidence channel.
+
+Repeat manifest validation, canary refresh, backup creation, and combined recovery acceptance after every key-version addition and at the documented disaster-recovery cadence. The command proves database/key compatibility but does not create scheduled backups or prove that a provider is geographically or administratively independent. SaaS operations and each dedicated customer must separately approve secret-provider access, encrypted off-host backup scheduling, retention, isolated restore infrastructure, RPO/RTO, and signed two-person evidence.
+
 Managed Supabase rotation sequence:
 
 ```bash

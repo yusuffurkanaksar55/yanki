@@ -2,7 +2,7 @@
 
 ## Status
 
-This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, privacy-preserving application quotas, server-side AES-256-GCM encryption, additive key rotation, content-free key health checks, atomic assignment completion, trusted thresholded aggregate reporting, tenant-scoped content retention with legal hold, idempotent production tenant bootstrap, disposable restore verification, and trusted administration boundaries. Production key escrow and environment-specific recovery acceptance remain incomplete.
+This document describes the implemented and intended security model. The repository now contains default-deny identity/configuration data, immutable templates, authenticated one-time credential preparation, identity-free anonymous redemption, privacy-preserving application quotas, server-side AES-256-GCM encryption, additive key rotation, content-free key health checks, atomic assignment completion, trusted thresholded aggregate reporting, tenant-scoped content retention with legal hold, idempotent production tenant bootstrap, independent-custody manifest validation, encrypted recovery canaries, disposable database-plus-key restore verification, and trusted administration boundaries. Real production custody-provider configuration and environment-specific recovery acceptance remain incomplete.
 
 ## Security Objectives
 
@@ -127,6 +127,8 @@ Tenant bootstrap logs may contain request, organization, unit, invitation, and A
 
 Retention policy updates and cleanup executions may audit tenant scope, policy version, configured days, legal-hold/automation state, cutoff date, and execution mode. They must never audit subjects, evaluator identities, content, participation state, or deleted-row counts.
 
+Key custody and recovery output may contain schema version, key/canary counts, boolean acceptance results, dump stream size/hash, and target cleanup status. It must never contain key values, key-version identifiers, custody references, ciphertext, decrypted canary bytes, credentials, or real evaluation content. Recovery canaries are random synthetic values and have no identity or tenant relationship.
+
 ## Database Visibility
 
 Database readers may see ciphertext and non-sensitive metadata only. Database encryption protects stored content from direct database inspection, but a party controlling both application code and encryption secrets could alter the system to access content. This limitation must remain documented and must not be hidden in product claims.
@@ -147,6 +149,6 @@ In customer-managed installations, the customer controls the host, database, app
 
 - Complete live invitation email delivery and acceptance verification with an approved test mailbox.
 - Add narrowly scoped Supabase RLS policies only after server-side authorization flows are designed.
-- Configure an independent production key, approved secret-manager escrow, scheduled encrypted backups, and a successful environment-specific key-plus-database recovery drill before production.
+- Configure the implemented custody manifest with a real independent production secret manager/offline escrow, schedule encrypted backups, and complete a successful isolated environment-specific key-plus-database recovery drill before production.
 - Add outer gateway/WAF limits for credential preparation and anonymous redemption, plus alert delivery without sensitive request logging.
 - Add executable cross-tenant database tests against a running local or dedicated Supabase stack.

@@ -1,5 +1,50 @@
 # Test Report
 
+## 2026-08-09 - Key Custody And Database Recovery Acceptance
+
+### Environment
+
+- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
+- Docker Desktop local Supabase PostgreSQL stack and guarded disposable restore database.
+- Process-only random AES-256 test key and committed credential-free example custody manifest.
+
+### Commands executed
+
+- Focused custody, recovery-boundary, and backup/restore Vitest suites
+- `npm run check`, `npm run deployment:config`
+- Local migration-up, `npm run supabase:lint:local`, `npm run supabase:test:local`
+- `npm run encryption:custody:validate`, canary provisioning, and `npm run encryption:recovery:acceptance` with explicit confirmations
+- Linked migration dry-run/push/list, `npm run supabase:types`, and `npm run supabase:lint:linked`
+
+### Passed
+
+- Manifest validation enforced exactly one active key, independent custody references, canonical 32-byte key encoding, two distinct custodian roles, and no embedded credential/key fields.
+- AES-256-GCM canaries round-tripped for active and historical keys; wrong-key and incomplete-set cases failed closed.
+- A clean local reset applied every migration, schema lint reported no errors, and 180 pgTAP cases passed across eight suites, including 15 recovery-canary table, RLS, grant, RPC, duplicate, length, and input-validation cases.
+- The final executable drill provisioned one synthetic canary, streamed a 670,101-byte compressed dump directly into restore, decrypted all custodied canaries, verified restored security boundaries, wrote no host dump, and removed the disposable database.
+- Full application checks passed 43 Vitest files and 177 tests, lint, typecheck, production build, bounded-memory verification, and Docker Compose configuration validation.
+- Local and remote migration histories include `20260809153000`; linked schema lint reported no errors and generated types contain the recovery canary table/function.
+
+### Failed And Corrected
+
+- The full repository security test expected every migration's `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` statement on one line. The new migration enabled RLS correctly but split the statement across lines; it now follows the repository's machine-checked migration form.
+- The first local helper used the unavailable static PowerShell `RandomNumberGenerator.Fill` method, leaving its disposable test byte array zero-filled even though the cryptographic acceptance path passed. The rerun used `RandomNumberGenerator.Create().GetBytes()`, refreshed the canary with a real random key, propagated child exit codes, and passed.
+- The first Compose validation could not spawn Docker inside the workspace sandbox; the approved Docker-enabled rerun passed unchanged. Remote push repeated the known non-fatal `pg-delta` temporary CA-cache warning, while migration list and linked lint independently confirmed successful application.
+
+### Security checks
+
+- Verified `anon`, `authenticated`, and `service_role` have no direct canary-table read privilege; only `service_role` can execute the encrypted refresh RPC.
+- Verified canary persistence contains no tenant, user, evaluator, subject, assignment, credential, answer, or evaluation-content column.
+- Verified operator reports omit keys, key-version identifiers, custody references, ciphertext, decrypted bytes, and service-role credentials.
+
+### Skipped
+
+- No real production key/provider was configured and no linked canary was written because independently recovered production key material is not available in the workspace.
+
+### Remaining risks
+
+- Production acceptance still requires approved primary and recovery custody providers, scheduled encrypted off-host backups, an isolated environment restore, documented RPO/RTO, and signed two-person evidence.
+
 ## 2026-08-09 - Production Tenant Bootstrap And Password Setup
 
 ### Environment
@@ -192,50 +237,3 @@
 ### Remaining risks
 
 - Production key custody/escrow/recovery acceptance, anonymous endpoint rate limiting, retention, production bootstrap, monitoring, backup acceptance, and invitation email remain release blockers.
-
-## 2026-08-07 - Thresholded Trusted Aggregate Reporting
-
-### Environment
-
-- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1.
-- Docker Desktop local Supabase stack reset from all migrations.
-- Linked Supabase project `daxaymcmtbmummrxdyjy` with synthetic users only.
-
-### Commands executed
-
-- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run check`
-- `npx supabase db reset --local --no-seed`
-- `npm run supabase:test:local`
-- `npm run supabase:push:dry-run`, remote migration push/list, `npm run supabase:lint:linked`
-- `npm run supabase:types`, Edge Function deploy/list
-- `npm run smoke:reports`
-
-### Passed
-
-- Vitest passed 27 files and 111 tests before the final documentation check.
-- pgTAP passed 89 cases across employee access, template lifecycle, encrypted submission, and thresholded reporting suites.
-- The 34 reporting cases cover grants, owner-only compatibility implementation, closed-window enforcement, role/scope checks, active team-leader relationship, system-admin/dual-role/self/cross-tenant denial, count-free withholding, audit minimization, threshold release, identity-free batch shape, and close metadata.
-- Live smoke submitted four encrypted evaluations, produced a `3.5` rating average, withheld all synthetic raw-text markers, and denied premature, system-admin, self, employee, and anonymous access.
-- Remote migrations match local history, `evaluation-reports` is active, and linked schema lint reports no errors.
-
-### Failed And Corrected
-
-- The first database test fixture generated odd-length hex for single-digit bytes; two-digit padding corrected the fixture.
-- The first live report stopped with `REPORT_CLOSE_MISSING`; an applied migration had omitted non-sensitive close metadata. A forward-only compatibility migration added it and the complete live scenario passed.
-- Supabase CLI applied both migrations but could not cache its local experimental `pg-delta` catalog because a temporary CA file was missing. Migration list and linked lint independently confirmed the remote schema.
-
-### Skipped
-
-- Automated visual browser verification could not start because the Codex browser runtime could not create its kernel asset path. Component, build, database, and live API verification passed.
-- Real invitation email remains deferred until an approved mailbox/provider is available.
-
-### Security checks
-
-- Verified no ciphertext is released below threshold and no exact below-threshold count is returned or audited.
-- Verified report discovery is independent of submission existence.
-- Verified active system administrators, dual-role admins, report subjects, employees, cross-tenant reviewers, and anonymous callers are denied.
-- Verified raw text and ciphertext are absent from trusted report output and the frontend report model.
-
-### Remaining risks
-
-- Production key rotation/recovery, anonymous endpoint rate limiting, retention, production bootstrap, monitoring, backup acceptance, and invitation email remain release blockers.

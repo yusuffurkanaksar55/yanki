@@ -27,6 +27,8 @@ describe("backup and restore acceptance foundation", () => {
     expect(scriptSource).toMatch(/encryptedSubmissionsPresent/u);
     expect(scriptSource).toMatch(/browserCiphertextReadDenied/u);
     expect(scriptSource).toMatch(/browserRetentionExecutionDenied/u);
+    expect(scriptSource).toMatch(/browserRecoveryCanaryReadDenied/u);
+    expect(scriptSource).toMatch(/serviceRecoveryCanaryReadDenied/u);
     expect(scriptSource).not.toMatch(/select encrypted_payload/u);
   });
 

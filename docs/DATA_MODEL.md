@@ -2,7 +2,7 @@
 
 ## Status
 
-Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed onboarding, configurable hierarchy, own-context RPCs, immutable versioned templates, project/cycle/assignment planning, identity-domain one-time credentials, content-domain encrypted evaluation submissions, thresholded reporting functions, tenant-scoped evaluation-content retention, and production tenant bootstrap.
+Supabase migrations exist for the default-deny security foundation, Supabase Auth-backed onboarding, configurable hierarchy, own-context RPCs, immutable versioned templates, project/cycle/assignment planning, identity-domain one-time credentials, content-domain encrypted evaluation submissions, thresholded reporting functions, tenant-scoped evaluation-content retention, production tenant bootstrap, and synthetic encrypted recovery canaries.
 
 Generated TypeScript database types are stored in `src/types/supabase.ts` and should be regenerated after schema changes.
 
@@ -31,6 +31,7 @@ Planned tables:
 - `encrypted_evaluation_submissions`
 - `organization_evaluation_retention_policies`
 - `tenant_bootstrap_operations`
+- `evaluation_encryption_recovery_canaries`
 - `security_rate_limit_buckets`
 - `security_abuse_event_counters`
 - `result_access_scopes`
@@ -86,6 +87,7 @@ Implemented foundation functions:
 - `get_tenant_bootstrap_operation()`
 - `bootstrap_organization_tenant()`
 - `renew_tenant_bootstrap_invitation()`
+- `upsert_evaluation_encryption_recovery_canaries()`
 
 ## Identity Domain
 
@@ -140,6 +142,8 @@ Anonymous content-domain tables store encrypted submissions and non-sensitive me
 Reporting adds no plaintext or materialized result table. `list_my_evaluation_report_targets()` returns closed configuration targets without reading participation state. `get_encrypted_evaluation_report_batch()` counts within one organization/cycle/subject group and returns no count or content below threshold; at threshold it returns only identity-free ciphertext and immutable question configuration to trusted code. Audit metadata records access status and threshold without the exact submission count.
 
 `list_referenced_evaluation_encryption_key_versions()` is executable only by `service_role`. It returns distinct key-version identifiers required by stored ciphertext, with no ciphertext, content, identity, per-version count, or timestamp. Trusted key-health code compares this inventory to server-only secret configuration and exposes only aggregate health status to system administrators.
+
+`evaluation_encryption_recovery_canaries` is an operational cryptographic table, not evaluation content. Its primary key is the stable environment id plus encryption key version. It stores an AES-256-GCM encrypted random canary, 12-byte nonce, 32-byte canary digest, context version, and refresh time. It has no organization, user, evaluator, subject, assignment, credential, answer, or submission relationship. Direct privileges are revoked from `anon`, `authenticated`, and `service_role`; only `upsert_evaluation_encryption_recovery_canaries()` can refresh rows from trusted operator code.
 
 `security_rate_limit_buckets` stores one-day operational buckets keyed only by a 32-byte non-reversible hash. Known credentials use isolated buckets; invalid credentials use one global invalid-only bucket. `security_abuse_event_counters` stores five-minute aggregate invalid-credential and rate-limited counts retained for seven days. Neither table stores an IP address, device identifier, user, organization, assignment, credential digest, request body, evaluation content, or linkage to a submission. RLS is enabled and direct privileges are revoked from browser roles and `service_role`.
 

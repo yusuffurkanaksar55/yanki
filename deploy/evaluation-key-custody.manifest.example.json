@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "environmentId": "replace-with-stable-environment-id",
+  "activeKeyVersion": "PROD_YYYYMMDD_01",
+  "keyVersions": [
+    {
+      "version": "PROD_YYYYMMDD_01",
+      "status": "ACTIVE",
+      "primaryCustodyControlDomain": "PLATFORM_OPERATIONS",
+      "primaryCustodyReference": "secret-manager://production/evaluation-encryption/PROD_YYYYMMDD_01",
+      "recoveryCustodyControlDomain": "SECURITY_ESCROW",
+      "recoveryCustodyReference": "offline-escrow://production/evaluation-encryption/PROD_YYYYMMDD_01",
+      "custodianRoles": [
+        "SECURITY_CUSTODIAN",
+        "OPERATIONS_CUSTODIAN"
+      ]
+    }
+  ]
+}

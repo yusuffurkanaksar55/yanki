@@ -1,5 +1,43 @@
 # Development Log
 
+## 2026-08-09 - Independent Key Custody And Combined Recovery Acceptance
+
+### Objective
+
+Prove that every separately custodied evaluation-encryption key can decrypt a restored database without reading real evaluation content, committing provider-specific secrets, writing a host dump, or exposing keys/version identifiers in operator output.
+
+### Changes
+
+- Added a schema-versioned provider-neutral custody manifest validator requiring one active key, independent primary/recovery references, and at least two distinct custodian roles.
+- Added AES-256-GCM encrypted random recovery canaries for every manifest key, with authenticated environment/version context and no identity, tenant, assignment, credential, or evaluation-content relationship.
+- Added a default-deny canary table, narrow service-role-only atomic refresh RPC, explicit-confirmation operator commands, and combined verification inside the disposable streaming restore.
+- Added unit/static boundary tests, 14 pgTAP cases, ADR-0026, and SaaS/dedicated custody and recovery runbooks.
+
+### Database changes
+
+Applied `20260809153000_encryption_recovery_canaries.sql` locally and to linked project `daxaymcmtbmummrxdyjy`. It adds `evaluation_encryption_recovery_canaries` and `upsert_evaluation_encryption_recovery_canaries()` while revoking direct table privileges from browser roles and `service_role`.
+
+### Security impact
+
+Positive. Key material remains only in the trusted process, manifests reject embedded credentials, real evaluation content is never selected, and recovery evidence exposes only counts, booleans, and dump stream metadata. A production provider/offline escrow and isolated environment drill are still required before live use.
+
+### Tests performed
+
+- Focused custody/recovery/restore Vitest, lint, typecheck, clean local reset, local schema lint, and 180 pgTAP cases across eight suites.
+- Real local combined drill with a process-only random 32-byte test key: one encrypted canary was provisioned, a 670,101-byte compressed dump streamed into restore, every canary decrypted, privilege checks passed, no host dump was written, and the disposable target was removed.
+- Full `npm run check`: 43 Vitest files and 177 tests, lint, typecheck, production build, and bounded-memory verification; Docker Compose configuration validation also passed.
+- Linked migration dry-run/push/list, generated type refresh, and linked schema lint.
+
+### Result
+
+The repository and linked synthetic project now have the default-deny canary schema, while the executable combined recovery drill is proven locally for both deployment topologies. No linked canary was created because independently recovered production key material is intentionally unavailable in the workspace.
+
+### Remaining work
+
+- Select and configure the real production primary secret manager and independently controlled recovery/offline escrow.
+- Schedule encrypted off-host backups and complete a signed isolated environment restore with approved RPO/RTO.
+- Complete gateway/WAF alerts and approved invitation-email acceptance.
+
 ## 2026-08-09 - Idempotent Production Tenant Bootstrap
 
 ### Objective
@@ -153,42 +191,3 @@ The linked synthetic project retains its legacy development key, uses additive v
 - Establish independent production key custody, approved secret escrow, and database-plus-key recovery acceptance.
 - Add anonymous endpoint rate limiting, retention, production bootstrap, monitoring, and backup/restore automation.
 - Complete approved invitation-email and visual browser verification.
-
-## 2026-08-07 - Thresholded Trusted Aggregate Reporting
-
-### Objective
-
-Allow authorized reviewers to read useful closed-cycle aggregates without exposing individual responses, evaluator identities, below-threshold participation counts, administrative content access, or results about themselves.
-
-### Changes
-
-- Added service-role-only report-target and thresholded batch functions with fixed cycle-plus-subject grouping.
-- Added reviewer scope and active membership checks, team-leader manager relationship enforcement, system-admin denial, self denial, closed-window enforcement, and count-free withholding below threshold.
-- Added trusted AES-GCM decryption, exact immutable-question validation, numeric/categorical aggregation, and raw-text suppression in `evaluation-reports`.
-- Added the Turkish report service/panel, reporting-role visibility controls, 34 pgTAP cases, aggregate/security/component tests, and a reusable live report smoke workflow.
-- Added ADR-0021 and updated generated Supabase types and operational documentation.
-
-### Database changes
-
-Applied `20260807103000_thresholded_evaluation_reporting.sql` and forward-only `20260807111500_reporting_close_metadata_fix.sql` locally and to project `daxaymcmtbmummrxdyjy`. Direct ciphertext access remains revoked from `service_role`; only the thresholded function can release an identity-free encrypted batch.
-
-### Security impact
-
-Positive. Target discovery is participation-independent. Below threshold, no exact count, questions, ciphertext, or decrypted values leave PostgreSQL. System administrators and the subject are always denied. Raw text is discarded during aggregation and never enters the frontend report model.
-
-### Tests performed
-
-- `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, and `npm run check`.
-- Clean local database reset and `npm run supabase:test:local`: 89 pgTAP cases across four suites.
-- Remote migration dry-run/push/list, linked schema lint, type generation, function deployment/list.
-- `npm run smoke:reports`: four encrypted submissions, `3.5` rating average, raw-text withholding, and premature/system-admin/self/employee/anonymous denial.
-
-### Result
-
-Both reporting migrations are current remotely. `evaluation-reports` is active as version 1, the redeployed anonymous submission function is active as version 4, and linked schema lint reports no errors. The first smoke run exposed missing close metadata; the forward-only fix was applied and the full rerun passed.
-
-### Remaining work
-
-- Replace the development key and implement production key rotation/recovery, rate limiting, retention, bootstrap, monitoring, and backup/restore acceptance.
-- Complete approved invitation-email verification.
-- Complete automated visual browser verification after the Codex browser runtime path issue is resolved.

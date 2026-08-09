@@ -6,6 +6,9 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added a provider-neutral key-custody manifest requiring independent primary/recovery references, one active version, and two distinct custodian roles without storing credentials or key material.
+- Added default-deny encrypted synthetic recovery canaries, a narrow service-role refresh RPC, and combined database-plus-key recovery acceptance inside the streaming disposable restore.
+- Added custody/canary cryptographic tests, 14 pgTAP recovery cases, ADR-0026, and SaaS/dedicated recovery operations documentation.
 - Added a service-role-only, fingerprinted, idempotent tenant bootstrap boundary for shared SaaS and dedicated installations.
 - Added a compensated operator command that creates the first Auth invitation, atomically provisions tenant identity/configuration records, and removes only a newly created Auth identity when database provisioning fails.
 - Added explicit initial-invitation recovery without raw action-link output, plus a Turkish strong-password setup gate for invitation and password-recovery sessions.

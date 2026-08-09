@@ -97,7 +97,15 @@ Encryption key rotation is additive. Trusted Functions merge the legacy JSON key
 
 Destructive execution is not exposed to the browser. A portable operator command calls `execute_due_evaluation_content_retention()` with the server-only service role. The database serializes runs, skips disabled and legally held policies, and deletes only expired `encrypted_evaluation_submissions` rows. It returns the number of organization policies processed, never submission/deletion counts or content. Live deletion does not erase existing backups; backup retention and key custody remain separate infrastructure controls.
 
-The backup/restore acceptance command streams a compressed dump directly from the local Supabase database container into a guarded `_restore_acceptance` database. It records only stream size/hash and boolean checks, writes no dump file to host storage, verifies migrations plus content/retention privilege boundaries, and removes the temporary database in a `finally` path.
+The backup/restore acceptance command streams a compressed dump directly from the local Supabase database container into a guarded `_restore_acceptance` database. It records only stream size/hash and boolean checks, writes no dump file to host storage, verifies migrations plus content/retention/recovery-canary privilege boundaries, and removes the temporary database in a `finally` path.
+
+## Encryption Key Custody And Recovery Architecture
+
+Key custody is described by a provider-neutral schema-versioned manifest containing no key material or credentials. Every key version declares independent primary and recovery references, exactly one version is active, and at least two distinct custodian roles are required. Actual manifests remain outside version control, while key bytes continue to enter only the trusted operator/Functions environment through immutable per-version secrets.
+
+`evaluation_encryption_recovery_canaries` stores one synthetic AES-256-GCM canary per environment and key version. The authenticated context binds purpose, environment, version, schema, and context version. PostgreSQL stores only ciphertext, nonce, a digest of random canary bytes, and content-free timestamps; the table has no tenant, user, evaluator, subject, assignment, credential, or evaluation content. Direct table privileges are revoked even from `service_role`, and a narrow service-role RPC can only refresh encrypted canaries.
+
+The combined recovery command extends the disposable streaming restore. Before the target is removed, trusted operator code reads only synthetic canaries through the database recovery role, loads every key from the separately recovered secret environment, decrypts each canary, and checks its digest in memory. Missing, extra, duplicate, corrupt, or wrong-key records fail the drill. Command output contains counts and booleans only, never key versions, custody references, ciphertext, decrypted bytes, or credentials.
 
 ## Production Tenant Bootstrap Architecture
 

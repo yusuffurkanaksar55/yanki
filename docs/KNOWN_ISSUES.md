@@ -8,7 +8,7 @@ High
 
 ### Description
 
-One-time anonymous submission, additive key rotation, content-free key health, application-level anonymous quotas, aggregate abuse monitoring, trusted thresholded reporting, tenant retention with legal hold, production tenant bootstrap, and a disposable local restore drill are implemented. Independent production key custody, key-plus-database recovery acceptance, outer gateway/WAF controls and alert delivery, scheduled encrypted off-host backups, and environment-specific restore acceptance are not implemented yet.
+One-time anonymous submission, additive key rotation, content-free key health, provider-neutral custody validation, encrypted synthetic recovery canaries, local database-plus-key restore acceptance, application-level anonymous quotas, aggregate abuse monitoring, trusted thresholded reporting, tenant retention with legal hold, and production tenant bootstrap are implemented. Real production secret-manager/offline-escrow configuration, outer gateway/WAF controls and alert delivery, scheduled encrypted off-host backups, and environment-specific restore acceptance are not implemented yet.
 
 ### Impact
 
@@ -20,11 +20,11 @@ Continue development and synthetic acceptance testing only. Do not use the linke
 
 ### Planned resolution
 
-Create an independent production key, complete approved key escrow/recovery drills, and add outer gateway/WAF limits, alert delivery, scheduled encrypted backups, environment-specific restore acceptance, and approved invitation-mail verification.
+Configure an independent production key in approved primary and recovery custody, use the implemented manifest/canary flow in an isolated production recovery drill, and add outer gateway/WAF limits, alert delivery, scheduled encrypted backups, environment-specific restore acceptance, and approved invitation-mail verification.
 
 ### Related tests
 
-`tests/encryptionKeyring.test.ts`, `tests/anonymous-abuse-protection-boundary.test.mjs`, `tests/production-tenant-bootstrap.test.mjs`, `supabase/tests/database/anonymous_encrypted_submission.test.sql`, `supabase/tests/database/production_tenant_bootstrap.test.sql`, `src/features/administration/SecurityOperationsPanel.test.tsx`, `npm run smoke:key-health`, `npm run smoke:abuse`, `npm run smoke:reports`
+`tests/encryptionKeyring.test.ts`, `tests/encryption-key-custody.test.ts`, `tests/encryption-recovery-acceptance.test.mjs`, `tests/anonymous-abuse-protection-boundary.test.mjs`, `supabase/tests/database/encryption_recovery_canaries.test.sql`, `src/features/administration/SecurityOperationsPanel.test.tsx`, `npm run encryption:recovery:acceptance`, `npm run smoke:key-health`, `npm run smoke:abuse`, `npm run smoke:reports`
 
 ## ISSUE-005 - Remaining delegated administration actions are not implemented
 
