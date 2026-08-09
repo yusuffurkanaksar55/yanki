@@ -18,7 +18,7 @@ export default {
         ink: "#17202a",
         mist: "#f3f6f4",
         pine: "#176b5c",
-        coral: "#c55448",
+        coral: "#b94a40",
         amber: "#9a6817"
       },
       boxShadow: {

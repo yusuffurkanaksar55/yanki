@@ -1,6 +1,7 @@
 import { defineConfig } from "@playwright/test";
 
 const baseURL = process.env.E2E_BASE_URL ?? "http://127.0.0.1:4173";
+const useExternalWebServer = process.env.E2E_EXTERNAL_WEB_SERVER === "true";
 
 export default defineConfig({
   expect: {
@@ -21,13 +22,15 @@ export default defineConfig({
     trace: "off",
     video: "off"
   },
-  webServer: {
-    command: "npm run dev -- --host 127.0.0.1 --port 4173 --strictPort",
-    reuseExistingServer: false,
-    stderr: "pipe",
-    stdout: "pipe",
-    timeout: 60_000,
-    url: baseURL
-  },
+  ...(useExternalWebServer ? {} : {
+    webServer: {
+      command: "npm run dev -- --host 127.0.0.1 --port 4173 --strictPort",
+      reuseExistingServer: false,
+      stderr: "pipe" as const,
+      stdout: "pipe" as const,
+      timeout: 60_000,
+      url: baseURL
+    }
+  }),
   workers: 1
 });

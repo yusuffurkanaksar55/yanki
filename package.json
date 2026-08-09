@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "e2e:install": "playwright install chromium",
     "e2e:local": "node scripts/run-local-e2e.mjs",
+    "e2e:container:local": "node scripts/run-local-e2e.mjs --container",
     "memory:trim": "node scripts/trim-project-memory.mjs",
     "memory:check": "node scripts/trim-project-memory.mjs --check",
     "deployment:config": "node scripts/validate-compose-config.mjs",
@@ -65,6 +66,7 @@
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^6.9.1",

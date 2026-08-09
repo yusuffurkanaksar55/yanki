@@ -61,9 +61,12 @@ Keep Docker Desktop and the local Supabase stack running, install Chromium once 
 
 ```bash
 npm run e2e:local
+npm run e2e:container:local
 ```
 
-The command refuses non-loopback services, uses Vite port `4173`, starts local Functions with a fresh process-only encryption key, and exercises the critical invitation-to-report workflow through Playwright. Local Mailpit proves message generation and callback handling but is not evidence for production SMTP delivery. Traces and video remain disabled to avoid retaining invitation callback tokens. The runner does not reset the shared local database; its unique synthetic rows are safe for repeated runs, and pgTAP assertions must remain tenant/fixture scoped.
+Both commands refuse non-loopback Supabase, PostgreSQL, and Mailpit services, start local Functions with a fresh process-only encryption key, and exercise the critical invitation-to-report workflow plus public/auth accessibility and keyboard checks. The first uses Vite port `4173`. The container command builds a disposable production Nginx image, serves port `4174`, requires a fresh gateway token, proves direct sensitive-Function bypass receives `403`, and routes the successful browser workflow through same-origin `/supabase`.
+
+Local Mailpit proves message generation and callback handling but is not evidence for production SMTP delivery. Traces and video remain disabled to avoid retaining invitation callback tokens. Outer cleanup removes the temporary Function secret, process, ports, container, image tag, and strictly recognized `yanki-e2e-*` tenant/users even when a test fails. The persistent local Supabase development stack and reusable Docker build cache are intentionally retained; the cleanup never resets the shared database or prunes unrelated Docker resources.
 
 ## Dedicated Installation Procedure
 

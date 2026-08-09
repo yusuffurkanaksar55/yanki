@@ -1,5 +1,50 @@
 # Test Report
 
+## 2026-08-10 - Container Gateway, Accessibility, And Artifact Cleanup
+
+### Environment
+
+- Windows 11, Node.js 24, Vite 8, React 19, Playwright Chromium, Axe, Docker Desktop, Supabase CLI 2.109.1, and local Supabase/PostgreSQL/Functions/Mailpit.
+
+### Commands executed
+
+- Focused local E2E environment, container-boundary, and cleanup safety Vitest suites
+- `npm run e2e:local`
+- `npm run e2e:container:local`
+- `npm run check`
+- `npm run supabase:lint:local`, `npm run supabase:test:local`, and `npm run deployment:config`
+- Post-run Docker image/container, listener, temporary-secret, and synthetic-database fixture inspection
+
+### Passed
+
+- Both Vite and production-container modes passed all three Playwright tests: the critical encrypted lifecycle, automated public/auth WCAG analysis, and keyboard-only public-to-sign-in navigation.
+- Container mode denied direct sensitive-Function access with `403`, then completed the same workflow through the Nginx same-origin gateway with a generated required token.
+- Full application checks passed 53 Vitest files and 234 tests, lint, typecheck, production build, and bounded-memory verification.
+- Local schema lint was clean, 185 pgTAP cases passed across eight suites, and Docker Compose configuration validation passed.
+- Cleanup removed 18 stale tenants/64 users from prior runs and the current fixture. Independent checks then found zero synthetic tenants/users, temporary E2E containers/images, listeners on `4173`/`4174`, or `.supabase/e2e-functions.env` file.
+
+### Failed And Corrected
+
+- Axe found six coral text contrast violations, including a 4.43:1 white-surface ratio. The coral token changed from `#c55448` to `#b94a40`, producing passing contrast on every affected surface.
+- The keyboard test retained the button's old "open menu" accessible name after Enter correctly changed it to "close menu". The assertion now reacquires the state-correct button and verifies focus plus `aria-expanded`.
+- Initial fixture cleanup reached published-template deletion guards during organization cascade. Cleanup now transactionally disables only the two template deletion guards after exact local fixture validation, restores them before commit, and rolls back their state on failure.
+- The first sandboxed E2E retry could not write Supabase CLI telemetry under the user profile. The unchanged command passed in the approved local Supabase execution boundary.
+
+### Security checks
+
+- Verified browser success requires the same-origin gateway while direct sensitive access is denied; the generated gateway token is absent from Docker command values and browser runtime configuration.
+- Verified raw evaluation text remains withheld, administrator/self result access remains denied, and synthetic deletion refuses remote databases, mismatched organizations, and non-test users.
+- Verified outer cleanup leaves the persistent local Supabase development stack and shared Docker build cache intact while removing only process/test-owned resources.
+
+### Skipped
+
+- No production employee data, production encryption key, approved SMTP mailbox, real TLS/DNS staging environment, customer server, or hosted signed release was used.
+
+### Remaining risks
+
+- Local production-container acceptance does not prove provider logging, TLS, secret custody, SMTP delivery, capacity, or infrastructure monitoring in a real environment.
+- The production build passes but retains the known 582.47 kB JavaScript chunk warning; route-level code splitting is the next frontend performance task.
+
 ## 2026-08-09 - Critical Local Browser Lifecycle And Portable Privileges
 
 ### Environment
@@ -173,54 +218,3 @@
 ### Remaining risks
 
 - Repository settings must enable immutable Releases and tag protection. The first hosted run must prove package visibility, OIDC/Cosign, optional private-repository attestation plan support, and clean-machine customer acceptance.
-
-## 2026-08-09 - Gateway Limits And Security Alert Delivery
-
-### Environment
-
-- Windows 11, Node.js 24, npm, Supabase CLI 2.109.1, Docker Desktop, and local Supabase.
-- Built `yanki-web:local` from the committed Node 22/Nginx 1.28 Alpine stages.
-- Linked synthetic Supabase project `daxaymcmtbmummrxdyjy`; no real alert provider or production credential was used.
-
-### Commands executed
-
-- Focused gateway, alert-state, deployment, and anonymous-abuse Vitest suites
-- `npm run lint`, `npm run typecheck`, `npm run check`, `npm run deployment:config`
-- Local migration-up, `npm run supabase:lint:local`, `npm run supabase:test:local`
-- Linked migration dry-run/push/list, `npm run supabase:lint:linked`, `npm run supabase:types`
-- Linked deployment/list verification for `evaluation-submission-credentials` and `anonymous-evaluation-submissions`, plus public no-session `401`/`413` boundary checks
-- Docker image build, generated `nginx -t`, health/proxy/body-limit acceptance, and concurrent rate-limit/log-suppression acceptance
-- `npm run security:alerts:acceptance` with the real local operator RPC and an ephemeral loopback webhook
-
-### Passed
-
-- Full application checks passed 48 Vitest files and 207 tests, lint, typecheck, production build, and bounded-memory verification.
-- Local schema lint reported no errors and 185 pgTAP cases passed across eight suites. Browser roles cannot execute the operator summary, a non-service JWT claim is rejected, and service role receives only the identifier-free aggregate shape.
-- Local and linked migration histories include `20260809190000`; linked lint is clean and generated types include `get_anonymous_submission_abuse_summary_for_operator()`.
-- The final image generated valid Nginx configuration even when the documentation upstream hostname did not resolve. Application and proxied Supabase health returned `200`; oversized anonymous input returned `413` before upstream.
-- Under 400 concurrent anonymous requests, 380 received gateway `429`; container logs contained zero sensitive endpoint or limiter-event lines.
-- Local alert acceptance read the real service-role RPC, delivered one alert and one recovery to loopback, suppressed a duplicate, removed temporary state, and emitted content/identifier-free output.
-- Linked `evaluation-submission-credentials` version 8 and `anonymous-evaluation-submissions` version 11 are active. With synthetic development enforcement intentionally unconfigured, no-session credential preparation returned `401` and oversized anonymous input returned `413`.
-
-### Failed And Corrected
-
-- The first lint run found that a generic state-read error discarded its caught filesystem cause. The outward message remains redacted and now preserves the internal `cause` chain.
-- The first generated Nginx test used a static upstream, so unresolved documentation DNS blocked startup. The gateway now uses the official image's runtime resolver discovery and a variable-backed upstream with bounded DNS validity.
-- Moving sensitive-token selection into a URI map preserved inherited proxy headers, but the long exact paths exceeded Nginx's default map hash bucket. The HTTP template now uses a 128-byte map bucket and the rebuilt image passes `nginx -t`.
-- Initial Supabase commands could not write CLI telemetry outside the workspace sandbox. The same unchanged migration/lint/test commands passed in the approved Docker/Supabase environment.
-
-### Security checks
-
-- Verified no gateway log format includes query strings, request bodies, Authorization headers, credentials, or evaluation content; sensitive endpoint access and request-level limiter logs are disabled.
-- Verified production gateway enforcement fails closed without a configured token, rejects missing/wrong tokens, accepts only the exact token, runs before sensitive Function work, and never exposes the token through browser runtime configuration.
-- Verified webhook URLs cannot contain credentials/query strings, production delivery requires HTTPS, redirects are rejected, bearer/service-role secrets never enter payloads or reports, and delivery failure cannot advance state.
-- Verified alert state is environment-bound, atomically replaced, duplicate-suppressing, content-free, and isolated from browser/application authority.
-
-### Skipped
-
-- No real Teams/email/SIEM webhook, production gateway token, production NAT load, CDN/WAF provider, TLS edge, or infrastructure alert receiver was available. Direct-denial is unit/static verified but awaits production-secret activation. These remain environment acceptance gates rather than missing repository implementation.
-- The full authenticated abuse smoke did not run because user-email/password variables are intentionally absent from local files; no credentials were copied into a command or log. Public deployed boundaries were verified separately.
-
-### Remaining risks
-
-- Production thresholds must be tuned against company egress/NAT and peak submission windows. Provider/load-balancer logs and webhook retention need separate privacy review, and timer/container/Supabase availability must alert through infrastructure independent of the application database.

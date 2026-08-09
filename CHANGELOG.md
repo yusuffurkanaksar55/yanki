@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-08-10
+
+### Added
+
+- Added production-container Playwright acceptance with a process-only required gateway token, direct sensitive-endpoint `403` verification, and same-origin Supabase browser routing.
+- Added automated WCAG 2 A/AA and 2.1/2.2 AA checks for public/auth surfaces plus keyboard-only navigation acceptance.
+- Added loopback-only synthetic E2E tenant cleanup with strict organization/user identity validation, dependency-ordered deletion, and outer cleanup on successful or failed runs.
+
+### Fixed
+
+- Corrected the coral design token to pass text contrast requirements across white, mist, and light-red surfaces.
+- Removed stale local E2E organizations and Auth users without resetting demo/development data, and ensured future runs leave no synthetic tenant, temporary image, container, listener, or secret file.
+
 ## 2026-08-09
 
 ### Added

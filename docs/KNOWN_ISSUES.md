@@ -170,7 +170,7 @@ Medium
 
 ### Description
 
-The repository now contains a portable frontend image, signed digest-pinned GHCR release workflow, no-build customer Compose package, standalone container acceptance, self-host deployment runbook, tenant-integrity migration, encrypted evaluation workflows, production tenant bootstrap, pinned encrypted off-site backup scheduling, and environment-scoped restore automation. The hosted workflow has not yet been exercised with a real version tag, air-gapped/customer-registry transfer is not approved, and real provider/systemd plus broader application acceptance are not complete.
+The repository now contains a portable frontend image, signed digest-pinned GHCR release workflow, no-build customer Compose package, standalone container acceptance, self-host deployment runbook, tenant-integrity migration, encrypted evaluation workflows, production tenant bootstrap, pinned encrypted off-site backup scheduling, environment-scoped restore automation, and a critical production-container browser workflow with required gateway enforcement. The hosted workflow has not yet been exercised with a real version tag, air-gapped/customer-registry transfer is not approved, and real staging/provider/systemd acceptance is not complete.
 
 ### Impact
 
@@ -182,7 +182,7 @@ None for production. Use managed development and synthetic fixture environments 
 
 ### Planned resolution
 
-Create the first reviewed version tag and verify GHCR/signature/release permissions end to end, run the implemented timers against approved customer providers, complete signed production-like restore drills, add authenticated application deployment smoke tests, and finish the operator acceptance checklist.
+Provision a production-like staging environment and repeat the authenticated synthetic workflow through real TLS/DNS and isolated Supabase. Then create the first reviewed version tag, verify GHCR/signature/release permissions end to end, run the implemented timers against approved customer providers, complete signed production-like restore drills, and finish the operator acceptance checklist.
 
 ### Related tests
 
@@ -192,3 +192,6 @@ Create the first reviewed version tag and verify GHCR/signature/release permissi
 - `tests/production-tenant-bootstrap.test.mjs`
 - `tests/offsite-backup.test.ts`
 - `tests/offsite-backup-boundary.test.mjs`
+- `tests/e2e/critical-lifecycle.e2e.ts`
+- `tests/e2e/public-accessibility.e2e.ts`
+- `npm run e2e:container:local`

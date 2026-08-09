@@ -1,5 +1,100 @@
 # Error Log
 
+## ERR-20260810-065 - Supabase CLI telemetry write was blocked by the workspace sandbox
+
+### Context
+
+The first post-cleanup `npm run e2e:local` invocation started Supabase CLI from the restricted workspace execution boundary.
+
+### Symptoms
+
+`supabase status` stopped before tests with `EPERM` while creating a temporary telemetry file under the user's `.supabase` directory outside the writable workspace.
+
+### Root cause
+
+The CLI writes its own telemetry state in the user profile even though the requested status operation is read-only for the project. The repository sandbox intentionally cannot write there.
+
+### Correct solution
+
+Rerun the unchanged repository command in the approved local Supabase execution boundary. Do not broaden application filesystem permissions or redirect telemetry into source.
+
+### Prevention
+
+Treat this exact user-profile telemetry error as an execution-boundary issue, keep E2E service URLs loopback-only, and request the narrow `npm run e2e:local` approval when required.
+
+### Related files
+
+- `scripts/run-local-e2e.mjs`
+
+### Related tests
+
+- `npm run e2e:local`
+
+## ERR-20260810-064 - Synthetic tenant cleanup was blocked by published-template deletion guards
+
+### Context
+
+The first real E2E run with automatic database cleanup tried to remove a completed fixture containing a published evaluation-template version.
+
+### Symptoms
+
+All three Playwright tests passed, but cleanup rolled back with `PUBLISHED_TEMPLATE_VERSION_IMMUTABLE` while cascading organization deletion into template versions/questions.
+
+### Root cause
+
+Template immutability triggers correctly reject published version and question deletion, including cascades. Normal dependency-ordered tenant deletion therefore cannot remove this local synthetic fixture.
+
+### Correct solution
+
+After loopback URL, exact `yanki-e2e-*` organization, and matching `example.test` user validation, transactionally disable only the two template deletion guards, delete the fixture in dependency order, restore both guards, and commit. Any error rolls back both data and trigger state.
+
+### Prevention
+
+Keep the cleanup helper local-only and fail closed on every identity mismatch. Test both trigger disable/enable declarations and the complete E2E cleanup against a fixture with a published template.
+
+### Related files
+
+- `scripts/lib/local-e2e-cleanup.mjs`
+- `scripts/run-local-e2e.mjs`
+- `tests/local-e2e-cleanup.test.mjs`
+
+### Related tests
+
+- `npm run e2e:local`
+- `npm run e2e:container:local`
+
+## ERR-20260810-063 - Public accent text missed WCAG contrast on light surfaces
+
+### Context
+
+Automated Axe checks were added for public desktop/mobile and authentication surfaces.
+
+### Symptoms
+
+Six nodes using the coral accent failed WCAG AA contrast. White text on the coral call-to-action measured about 4.43:1, while coral text on mist/light-red surfaces was lower.
+
+### Root cause
+
+The original `#c55448` token was visually close to the 4.5:1 threshold but did not leave enough contrast across every actual background combination.
+
+### Correct solution
+
+Darken the shared coral token to `#b94a40` and rerun the real page scans. The final ratios pass on white, mist, and light-red surfaces without component-specific overrides.
+
+### Prevention
+
+Keep automated WCAG scans in both Vite and production-container browser acceptance whenever shared color tokens or public/auth surfaces change.
+
+### Related files
+
+- `tailwind.config.ts`
+- `tests/e2e/public-accessibility.e2e.ts`
+
+### Related tests
+
+- `npm run e2e:local`
+- `npm run e2e:container:local`
+
 ## ERR-20260809-062 - Project creation UI test timed out only under the full suite
 
 ### Context
@@ -222,98 +317,6 @@ Treat post-apply CLI warnings separately from database transaction failures and 
 
 - `npx supabase migration list`
 - `npm run supabase:lint:linked`
-
-## ERR-20260809-055 - Checksum test sorted hash-prefixed lines instead of file names
-
-### Context
-
-The release package test verified that `SHA256SUMS` is emitted in a deterministic order across environments.
-
-### Symptoms
-
-The checksum generator produced the intended file-name order, but the first assertion failed by sorting entire lines beginning with unrelated hash values. A second assertion used default case ordering, which placed the upper-case installation file differently from the generator's locale ordering.
-
-### Root cause
-
-The test compared a property of checksum text that the release contract does not define instead of comparing extracted file names with the generator's documented ordering function.
-
-### Correct solution
-
-Extract the file-name suffix from every checksum line and compare it with a copy sorted through the same `localeCompare` contract used by the generator.
-
-### Prevention
-
-Keep deterministic-output assertions focused on the semantic sort key rather than hash bytes or runtime-default string ordering.
-
-### Related files
-
-- `tests/container-release.test.mjs`
-- `scripts/create-release-checksums.mjs`
-
-### Related tests
-
-- `npx vitest run tests/container-release.test.mjs`
-
-## ERR-20260809-054 - Initial release lint found a stale import and ambiguous separator regex
-
-### Context
-
-The first focused quality pass inspected the standalone release verifier and its package tests.
-
-### Symptoms
-
-ESLint rejected an unused `copyFileSync` import and a regular expression containing two visually countable literal spaces.
-
-### Root cause
-
-The test import remained after fixture construction changed, and the checksum parser expressed its required two-space delimiter as literal whitespace instead of an explicit quantifier.
-
-### Correct solution
-
-Remove the stale import and express the checksum delimiter as ` {2}` while preserving the standard SHA-256 inventory format.
-
-### Prevention
-
-Run focused lint immediately after adding standalone operator scripts and keep machine-significant whitespace explicit in parsers.
-
-### Related files
-
-- `scripts/verify-release-installation.mjs`
-- `tests/container-release.test.mjs`
-
-### Related tests
-
-- `npm run lint`
-
-## ERR-20260809-053 - Sensitive-route map exceeded the default Nginx hash bucket
-
-### Context
-
-The final gateway-token review moved header selection into a URI map so location-specific token injection would not disable inherited proxy headers.
-
-### Symptoms
-
-Static tests passed, but the rebuilt runtime image failed `nginx -t` with `could not build map_hash` because the exact sensitive endpoint names exceeded the default 64-byte map bucket.
-
-### Root cause
-
-Nginx sizes map hash buckets independently from rate-limit zones, and the two long fixed URI keys require a larger cache-line bucket than the image default.
-
-### Correct solution
-
-Set `map_hash_bucket_size 128` in the HTTP configuration while retaining the URI map and server-level proxy headers.
-
-### Prevention
-
-Run `nginx -t` inside the rebuilt runtime image after every map, hostname, or generated-template change; static directive checks cannot validate hash sizing.
-
-### Related files
-
-- `deploy/nginx.conf`
-
-### Related tests
-
-- `docker compose --env-file deploy/compose.env.example run --rm --no-deps web nginx -t`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

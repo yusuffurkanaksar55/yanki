@@ -1,5 +1,45 @@
 # Development Log
 
+## 2026-08-10 - Production-Container Accessibility And Cleanup Acceptance
+
+### Objective
+
+Extend the critical browser lifecycle into the production Nginx runtime, prove required gateway enforcement and public/auth accessibility, and leave no test-owned Docker or database artifacts behind.
+
+### Changes
+
+- Added `e2e:container:local`, which builds a process-named production image, runs it on isolated loopback port `4174`, injects a process-only gateway token, and directs Playwright through same-origin `/supabase`.
+- Added a direct sensitive-endpoint denial assertion, automated WCAG A/AA analysis across public/auth desktop and mobile states, and keyboard-only public-to-sign-in navigation coverage.
+- Corrected the coral design token after real Axe analysis found marginal and failing text contrast on light surfaces.
+- Added strict loopback-only cleanup for `yanki-e2e-*` organizations and matching `example.test` users. It deletes dependencies transactionally, bypasses only two published-template deletion guards, and refuses unrecognized tenant/user identities.
+- Extended outer cleanup to remove the Function secret/process, temporary container/image, listeners, and synthetic tenant records after successful or failed runs.
+
+### Database changes
+
+None. The local test cleaner uses the PostgreSQL superuser only against a loopback database and does not alter migrations or production authorization behavior.
+
+### Security impact
+
+Positive. The production container now proves direct sensitive-Function bypass denial before completing the browser workflow through the gateway. Generated gateway/encryption secrets are not printed or passed as Docker argument values, accessibility checks retain no callback traces/video, and test cleanup cannot target non-loopback databases or identities outside the exact synthetic naming contract.
+
+### Tests performed
+
+- `npm run e2e:local`: three Playwright tests passed; 18 stale synthetic tenants and 64 users were removed, followed by an independent zero-fixture check.
+- `npm run e2e:container:local`: three Playwright tests passed through Nginx, including direct `403`, encrypted lifecycle, WCAG, keyboard, responsive, and cleanup assertions.
+- Full `npm run check`: 53 Vitest files and 234 tests, lint, typecheck, production build, and bounded-memory verification passed.
+- `npm run supabase:test:local`: 185 pgTAP cases across eight suites passed; local schema lint and deployment configuration validation also passed.
+- Post-run inspection found zero `yanki-e2e-*` containers/images, zero listeners on ports `4173`/`4174`, no temporary Function secret, and zero synthetic E2E organizations/users.
+
+### Result
+
+The critical product workflow, public/auth accessibility, and required gateway boundary now have repeatable local acceptance against both Vite and the production container. Test-owned Docker and tenant artifacts are removed without resetting the persistent local development stack.
+
+### Remaining work
+
+- Repeat the container workflow in production-like staging through real TLS/DNS and isolated Supabase.
+- Add route-level code splitting for the known 582 kB production JavaScript chunk warning.
+- Complete approved SMTP, first signed release, real provider, monitoring, and recovery gates before live employee use.
+
 ## 2026-08-09 - Critical Browser Lifecycle Acceptance
 
 ### Objective
@@ -155,42 +195,3 @@ The repository can produce and verify one signed digest-pinned customer package 
 - Enable immutable GitHub Releases and version-tag protection, then exercise the first reviewed version tag in the hosted workflow.
 - Configure real production custody/off-site and alert providers and complete signed environment acceptance.
 - Configure approved invitation email delivery and broader authenticated end-to-end workflows.
-
-## 2026-08-09 - Same-Origin Gateway And Content-Free Alert Delivery
-
-### Objective
-
-Protect anonymous submission capacity before Supabase, route Docker browser traffic through one portable same-origin gateway, and deliver sustained aggregate abuse alerts without storing request-level identifiers, credentials, or evaluation content.
-
-### Changes
-
-- Converted the frontend Nginx runtime into a same-origin `/supabase` gateway with runtime DNS, exact 256 KiB/16 KiB sensitive body limits, per-source/global request zones, bounded connections, `429` rejection, and a server-only direct-bypass token.
-- Disabled sensitive endpoint access logs, removed query strings/authorization/body data from the remaining log format, and suppressed request-level limiter messages below the runtime log threshold.
-- Added a service-role-only identifier-free operator summary, generic authenticated HTTPS webhook transitions, bounded reminders, recovery delivery, atomic mode-`0600` state, and a hardened five-minute systemd timer.
-- Added local loopback alert acceptance, Docker 200/413/429/log-suppression acceptance, ADR-0028, generated types, and SaaS/dedicated operations documentation.
-
-### Database changes
-
-Applied `20260809190000_security_alert_operator_summary.sql` locally and to linked project `daxaymcmtbmummrxdyjy`. It extracts one direct-revoked aggregate builder and adds a service-role-only operator summary while preserving active-system-admin authorization for the browser monitoring path.
-
-### Security impact
-
-Positive. Volumetric and oversized traffic is bounded before trusted Functions, configured production Functions reject direct upstream calls without the gateway token, scheduled alert delivery receives only global aggregate counts, and no new user/tenant/request/source/credential/content record is persisted. The gateway uses source addresses transiently in shared memory only.
-
-### Tests performed
-
-- Full `npm run check`: 48 Vitest files and 207 tests, lint, typecheck, production build, and bounded-memory verification.
-- Local migration application, clean schema lint, and 185 pgTAP cases across eight suites; linked migration/list/type generation and linked schema lint also passed.
-- Real Docker image build and generated `nginx -t`; temporary gateway returned `200` for application/Supabase health, `413` for 270,000-byte anonymous input, and `429` for 380 of 400 concurrent requests with zero sensitive request/limiter log lines.
-- Real local operator RPC plus loopback webhook acceptance delivered alert and recovery transitions, suppressed the duplicate, wrote/removed temporary state, and logged no content or identifiers.
-- Linked sensitive Functions were deployed at credential version 8 and anonymous version 11; public no-session boundaries returned `401`/`413` without requiring stored user credentials.
-
-### Result
-
-The portable gateway and content-free alert delivery contract is implemented for shared SaaS and dedicated installations. Production still requires a real receiver, NAT/load tuning, provider-log privacy review, and infrastructure availability alert acceptance.
-
-### Remaining work
-
-- Configure real production custody/off-site and alert providers and complete signed acceptance.
-- Configure approved invitation email delivery and test a real mailbox flow.
-- Add immutable release publishing and broader Playwright/customer acceptance coverage.

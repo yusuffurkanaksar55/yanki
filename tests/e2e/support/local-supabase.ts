@@ -42,6 +42,7 @@ export async function provisionE2EFixture(): Promise<E2EFixture> {
   );
   const runId = `${Date.now().toString(36)}-${randomBytes(3).toString("hex")}`;
   const organizationName = `Yanki E2E ${runId}`;
+  const createdAuthUserIds: string[] = [];
   const database = new PostgresClient({
     connectionString: environment.databaseUrl
   });
@@ -75,7 +76,8 @@ export async function provisionE2EFixture(): Promise<E2EFixture> {
       roleCode: "SYSTEM_ADMIN",
       scopeId: organizationId,
       scopeType: "ORGANIZATION",
-      unitId
+      unitId,
+      createdAuthUserIds
     });
     const reviewer = await createAccount({
       client,
@@ -87,7 +89,8 @@ export async function provisionE2EFixture(): Promise<E2EFixture> {
       roleCode: "C_LEVEL_REVIEWER",
       scopeId: organizationId,
       scopeType: "ORGANIZATION",
-      unitId
+      unitId,
+      createdAuthUserIds
     });
     const subject = await createAccount({
       client,
@@ -99,7 +102,8 @@ export async function provisionE2EFixture(): Promise<E2EFixture> {
       roleCode: "TEAM_LEADER",
       scopeId: unitId,
       scopeType: "TEAM",
-      unitId
+      unitId,
+      createdAuthUserIds
     });
 
     await database.query("commit");
@@ -115,6 +119,13 @@ export async function provisionE2EFixture(): Promise<E2EFixture> {
     };
   } catch (error) {
     await database.query("rollback");
+    await Promise.allSettled(createdAuthUserIds.map(async (userId) => {
+      const { error: deletionError } = await client.auth.admin.deleteUser(userId);
+
+      if (deletionError) {
+        throw deletionError;
+      }
+    }));
     throw error;
   } finally {
     await database.end();
@@ -267,8 +278,26 @@ export async function invokeReportAs(
   return response.status;
 }
 
+export async function invokeDirectSensitiveEndpointWithoutGatewayToken(): Promise<number> {
+  const environment = readEnvironment();
+  const response = await fetch(
+    `${environment.supabaseUrl}/functions/v1/anonymous-evaluation-submissions`,
+    {
+      body: JSON.stringify({ answers: [], credential: "invalid" }),
+      headers: {
+        apikey: environment.anonKey,
+        "Content-Type": "application/json"
+      },
+      method: "POST"
+    }
+  );
+
+  return response.status;
+}
+
 async function createAccount({
   client,
+  createdAuthUserIds,
   database,
   displayName,
   email,
@@ -280,6 +309,7 @@ async function createAccount({
   unitId
 }: {
   readonly client: SupabaseClient<Database>;
+  readonly createdAuthUserIds: string[];
   readonly database: PostgresClient;
   readonly displayName: string;
   readonly email: string;
@@ -303,6 +333,7 @@ async function createAccount({
   }
 
   const userId = data.user.id;
+  createdAuthUserIds.push(userId);
   await database.query(
     `insert into public.user_profiles
        (user_id, email, display_name, onboarding_status, activated_at)

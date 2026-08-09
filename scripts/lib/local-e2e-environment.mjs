@@ -25,17 +25,30 @@ export function parseLocalSupabaseStatus(output) {
   return { anonKey, apiUrl, databaseUrl, mailpitUrl, serviceRoleKey };
 }
 
-export function createLocalFunctionSecrets() {
+export function createLocalFunctionSecrets({
+  requireSensitiveGateway = false
+} = {}) {
   const keyVersion = "LOCAL_E2E";
   const encryptionKey = randomBytes(32).toString("base64");
+  const gatewayToken = requireSensitiveGateway
+    ? randomBytes(32).toString("base64url")
+    : null;
+  const lines = [
+    `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION=${keyVersion}`,
+    `EVALUATION_ENCRYPTION_KEY_VERSION_${keyVersion}=${encryptionKey}`
+  ];
+
+  if (gatewayToken) {
+    lines.push(
+      "YANKI_SENSITIVE_GATEWAY_REQUIRED=true",
+      `YANKI_SENSITIVE_GATEWAY_TOKEN=${gatewayToken}`
+    );
+  }
 
   return {
-    content: [
-      `EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION=${keyVersion}`,
-      `EVALUATION_ENCRYPTION_KEY_VERSION_${keyVersion}=${encryptionKey}`,
-      ""
-    ].join("\n"),
-    encryptionKey
+    content: [...lines, ""].join("\n"),
+    encryptionKey,
+    gatewayToken
   };
 }
 

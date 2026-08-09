@@ -12,7 +12,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 
 - Application UI: responsive public product site, dedicated authentication experience, Turkish employee dashboard, and role-aware administration shell implemented.
 - Authentication: typed Supabase Auth client foundation implemented for email/password sign-in, password reset request, strong password setup after invitation/recovery, local-session sign-out, and session-state gating.
-- Browser acceptance: an isolated Playwright runner exercises local Supabase Auth, Mailpit invitation delivery, onboarding, template publication, project assignments, encrypted submission, immediate reporting, access denials, and mobile overflow against a dedicated Vite port.
+- Browser acceptance: isolated Playwright runners exercise local Supabase Auth, Mailpit invitation delivery, onboarding, template publication, project assignments, encrypted submission, immediate reporting, access denials, mobile overflow, public/auth WCAG checks, and keyboard navigation against either a dedicated Vite port or the production Nginx container.
 - User profile onboarding: Supabase Auth-backed invitation creation/revocation, atomic invitation acceptance, and authenticated profile gate implemented with Turkish pending, inactive, and error states.
 - Organization hierarchy: configurable organizations, units, memberships, manager assignments, trusted existing-user administration, and demo fixture script implemented.
 - Workspace context: authenticated own-context RPC and dashboard context panel implemented.
@@ -40,7 +40,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Authenticated integration verification: synthetic admin, project-manager, and employee accounts have been exercised against the deployed Auth, project, onboarding, and organization-administration boundaries.
 - Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context RPC, project, evaluation-cycle, and evaluation-assignment migrations applied.
 - Edge Functions: `evaluation-submission-credentials` prepares one-time eligibility credentials for authenticated evaluators; `anonymous-evaluation-submissions` applies privacy-preserving quotas before context lookup, validates, encrypts, and atomically redeems identity-free submissions; `security-abuse-monitoring` returns aggregate counters only to active system administrators.
-- Quality checks: lint, typecheck, Vitest, React Testing Library, Playwright, production build, local schema lint, and Docker-backed pgTAP authorization tests are implemented.
+- Quality checks: lint, typecheck, Vitest, React Testing Library, Playwright, automated WCAG analysis, keyboard acceptance, production-container gateway acceptance, production build, local schema lint, and Docker-backed pgTAP authorization tests are implemented.
 
 ## Important Business Rules
 
@@ -84,12 +84,13 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 - Additive key rotation, content-free key health, custody-manifest validation, encrypted recovery canaries, scheduled off-site backup tooling, exact-snapshot database-plus-key recovery automation, anonymous endpoint quotas, same-origin gateway limits with direct-bypass enforcement, transition-based alert delivery, aggregate abuse monitoring, tenant retention automation, and production tenant bootstrap are implemented. Real production custody/off-site provider configuration, gateway-token activation/direct-denial, signed production-like recovery acceptance, real alert-receiver/capacity acceptance, and infrastructure availability monitoring remain incomplete.
 - Invitation delivery and acceptance pass locally through Supabase Auth and Mailpit, but they have not been smoke-tested with an approved mailbox and production SMTP configuration.
 - Microsoft Entra ID is not implemented. The current anonymous credential model provides reviewed application-level unlinkability, not blind-signature cryptographic anonymity.
-- Docker delivery, signed digest-pinned release automation, production tenant bootstrap, scheduled encrypted off-site backup tooling, and exact-snapshot restore-test foundations exist. The first real version-tag workflow, real remote-provider/systemd acceptance, and broader application workflow acceptance are not complete.
+- Docker delivery, signed digest-pinned release automation, production tenant bootstrap, scheduled encrypted off-site backup tooling, exact-snapshot restore-test foundations, and the critical production-container application workflow acceptance exist. The first real version-tag workflow, real remote-provider/systemd acceptance, and production-like staging acceptance are not complete.
 - Docker Desktop is available and the local Supabase stack is verified; local migration reset, database lint, and pgTAP authorization tests pass.
 - Synthetic test users were created by running `npm run fixture:demo`. Authenticated administration, project-manager visibility, employee denial, project membership, and assignment-generation smoke checks have been verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
 
+- 2026-08-10: Added production-container browser acceptance, direct sensitive-endpoint bypass denial, automated WCAG/keyboard checks, corrected color contrast, and fail-safe local synthetic-fixture cleanup.
 - 2026-08-09: Added isolated Docker-backed Playwright acceptance for the critical invitation-to-report lifecycle, explicit portable identity-domain API grants, and persistent-database-safe pgTAP assertions.
 - 2026-08-09: Added digest-pinned multi-platform GHCR releases, pinned build dependencies, SBOM/provenance, keyless signatures, signed manifests, and standalone customer installation acceptance.
 - 2026-08-09: Added same-origin Supabase gateway limits, sensitive endpoint log suppression, service-role-only aggregate alert summaries, authenticated webhook transitions, and hardened scheduling.
@@ -105,6 +106,6 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Current Development Priorities
 
-1. Exercise the first version-tag release, then configure real production custody/off-site providers, alert receiver, capacity thresholds, and infrastructure monitoring; complete environment-signed recovery and customer acceptance checks.
-2. Configure email delivery when a provider is approved and complete real invitation acceptance verification.
-3. Add keyboard/accessibility and deployed-environment Playwright coverage, and design a separately reviewed disclosure-resistant approach if raw-text themes are ever required.
+1. Provision a production-like staging environment and run the container workflow through real TLS/DNS, required gateway enforcement, isolated Supabase, and synthetic roles before creating a product release tag.
+2. Exercise the first version-tag release, then configure real production custody/off-site providers, alert receiver, capacity thresholds, and infrastructure monitoring; complete environment-signed recovery and customer acceptance checks.
+3. Configure email delivery when a provider is approved, complete approved-mailbox invitation verification, add route-level code splitting, and separately review any future disclosure-resistant raw-text theme design.

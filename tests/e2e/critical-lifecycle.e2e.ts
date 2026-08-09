@@ -7,6 +7,7 @@ import {
 } from "@playwright/test";
 import { tr } from "../../src/locales/tr/messages";
 import {
+  invokeDirectSensitiveEndpointWithoutGatewayToken,
   invokeReportAs,
   provisionE2EFixture,
   readActiveUserIdByEmail,
@@ -34,6 +35,11 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
   const contexts: BrowserContext[] = [];
 
   try {
+    if (process.env.E2E_EXPECT_GATEWAY_REQUIRED === "true") {
+      expect(await invokeDirectSensitiveEndpointWithoutGatewayToken()).toBe(403);
+      console.log("[e2e] Direct sensitive endpoint bypass denied.");
+    }
+
     const adminContext = await browser.newContext({
       viewport: { height: 1000, width: 1440 }
     });

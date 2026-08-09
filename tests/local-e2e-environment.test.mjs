@@ -45,5 +45,18 @@ describe("local E2E environment", () => {
     expect(redactSecret(secrets.content, secrets.encryptionKey)).not.toContain(
       secrets.encryptionKey
     );
+    expect(secrets.gatewayToken).toBeNull();
+  });
+
+  it("creates a bounded gateway token only for container acceptance", () => {
+    const secrets = createLocalFunctionSecrets({
+      requireSensitiveGateway: true
+    });
+
+    expect(secrets.content).toContain(
+      "YANKI_SENSITIVE_GATEWAY_REQUIRED=true"
+    );
+    expect(secrets.gatewayToken).toMatch(/^[A-Za-z0-9_-]{43}$/u);
+    expect(secrets.content).toContain(secrets.gatewayToken);
   });
 });
