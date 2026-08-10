@@ -186,9 +186,7 @@ function ProfileStatusLayout({
   return (
     <main className="flex min-h-screen items-center justify-center bg-mist px-6 text-ink">
       <section className="w-full max-w-lg rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-normal text-pine">
-          {tr.app.kicker}
-        </p>
+        <p className="text-sm font-bold text-pine">{tr.app.name}</p>
         <h1 className="mt-2 text-xl font-semibold">{title}</h1>
         {userEmail ? (
           <p className="mt-3 text-sm text-slate-500">

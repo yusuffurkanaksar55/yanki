@@ -61,12 +61,16 @@ describe("evaluation reporting security boundary", () => {
     expect(edgeFunction).not.toMatch(/console\.(?:log|info|warn|error)/u);
   });
 
-  it("never models raw text or encrypted payloads in frontend report results", () => {
-    expect(aggregation).toContain('kind: "TEXT_WITHHELD"');
+  it("returns question-grouped comments without identity or encrypted payload metadata", () => {
+    expect(aggregation).toContain('kind: "TEXT_COMMENTS"');
+    expect(aggregation).toContain("shuffleAnonymousComments");
     expect(aggregation).not.toContain("rawText");
-    expect(frontendService).toContain('readonly kind: "TEXT_WITHHELD"');
+    expect(frontendService).toContain('readonly kind: "TEXT_COMMENTS"');
+    expect(frontendService).toContain("readonly comments: readonly string[]");
     expect(frontendService).not.toContain("ciphertext");
     expect(frontendService).not.toContain("encryptedPayload");
     expect(frontendService).not.toContain("evaluatorUserId");
+    expect(frontendService).not.toContain("submissionId");
+    expect(frontendService).not.toContain("submittedAt");
   });
 });

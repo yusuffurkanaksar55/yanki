@@ -6,9 +6,15 @@ export default {
     extend: {
       fontFamily: {
         sans: [
-          "Inter",
-          "ui-sans-serif",
-          "system-ui",
+          "Aptos",
+          "Segoe UI Variable Text",
+          "Segoe UI",
+          "Arial",
+          "sans-serif"
+        ],
+        display: [
+          "Aptos Display",
+          "Segoe UI Variable Display",
           "Segoe UI",
           "Arial",
           "sans-serif"

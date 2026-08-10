@@ -204,7 +204,7 @@ export function UserInvitationManagementPanel({
   return (
     <section
       aria-label={tr.administration.users.sectionLabel}
-      className="mt-8 border-y border-slate-200 bg-white py-6"
+      className="surface-panel mt-8 p-5 sm:p-6"
     >
       <div className="flex flex-col gap-2">
         <p className="text-xs font-semibold uppercase tracking-normal text-pine">
@@ -231,8 +231,8 @@ export function UserInvitationManagementPanel({
       ) : null}
 
       {loadState.status === "ready" ? (
-        <div className="mt-6 grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.8fr)]">
-          <form className="grid gap-4" onSubmit={handleSubmit}>
+        <div className="mt-6 space-y-8">
+          <form className="grid max-w-4xl gap-5" onSubmit={handleSubmit}>
             <div className="grid gap-4 sm:grid-cols-2">
               <TextField
                 label={tr.administration.users.form.displayName}
@@ -328,22 +328,6 @@ export function UserInvitationManagementPanel({
               </SelectField>
             </div>
 
-            <label className="block max-w-xs text-sm font-semibold text-slate-800">
-              {tr.administration.users.form.expiresInDays}
-              <input
-                className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-normal shadow-sm focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20"
-                max={30}
-                min={1}
-                onChange={(event) => setFormState((current) => ({
-                  ...current,
-                  expiresInDays: Number(event.currentTarget.value)
-                }))}
-                required
-                type="number"
-                value={formState.expiresInDays}
-              />
-            </label>
-
             {feedback ? (
               <p
                 className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800"
@@ -353,19 +337,36 @@ export function UserInvitationManagementPanel({
               </p>
             ) : null}
 
-            <button
-              className="w-fit rounded-md bg-pine px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-400"
-              disabled={
-                isSubmitting
-                || loadState.data.organizations.length === 0
-                || organizationUnits.length === 0
-              }
-              type="submit"
-            >
-              {isSubmitting
-                ? tr.administration.users.form.submitting
-                : tr.administration.users.form.submit}
-            </button>
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,16rem)_auto] sm:items-end">
+              <label className="block text-sm font-semibold text-slate-800">
+                {tr.administration.users.form.expiresInDays}
+                <input
+                  className="app-input mt-2 text-sm font-normal"
+                  max={30}
+                  min={1}
+                  onChange={(event) => setFormState((current) => ({
+                    ...current,
+                    expiresInDays: Number(event.currentTarget.value)
+                  }))}
+                  required
+                  type="number"
+                  value={formState.expiresInDays}
+                />
+              </label>
+              <button
+                className="w-fit rounded-md bg-pine px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 focus-ring disabled:cursor-not-allowed disabled:bg-slate-400"
+                disabled={
+                  isSubmitting
+                  || loadState.data.organizations.length === 0
+                  || organizationUnits.length === 0
+                }
+                type="submit"
+              >
+                {isSubmitting
+                  ? tr.administration.users.form.submitting
+                  : tr.administration.users.form.submit}
+              </button>
+            </div>
           </form>
 
           <InvitationList
@@ -398,7 +399,7 @@ function TextField({
     <label className="block text-sm font-semibold text-slate-800">
       {label}
       <input
-        className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-normal shadow-sm focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20"
+        className="app-input mt-2 text-sm font-normal"
         inputMode={inputMode}
         onChange={(event) => onChange(event.currentTarget.value)}
         required={required}
@@ -424,7 +425,7 @@ function SelectField({
     <label className="block text-sm font-semibold text-slate-800">
       {label}
       <select
-        className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal shadow-sm focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20"
+        className="app-input mt-2 text-sm font-normal"
         onChange={(event) => onChange(event.currentTarget.value)}
         required
         value={value}
@@ -445,7 +446,10 @@ function InvitationList({
   readonly revokingInvitationId: string | null;
 }) {
   return (
-    <section aria-label={tr.administration.users.list.sectionLabel}>
+    <section
+      aria-label={tr.administration.users.list.sectionLabel}
+      className="border-t border-slate-200 pt-6"
+    >
       <h3 className="text-base font-semibold">
         {tr.administration.users.list.title}
       </h3>

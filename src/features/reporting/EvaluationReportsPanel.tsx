@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MessageSquareQuote } from "lucide-react";
 import { tr } from "../../locales/tr/messages";
 import {
   browserEvaluationReportService,
@@ -11,6 +12,7 @@ import {
 
 type EvaluationReportsPanelProps = {
   readonly service?: EvaluationReportService;
+  readonly showHeader?: boolean;
 };
 
 type TargetState =
@@ -22,7 +24,8 @@ type TargetState =
     };
 
 export function EvaluationReportsPanel({
-  service = browserEvaluationReportService
+  service = browserEvaluationReportService,
+  showHeader = true
 }: EvaluationReportsPanelProps) {
   const [reloadKey, setReloadKey] = useState(0);
   const [targetState, setTargetState] = useState<TargetState>({
@@ -47,7 +50,6 @@ export function EvaluationReportsPanel({
         }
 
         setTargetState({ status: "ready", targets });
-        setSelectedKey((current) => current || toTargetKey(targets[0]));
       } catch {
         if (isActive) {
           setTargetState({ status: "error" });
@@ -90,19 +92,25 @@ export function EvaluationReportsPanel({
   }
 
   return (
-    <section aria-label={tr.reports.sectionLabel} className="mt-10" id="reports">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-coral">{tr.reports.eyebrow}</p>
-          <h2 className="mt-1 text-xl font-semibold">{tr.reports.title}</h2>
-          <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
-            {tr.reports.description}
-          </p>
+    <section
+      aria-label={tr.reports.sectionLabel}
+      className={showHeader ? "mt-10" : "mt-6"}
+      id="reports"
+    >
+      {showHeader ? (
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-coral">{tr.reports.eyebrow}</p>
+            <h2 className="mt-1 text-xl font-semibold">{tr.reports.title}</h2>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
+              {tr.reports.description}
+            </p>
+          </div>
+          <span className="w-fit rounded-md bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-950 ring-1 ring-emerald-200">
+            {tr.reports.aggregateOnly}
+          </span>
         </div>
-        <span className="w-fit rounded-md bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-950 ring-1 ring-emerald-200">
-          {tr.reports.aggregateOnly}
-        </span>
-      </div>
+      ) : null}
 
       {targetState.status === "loading" ? (
         <p className="mt-4 border-y border-slate-200 bg-white px-4 py-5 text-sm text-slate-600">
@@ -133,11 +141,11 @@ export function EvaluationReportsPanel({
       ) : null}
 
       {targetState.status === "ready" && targetState.targets.length > 0 ? (
-        <div className="mt-4 grid gap-4 border-y border-slate-200 bg-white px-4 py-5 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="surface-panel mt-4 grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
             {tr.reports.targetLabel}
             <select
-              className="min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2"
+              className="app-input text-sm font-normal"
               onChange={(event) => {
                 setSelectedKey(event.target.value);
                 setReport(null);
@@ -145,12 +153,18 @@ export function EvaluationReportsPanel({
               }}
               value={selectedKey}
             >
+              <option value="">{tr.reports.targetPlaceholder}</option>
               {targetState.targets.map((target) => (
                 <option key={toTargetKey(target)} value={toTargetKey(target)}>
                   {formatTargetOption(target)}
                 </option>
               ))}
             </select>
+            {selectedTarget ? (
+              <span className="font-normal leading-5 text-slate-500">
+                {selectedTarget.organizationName} / {formatProject(selectedTarget)}
+              </span>
+            ) : null}
           </label>
           <button
             className="min-h-11 rounded-md bg-pine px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-400"
@@ -294,15 +308,27 @@ function AggregationResult({
   }
 
   return (
-    <div className="border-l-2 border-slate-300 pl-4">
-      <p className="text-sm font-semibold text-slate-800">
-        {tr.reports.textWithheld.title}
+    <div>
+      <div className="flex items-center gap-2 text-pine">
+        <MessageSquareQuote aria-hidden="true" size={18} strokeWidth={1.8} />
+        <p className="text-sm font-semibold text-slate-900">
+          {tr.reports.textComments.title}
+        </p>
+      </div>
+      <p className="mt-2 text-sm leading-6 text-slate-600">
+        {tr.reports.textComments.description}
       </p>
-      <p className="mt-1 text-sm leading-6 text-slate-600">
-        {tr.reports.textWithheld.description.replace(
-          "{count}",
-          String(aggregation.responseCount)
-        )}
+      <ul className="mt-4 divide-y divide-slate-200 border-y border-slate-200">
+        {aggregation.comments.map((comment, index) => (
+          <li className="py-4" key={`${index}:${comment}`}>
+            <blockquote className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-800">
+              {comment}
+            </blockquote>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-xs leading-5 text-amber-900">
+        {tr.reports.textComments.contextRisk}
       </p>
     </div>
   );
@@ -345,7 +371,7 @@ function toTargetKey(target: EvaluationReportTarget | undefined): string {
 function formatTargetOption(target: EvaluationReportTarget): string {
   const subjectName = target.subjectDisplayName ?? target.subjectEmail;
 
-  return `${target.evaluationCycleName} / ${subjectName} / ${formatProject(target)}`;
+  return `${subjectName} / ${target.evaluationCycleName}`;
 }
 
 function formatProject(target: EvaluationReportTarget): string {

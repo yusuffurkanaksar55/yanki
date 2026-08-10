@@ -1,5 +1,83 @@
 # Development Log
 
+## 2026-08-10 - Corporate Product UI, Visual Hierarchy, And Identity-Separated Comments
+
+### Objective
+
+Make the public and authenticated interfaces more corporate and readable, replace the flat workspace context dump with a clear hierarchy, and expose written feedback to authorized reviewers without weakening the established content and identity boundaries.
+
+### Changes
+
+- Replaced the Inter-first stack with Aptos/Segoe UI corporate system typography and removed the descriptive logo subtitle from public, authentication, password, profile, and application-shell branding.
+- Expanded the public site into a six-stage evaluation lifecycle, role/access operating model, security boundary overview, and detailed SaaS/dedicated installation comparison.
+- Replaced the three-column workspace dump with an organization-to-unit-to-manager-to-person reporting path and grouped repeated roles by role/scope with assignment counts.
+- Changed text report aggregation from withheld counts to independently shuffled question-level comment arrays, then rendered escaped comments with explicit sparse-context inference guidance.
+- Added ADR-0032 and updated the product, architecture, security, authorization, data-model, and project-context contracts.
+
+### Database changes
+
+None. Existing server-side report authorization and identity-free encrypted batch functions are unchanged.
+
+### Security impact
+
+Qualitative content now reaches an authorized reviewer after trusted decryption. Comments remain encrypted at rest and are returned without evaluator, assignment, submission, timestamp, stable sequence, or cross-question linkage metadata. Active system-administrator denial, self-access denial, tenant scope, role scope, and team-leader manager checks remain mandatory. Sparse-group and writing-style inference risk is stated in the UI and ADR.
+
+### Tests performed
+
+- `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` passed; 53 Vitest files and 237 tests completed.
+- `npm run e2e:local` and `npm run e2e:container:local` each passed all three Playwright tests, including visible comments for the authorized reviewer and `403` denials for the administrator and evaluated person.
+- Production-container acceptance also passed direct sensitive-endpoint bypass denial, WCAG, keyboard, mobile overflow, and synthetic cleanup checks.
+- All 185 local pgTAP cases, local and linked schema lint, deployment Compose validation, and linked migration dry-run passed; the remote database is current.
+- Manual in-app browser review covered the public page and authenticated hierarchy at 1440x1000 and 390x844 with no horizontal overflow.
+
+### Result
+
+Yankı now presents a more complete corporate product story, shows a readable personal reporting path instead of repeated role rows, and gives authorized leaders the qualitative feedback needed to interpret aggregate results.
+
+### Remaining work
+
+- Complete production-like staging through real TLS/DNS, approved SMTP, monitoring, recovery, and signed release gates.
+- Add route-level code splitting for the known production JavaScript chunk warning.
+- Curate customer-facing demo tenants and content before external demonstrations.
+
+## 2026-08-10 - Protected Workspace Routes And Interface Simplification
+
+### Objective
+
+Fix assignment/report navigation falling back to the public site, make an existing aggregate report discoverable, and simplify the desktop/mobile workspace layouts found during full-page browser review.
+
+### Changes
+
+- Added protected `#assignments` and `#reports` routes with route-aware application navigation and authenticated `#login` normalization.
+- Split the former stacked dashboard into overview, assignment, and reporting views; added compact assignment filters, six-item progressive rendering, and explicit report person/cycle selection.
+- Reworked invitation administration into a balanced vertical form/list flow and collapsed project administration details until the operator requests them.
+- Updated critical Playwright navigation to exercise the real assignment/report routes and added focused routing, selection, disclosure, and active-navigation regression coverage.
+
+### Database changes
+
+None. Existing encrypted synthetic submissions and authorization boundaries were reused for browser verification.
+
+### Security impact
+
+Neutral to positive. Route protection remains an interface concern while all sensitive authorization stays in Edge Functions/RLS. Explicit report selection performs no discovery-time participation query, raw text remains withheld, and administrator/self report denials still pass.
+
+### Tests performed
+
+- Full `npm run check`: 53 Vitest files and 237 tests, lint, typecheck, production build, and bounded-memory verification passed.
+- `npm run e2e:local`: three Playwright tests passed through Vite, including encrypted submission/reporting, access denial, WCAG, keyboard, and mobile overflow checks.
+- `npm run e2e:container:local`: the same three tests passed through production Nginx, including direct sensitive-endpoint `403` enforcement.
+- Manual in-app Chromium review covered public sections, authentication, overview, assignments, reports, and all six administration modules at 1440x900 and 390x844 without horizontal overflow; an existing four-submission aggregate report rendered successfully.
+
+### Result
+
+Assignment and report navigation now stays inside the authenticated application. Dense historical content is bounded or collapsed, the invitation layout no longer leaves an awkward empty column, and authorized users can intentionally select and view aggregate results.
+
+### Remaining work
+
+- Add route-level code splitting for the known 588 kB production JavaScript chunk warning.
+- Replace technical smoke fixture names with a curated product-demo tenant before customer demonstrations.
+- Complete approved SMTP, staging TLS/DNS, monitoring, recovery, and first signed-release gates before live employee use.
+
 ## 2026-08-10 - Production-Container Accessibility And Cleanup Acceptance
 
 ### Objective
@@ -118,80 +196,3 @@ The root URL now introduces Yankı publicly, `#login` provides a dedicated sign-
 - Add route-level code splitting to remove the current production bundle-size warning.
 - Add persistent Playwright visual, keyboard, and authenticated routing regression coverage.
 - Complete production provider, invitation-mail, recovery, and environment-specific security acceptance before live employee use.
-
-## 2026-08-09 - Product UI Foundation And Responsive Administration
-
-### Objective
-
-Replace the development-oriented frontend shell with a clear, distinctive, and responsive product interface while preserving the existing authorization and evaluation workflows.
-
-### Changes
-
-- Added a shared responsive application shell with Yankı branding, Lucide navigation, account context, desktop sidebar, and compact mobile navigation.
-- Rebuilt the authentication surface around an optimized project-owned visual asset, accessible form controls, password visibility, and non-technical Turkish copy.
-- Simplified the employee dashboard to real assignment metrics, tasks, reports, and organization context; removed inactive buttons, implementation readiness lists, and frontend security notes.
-- Converted the stacked administration page into permission-aware modules, localized project status/date output, and organization-name selectors for project/template creation.
-- Corrected mobile grid minimum sizing and desktop project-layout breakpoints after browser inspection found horizontal overflow and compressed assignment metrics.
-
-### Database changes
-
-None.
-
-### Security impact
-
-Neutral to positive. Existing server and RLS authorization boundaries are unchanged, unauthorized administration modules are no longer presented, and technical infrastructure details are no longer exposed in normal user copy.
-
-### Tests performed
-
-- Full `npm run check`: 49 Vitest files and 215 tests, lint, typecheck, production build, and bounded-memory verification.
-- Focused application, authentication, and administration suites passed 11 tests.
-- In-app browser verification at 1440x900 and 390x844 covered authentication, dashboard, all six system-administration modules, image loading, horizontal overflow, localized project status, and fresh-load console errors.
-
-### Result
-
-The current authentication, employee, and administration surfaces now share a coherent product identity and remain usable without horizontal page overflow at tested desktop and mobile sizes. Future product features should extend this shell rather than reintroducing standalone page layouts.
-
-### Remaining work
-
-- Add route-level code splitting to reduce the current production bundle warning as the administration surface grows.
-- Add persistent Playwright workflows for authenticated visual regression and keyboard navigation.
-- Validate final copy and visual identity with representative customer users before production launch.
-
-## 2026-08-09 - Signed Digest-Pinned Container Release Automation
-
-### Objective
-
-Publish one verifiable application image for shared SaaS and customer-managed installations, bind it to exact source and build evidence, and let a customer acceptance-test the package without rebuilding source or receiving vendor secrets.
-
-### Changes
-
-- Added a stable-tag-only GitHub Actions workflow that runs the full quality gate, builds `linux/amd64` and `linux/arm64`, publishes to GHCR, attaches max-mode provenance and SPDX SBOM, signs the image/manifest with Cosign OIDC, conditionally adds GitHub attestations, and refuses to mutate an existing release.
-- Pinned Node/Nginx base images by registry digest and every workflow Action by full commit SHA; no `latest` image is produced or accepted.
-- Added a signed manifest binding source commit, OCI digest/platforms/labels, signer identity, and every customer artifact hash, plus `SHA256SUMS`, no-build Compose, generated digest-pinned environment example, SBOM, provenance, and installation guide.
-- Added an independent pre-execution manifest/verifier bootstrap and a standalone acceptance command that re-verifies signatures, hashes, pulled digest, OCI labels, Nginx, public-only runtime configuration, health, and temporary-container cleanup.
-- Added ADR-0029, container release/customer acceptance documentation, package scripts, and focused static/runtime metadata tests.
-
-### Database changes
-
-None. The release workflow has no Supabase service role, database URL, gateway token, webhook credential, SMTP secret, or evaluation-encryption key.
-
-### Security impact
-
-Positive. Customers deploy an immutable digest rather than trusting a tag, package hashes are anchored by an identity-bound signature, build inputs and Actions are immutable, and the acceptance path fails closed on signer, file, image, label, Nginx, runtime-config, or health mismatch. Keyless transparency identity disclosure remains documented for private-source customers.
-
-### Tests performed
-
-- Full `npm run check`: 49 Vitest files and 214 tests, lint, typecheck, production build, and bounded-memory verification.
-- Focused release, deployment, and project-memory suites passed 16 tests, including tag/version, digest, signer identity, artifact tampering, package preparation, checksum inventory, full-SHA Action pins, and no-build Compose boundaries.
-- `npm run deployment:config` passed against Docker Desktop.
-- A real local image built from the pinned Node 22 and Nginx 1.28 manifest digests. OCI source/revision/version labels matched, the container became healthy, `nginx -t` and `/healthz` passed, and `/app-config.js` contained only the synthetic public URL/key. The temporary container and image tag were removed.
-
-### Result
-
-The repository can produce and verify one signed digest-pinned customer package for both deployment topologies. No product version tag was created, so the first hosted GHCR/Cosign/GitHub Release execution remains an explicit release gate.
-
-### Remaining work
-
-- Enable immutable GitHub Releases and version-tag protection, then exercise the first reviewed version tag in the hosted workflow.
-- Configure real production custody/off-site and alert providers and complete signed environment acceptance.
-- Configure approved invitation email delivery and broader authenticated end-to-end workflows.

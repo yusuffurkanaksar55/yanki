@@ -10,20 +10,29 @@ import type {
 } from "./evaluationReportService";
 
 describe("EvaluationReportsPanel", () => {
-  it("renders only aggregate data and never renders decrypted text", async () => {
+  it("renders aggregate data and identity-separated text comments", async () => {
     const service = createService(createAvailableReport());
     const user = userEvent.setup();
 
     render(<EvaluationReportsPanel service={service} />);
 
     await screen.findByRole("option", { name: /Yıllık Değerlendirme/ });
+    expect(
+      screen.getByRole("button", { name: tr.reports.actions.load })
+    ).toBeDisabled();
+    expect(service.getReport).not.toHaveBeenCalled();
+    await user.selectOptions(
+      screen.getByLabelText(tr.reports.targetLabel),
+      "cycle-id:subject-id"
+    );
     await user.click(
       screen.getByRole("button", { name: tr.reports.actions.load })
     );
 
     expect(await screen.findByText("4,25")).toBeInTheDocument();
-    expect(screen.getByText("3 yanıt verildi", { exact: false })).toBeInTheDocument();
-    expect(screen.queryByText("Gizli serbest metin")).not.toBeInTheDocument();
+    expect(screen.getByText(tr.reports.textComments.title)).toBeInTheDocument();
+    expect(screen.getByText("Gizli serbest metin")).toBeInTheDocument();
+    expect(screen.getByText(tr.reports.textComments.contextRisk)).toBeInTheDocument();
     expect(service.getReport).toHaveBeenCalledWith("cycle-id", "subject-id");
   });
 
@@ -39,6 +48,10 @@ describe("EvaluationReportsPanel", () => {
     render(<EvaluationReportsPanel service={service} />);
 
     await screen.findByRole("option", { name: /Yıllık Değerlendirme/ });
+    await user.selectOptions(
+      screen.getByLabelText(tr.reports.targetLabel),
+      "cycle-id:subject-id"
+    );
     await user.click(
       screen.getByRole("button", { name: tr.reports.actions.load })
     );
@@ -97,8 +110,12 @@ function createAvailableReport(): EvaluationReport {
       },
       {
         aggregation: {
-          kind: "TEXT_WITHHELD",
-          responseCount: 3
+          comments: [
+            "Gizli serbest metin",
+            "İkinci gelişim yorumu",
+            "Üçüncü gelişim yorumu"
+          ],
+          kind: "TEXT_COMMENTS"
         },
         answeredCount: 3,
         id: "text-id",

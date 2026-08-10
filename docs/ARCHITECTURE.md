@@ -103,7 +103,7 @@ Scheduled alert delivery calls `get_anonymous_submission_abuse_summary_for_opera
 
 Reporting uses the authenticated `evaluation-reports` Edge Function and service-role-only database functions. Report discovery returns authorized non-draft cycle-plus-subject targets independently of submission existence and contains no participation count. Batch preparation denies active system administrators, the subject, unapproved roles, missing team-leader manager relationships, and cross-scope access before counting content. With zero submissions it returns `EMPTY` without a count, question set, or ciphertext.
 
-After the first submission, including while a cycle is active, the database releases an identity-free ciphertext batch plus immutable question configuration to the trusted function. AES-GCM decryption authenticates tenant, cycle, project, subject, assignment kind, template version, and context version. Every decrypted payload must contain the exact question set and valid answer types before aggregation. The browser receives the current sample size, rating averages/distributions, boolean counts, option counts, and text response counts. Raw short- and long-text values are never returned.
+After the first submission, including while a cycle is active, the database releases an identity-free ciphertext batch plus immutable question configuration to the trusted function. AES-GCM decryption authenticates tenant, cycle, project, subject, assignment kind, template version, and context version. Every decrypted payload must contain the exact question set and valid answer types before aggregation. The browser receives the current sample size, rating averages/distributions, boolean counts, option counts, and question-grouped comments. Each text question is shuffled independently before response construction; evaluator, assignment, submission, timestamp, sequence, and cross-question row-linkage metadata are never returned.
 
 Encryption key rotation is additive. Trusted Functions merge the legacy JSON keyring with immutable per-version environment secrets and use a separate active-version selector for new ciphertext. A service-role-only inventory releases only distinct referenced version identifiers to `encryption-key-health`; the system-administrator UI receives only booleans and total version counts, never versions, keys, ciphertext, or content.
 
@@ -153,7 +153,8 @@ User-facing Turkish strings must be centralized under a future localization modu
 
 - Entry point: `src/main.tsx`
 - Root app: `src/app/App.tsx`
-- Dashboard feature: `src/features/dashboard/DashboardPage.tsx`
+- Protected hash routes: `#dashboard`, `#assignments`, `#reports`, and `#administration`; unknown public hashes remain on the marketing site, while an authenticated `#login` visit is normalized to `#dashboard`.
+- Dashboard feature: `src/features/dashboard/DashboardPage.tsx`, with separate overview, assignment, and aggregate-report views rather than one stacked workspace page.
 - Employee assignment service and inbox: `src/features/evaluations/evaluationAssignmentService.ts`, `src/features/evaluations/AssignmentInbox.tsx`
 - Aggregate reporting service and panel: `src/features/reporting/evaluationReportService.ts`, `src/features/reporting/EvaluationReportsPanel.tsx`
 - Administration feature: `src/features/administration/AdministrationPage.tsx`

@@ -1,5 +1,101 @@
 # Error Log
 
+## ERR-20260810-068 - Partial local Supabase restart left the API unavailable
+
+### Context
+
+The local PostgreSQL container had exited with code `137` before the qualitative-report E2E run.
+
+### Symptoms
+
+Starting only `supabase_db_anonim_degerlendirme` made PostgreSQL healthy, but `supabase status` returned only `DB_URL`; the E2E harness then failed because `API_URL` was missing.
+
+### Root cause
+
+The database was restarted independently while Kong, Auth, REST, Functions, and the other local Supabase services remained stopped. The CLI correctly detected a partially running stack but did not reconstruct it during the first status call.
+
+### Correct solution
+
+Run a data-preserving `npx supabase stop` followed by `npx supabase start` so the saved local volume is reused and the full dependency set is recreated. Then rerun the unchanged E2E command.
+
+### Prevention
+
+After exit `137`, inspect the database health and Docker pressure, then prefer one data-preserving full-stack restart over manually starting a single service. Do not reset or delete local volumes unless corruption is independently proven.
+
+### Related files
+
+- `scripts/run-local-e2e.mjs`
+
+### Related tests
+
+- `npm run e2e:local`
+- `npm run e2e:container:local`
+
+## ERR-20260810-067 - Dashboard test assumed profile identity appeared once
+
+### Context
+
+The personal organization hierarchy began showing the signed-in person's display name and email in addition to the persistent account summary.
+
+### Symptoms
+
+The first full Vitest run failed because `getByText()` found two valid occurrences of the same profile name and email.
+
+### Root cause
+
+The old test encoded a uniqueness assumption that was no longer true after the hierarchy became a complete organization-to-person path.
+
+### Correct solution
+
+Assert both semantic occurrences with `getAllByText()` while retaining the hierarchy heading and membership assertions.
+
+### Prevention
+
+When identity data is intentionally repeated in separate accessible regions, scope queries to a region or assert the expected count rather than relying on global uniqueness.
+
+### Related files
+
+- `src/app/App.test.tsx`
+- `src/features/dashboard/DashboardPage.tsx`
+
+### Related tests
+
+- `npm test`
+
+## ERR-20260810-066 - Assignment and report hashes fell through to the public site
+
+### Context
+
+Authenticated users selected the assignment or report item from the application navigation.
+
+### Symptoms
+
+Both `#assignments` and `#reports` displayed the public Yankı product page instead of the requested protected workspace view. The old dashboard also stacked every assignment and report target into one long page, making existing aggregate results difficult to find.
+
+### Root cause
+
+The application navigation emitted both hashes, but the root hash parser recognized only `#dashboard`, `#administration`, and `#login`. Every unknown hash intentionally resolved to the marketing route.
+
+### Correct solution
+
+Add explicit protected routes for assignments and reports, pass the active view into the authenticated dashboard shell, render each workflow as a dedicated page, and add route regression tests. Keep the public fallback for genuinely unknown marketing hashes.
+
+### Prevention
+
+Every application navigation destination must have an App-level route test that asserts the protected heading, active navigation state, and absence of marketing fallback behavior. The critical Playwright lifecycle must enter assignment and report workflows through their real hashes.
+
+### Related files
+
+- `src/app/App.tsx`
+- `src/features/dashboard/DashboardPage.tsx`
+- `tests/e2e/critical-lifecycle.e2e.ts`
+
+### Related tests
+
+- `src/app/App.test.tsx`
+- `npm run e2e:local`
+- `npm run e2e:container:local`
+
 ## ERR-20260810-065 - Supabase CLI telemetry write was blocked by the workspace sandbox
 
 ### Context
@@ -223,100 +319,6 @@ Exercise real Auth callback URLs in browser acceptance and retain focused route 
 
 - `npm test -- --run src/app/App.test.tsx`
 - `npm run e2e:local`
-
-## ERR-20260809-058 - Windows Node runner could not spawn command shims reliably
-
-### Context
-
-The first local E2E orchestrator launched Supabase and Playwright through Windows `npx.cmd` child processes under Node.js 24.
-
-### Symptoms
-
-Direct shim spawning returned `EINVAL`; shell mode introduced deprecation/no-output behavior, and generic termination could leave the Function process alive.
-
-### Root cause
-
-The runner depended on platform command shims and process-tree behavior instead of invoking installed JavaScript CLI entrypoints directly and owning the child tree explicitly.
-
-### Correct solution
-
-Invoke the installed Supabase and Playwright CLI modules with `process.execPath`, and on Windows terminate only the tracked child process tree with `taskkill` during cleanup.
-
-### Prevention
-
-Keep local orchestration shell-free, use repository-pinned CLI entrypoints, track child PIDs, and test cleanup without touching unrelated developer servers.
-
-### Related files
-
-- `scripts/run-local-e2e.mjs`
-- `scripts/lib/local-e2e-environment.mjs`
-
-### Related tests
-
-- `tests/local-e2e-environment.test.mjs`
-- `npm run e2e:local`
-
-## ERR-20260809-057 - Reporting smoke lacked local account aliases
-
-### Context
-
-The first linked immediate-reporting acceptance invocation expected reusable `REPORT_*` account variables.
-
-### Symptoms
-
-The script stopped before authentication or remote mutation with `REPORT_ADMIN_EMAIL is required`.
-
-### Root cause
-
-Synthetic account credentials had been supplied for interactive testing but were intentionally not persisted in `.env.local` under the smoke script's aliases.
-
-### Correct solution
-
-Run the acceptance once with the previously approved synthetic values supplied only to the command process. Do not write them into source, documentation, or a committed environment file.
-
-### Prevention
-
-Keep smoke scripts fail-fast on missing variables and document their required aliases without values. Production and CI credentials must come from an approved secret manager.
-
-### Related files
-
-- `scripts/smoke-thresholded-evaluation-reporting.mjs`
-- `docs/TEST_FIXTURES.md`
-
-### Related tests
-
-- `npm run smoke:reports`
-
-## ERR-20260809-056 - Supabase pg-delta catalog cache missed its temporary certificate
-
-### Context
-
-The immediate-reporting migration was pushed to the linked synthetic Supabase project with CLI 2.109.1.
-
-### Symptoms
-
-The migration applied, but the CLI warned that post-apply pg-delta catalog caching could not read a temporary `pgdelta-target-ca.crt` file.
-
-### Root cause
-
-The CLI's optional post-apply catalog export outlived or could not resolve its temporary certificate path. The database migration transaction itself had already completed.
-
-### Correct solution
-
-Do not replay or repair the applied migration blindly. Verify local/remote migration parity and run linked schema lint; both checks confirmed `20260809210000` is active and the schema is clean.
-
-### Prevention
-
-Treat post-apply CLI warnings separately from database transaction failures and require migration-list plus linked-lint evidence before deciding whether a forward repair is needed. Reassess after the planned CLI update.
-
-### Related files
-
-- `supabase/migrations/20260809210000_immediate_evaluation_reporting.sql`
-
-### Related tests
-
-- `npx supabase migration list`
-- `npm run supabase:lint:linked`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

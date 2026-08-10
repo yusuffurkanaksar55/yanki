@@ -10,7 +10,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 
 ## Current Implementation Status
 
-- Application UI: responsive public product site, dedicated authentication experience, Turkish employee dashboard, and role-aware administration shell implemented.
+- Application UI: responsive public product site, dedicated authentication experience, and protected Turkish overview, assignment, reporting, and role-aware administration views implemented.
 - Authentication: typed Supabase Auth client foundation implemented for email/password sign-in, password reset request, strong password setup after invitation/recovery, local-session sign-out, and session-state gating.
 - Browser acceptance: isolated Playwright runners exercise local Supabase Auth, Mailpit invitation delivery, onboarding, template publication, project assignments, encrypted submission, immediate reporting, access denials, mobile overflow, public/auth WCAG checks, and keyboard navigation against either a dedicated Vite port or the production Nginx container.
 - User profile onboarding: Supabase Auth-backed invitation creation/revocation, atomic invitation acceptance, and authenticated profile gate implemented with Turkish pending, inactive, and error states.
@@ -26,7 +26,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Anonymous endpoint abuse protection: known credentials receive isolated 12-request/10-minute buckets, unknown credentials share a 120-request/minute invalid-only bucket, request bodies are bounded, and seven-day five-minute aggregate counters contain no identity, tenant, credential, request, or content data.
 - Outer gateway and alert delivery: the Docker Nginx runtime proxies same-origin `/supabase` traffic, applies content-free body/connection/request limits before sensitive Functions, injects a server-only direct-bypass token, disables sensitive endpoint logs, and a hardened five-minute operator timer delivers identifier-free alert/recovery transitions to an authenticated HTTPS webhook.
 - Aggregate reporting: authorized team leaders, C-Level reviewers, and board reviewers can request active or completed subject reports through a trusted Edge Function. Database functions enforce scope, system-admin denial, and self-access denial before releasing an identity-free ciphertext batch after the first submission.
-- Reporting UI: the Turkish dashboard lists authorized non-draft report targets without discovery-time participation counts, shows an empty state before the first response, renders numeric/categorical aggregates as responses arrive, and never receives raw free-text responses.
+- Reporting UI: the dedicated Turkish reporting route lists authorized non-draft report targets without discovery-time participation counts, requires an explicit person/cycle selection, shows an empty state before the first response, renders numeric/categorical aggregates as responses arrive, and shows question-grouped identity-separated comments without evaluator, timestamp, response-order, or cross-question linkage metadata.
 - Evaluation content retention: each organization has a versioned 30-to-3650-day policy, disabled-by-default automatic purge, legal hold, scoped Turkish administration UI, and service-role-only live-database cleanup that returns no submission counts.
 - Production tenant bootstrap: a service-role-only, fingerprinted, idempotent operator command creates an organization, initial unit, first administrator invitation, default retention policy, and content-free audit trail for shared SaaS or dedicated installations. Failed database creation compensates only the Auth identity created by that command, and an explicit recovery command can renew an incomplete initial invitation without printing an action link.
 - Recovery acceptance: a Docker-backed disposable restore drill streams a compressed dump into a protected temporary database without a host dump file, verifies migration and security invariants, optionally decrypts identity-free synthetic canaries with independently recovered keys, and always removes the target.
@@ -90,6 +90,8 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Recent Major Changes
 
+- 2026-08-10: Added corporate typography and public product detail, a readable workspace hierarchy, and authorized identity-separated comments with independent question-level shuffling.
+- 2026-08-10: Added protected assignment/report routes, compact task filters, explicit report selection, collapsible project details, and simplified invitation administration after full desktop/mobile browser review.
 - 2026-08-10: Added production-container browser acceptance, direct sensitive-endpoint bypass denial, automated WCAG/keyboard checks, corrected color contrast, and fail-safe local synthetic-fixture cleanup.
 - 2026-08-09: Added isolated Docker-backed Playwright acceptance for the critical invitation-to-report lifecycle, explicit portable identity-domain API grants, and persistent-database-safe pgTAP assertions.
 - 2026-08-09: Added digest-pinned multi-platform GHCR releases, pinned build dependencies, SBOM/provenance, keyless signatures, signed manifests, and standalone customer installation acceptance.

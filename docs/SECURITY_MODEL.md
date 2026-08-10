@@ -123,9 +123,9 @@ Alert webhooks must use HTTPS outside explicit loopback acceptance and authentic
 
 Report availability starts after the first encrypted submission for a fixed evaluation-cycle-plus-subject group. The legacy cycle threshold field is fixed to `1` for compatibility and is not an administrative privacy control.
 
-Before the first submission, the application returns a Turkish `EMPTY` state without questions, ciphertext, decrypted values, or a participation count. After the first submission, the authorized report includes the current sample size and aggregate values, including while the cycle is active.
+Before the first submission, the application returns a Turkish `EMPTY` state without questions, ciphertext, decrypted values, or a participation count. After the first submission, the authorized report includes the current sample size, aggregate values, and question-grouped written comments, including while the cycle is active. Text comments are independently shuffled per question and carry no evaluator, assignment, submission, timestamp, stable sequence, or cross-question grouping metadata.
 
-The implemented report group is fixed to evaluation cycle plus evaluated subject. Target discovery is independent of submission existence, and client-selected slicing is not supported. Evaluator identifiers remain separated from content, but a reviewer can sometimes infer a contributor from organizational context when the group is small. Product claims must not describe this behavior as guaranteed group anonymity.
+The implemented report group is fixed to evaluation cycle plus evaluated subject. Target discovery is independent of submission existence, and client-selected slicing is not supported. Evaluator identifiers remain separated from content, but a reviewer can sometimes infer a contributor from organizational context, writing style, or comment detail when the group is small. Product claims must not describe this behavior as guaranteed group anonymity.
 
 ## Logging And Auditing
 

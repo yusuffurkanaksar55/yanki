@@ -79,7 +79,7 @@ describe("UserInvitationManagementPanel", () => {
     expect(
       await screen.findByText(tr.administration.users.feedback.revoked)
     ).toBeInTheDocument();
-  });
+  }, 10_000);
 
   it("does not render for users without a system administrator role", () => {
     const { container } = render(

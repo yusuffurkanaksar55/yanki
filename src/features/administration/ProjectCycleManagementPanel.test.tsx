@@ -115,6 +115,9 @@ describe("ProjectCycleManagementPanel", () => {
     );
 
     await screen.findByText("Existing Project");
+    await user.click(screen.getByRole("button", {
+      name: `Existing Project: ${tr.administration.projects.list.showDetails}`
+    }));
     const projectArticle = screen
       .getByText("Existing Project")
       .closest("article");
@@ -164,6 +167,9 @@ describe("ProjectCycleManagementPanel", () => {
     );
 
     await screen.findByText("Existing Project");
+    await user.click(screen.getByRole("button", {
+      name: `Existing Project: ${tr.administration.projects.list.showDetails}`
+    }));
     await user.click(
       screen.getByRole("button", {
         name: tr.administration.projects.assignments.generate
@@ -194,6 +200,9 @@ describe("ProjectCycleManagementPanel", () => {
     );
 
     await screen.findByText("Existing Project");
+    await user.click(screen.getByRole("button", {
+      name: `Existing Project: ${tr.administration.projects.list.showDetails}`
+    }));
     expect(
       screen.queryByText(tr.administration.projects.form.title)
     ).not.toBeInTheDocument();

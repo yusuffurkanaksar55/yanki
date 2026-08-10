@@ -73,7 +73,7 @@ Can view only assignments addressed to their authenticated identity, prepare a o
 
 ### `TEAM_LEADER`
 
-Can access authorized identity-separated aggregate results for users in assigned scope after the first encrypted submission. Cannot view evaluator identities, own results, or results outside scope.
+Can access authorized identity-separated aggregate results and question-grouped comments for users in assigned scope after the first encrypted submission. Cannot view evaluator identities, own results, or results outside scope.
 
 ### `PROJECT_MANAGER`
 
@@ -83,11 +83,11 @@ The project administration boundary lists assigned project configuration and per
 
 ### `C_LEVEL_REVIEWER`
 
-Can access authorized anonymous aggregate results within assigned organizational scopes. Cannot view evaluator identities or own results unless an approved higher-level policy permits it.
+Can access authorized identity-separated aggregate results and question-grouped comments within assigned organizational scopes. Cannot view evaluator identities or own results.
 
 ### `BOARD_REVIEWER`
 
-Can access high-level authorized identity-separated aggregate results according to explicit governance scope. Cannot bypass scope, administrator-deny, or self-access restrictions.
+Can access high-level authorized identity-separated aggregate results and question-grouped comments according to explicit governance scope. Cannot bypass scope, administrator-deny, or self-access restrictions.
 
 ## Scope Types
 
@@ -108,7 +108,7 @@ Users must not access results about themselves. The reporting target list exclud
 
 ## Report Availability
 
-Report access starts after the first encrypted submission for a fixed cycle-plus-subject group, including during an active cycle. Before that point, `EMPTY` reveals no count, ciphertext, or question set. Role, tenant scope, active manager relationship where required, system-administrator denial, and self-access denial remain mandatory for every request.
+Report access starts after the first encrypted submission for a fixed cycle-plus-subject group, including during an active cycle. Before that point, `EMPTY` reveals no count, ciphertext, or question set. Available reports may include independently shuffled comments grouped by question, but no evaluator, assignment, submission, timestamp, sequence, or cross-question linkage metadata. Role, tenant scope, active manager relationship where required, system-administrator denial, and self-access denial remain mandatory for every request.
 
 ## URL Manipulation Defense
 

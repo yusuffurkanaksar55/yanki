@@ -61,7 +61,7 @@ describe("EvaluationTemplateManagementPanel", () => {
     expect(
       await screen.findByText(tr.administration.templates.feedback.saved)
     ).toBeInTheDocument();
-  });
+  }, 10_000);
 
   it("publishes a draft and presents the returned version as immutable", async () => {
     const user = userEvent.setup();

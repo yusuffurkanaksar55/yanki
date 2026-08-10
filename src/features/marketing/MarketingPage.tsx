@@ -1,20 +1,37 @@
 import { useState } from "react";
 import {
   ArrowRight,
+  BarChart3,
   Building2,
+  Check,
   CheckCircle2,
+  ClipboardList,
   Cloud,
   Database,
+  FileCheck2,
   KeyRound,
   Menu,
   MessageSquareText,
+  Network,
+  Send,
   Server,
   ShieldCheck,
-  X
+  UserRoundCog,
+  X,
+  type LucideIcon
 } from "lucide-react";
 import { tr } from "../../locales/tr/messages";
 
-const workflowIcons = [Building2, MessageSquareText, ShieldCheck] as const;
+const workflowIcons = [
+  Building2,
+  UserRoundCog,
+  ClipboardList,
+  FileCheck2,
+  Send,
+  BarChart3
+] as const;
+
+const securityIcons = [Database, ShieldCheck, KeyRound, CheckCircle2] as const;
 
 export function MarketingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -31,9 +48,8 @@ export function MarketingPage() {
             <span className="flex h-9 w-9 items-center justify-center rounded-md bg-pine text-white">
               <MessageSquareText aria-hidden="true" size={20} strokeWidth={1.8} />
             </span>
-            <span>
-              <span className="block font-bold leading-5 text-slate-950">{tr.app.name}</span>
-              <span className="block text-xs font-medium text-slate-500">{tr.app.kicker}</span>
+            <span className="font-display text-lg font-bold leading-5 text-slate-950">
+              {tr.app.name}
             </span>
           </a>
 
@@ -96,17 +112,16 @@ export function MarketingPage() {
             className="absolute inset-0 h-full w-full object-cover object-[62%_center] sm:object-center"
             src="/assets/yanki-public-hero.jpg"
           />
-          <div className="absolute inset-0 bg-white/50 sm:bg-transparent" />
+          <div className="absolute inset-0 bg-white/55 sm:bg-white/20" />
           <div className="relative mx-auto w-full max-w-7xl px-5 py-16 sm:px-8 lg:px-10">
-            <div className="max-w-xl">
-              <p className="section-kicker">{tr.marketing.hero.eyebrow}</p>
-              <h1 className="mt-3 text-5xl font-bold leading-none text-slate-950 sm:text-6xl lg:text-7xl">
+            <div className="max-w-2xl">
+              <h1 className="font-display text-5xl font-bold leading-none text-slate-950 sm:text-6xl lg:text-7xl">
                 {tr.app.name}
               </h1>
-              <p className="mt-5 max-w-lg text-xl font-semibold leading-8 text-slate-900 sm:text-2xl">
+              <p className="mt-6 max-w-xl text-2xl font-semibold leading-8 text-slate-950 sm:text-3xl sm:leading-10">
                 {tr.marketing.hero.title}
               </p>
-              <p className="mt-4 max-w-lg text-base leading-7 text-slate-700">
+              <p className="mt-5 max-w-xl text-base leading-7 text-slate-700 sm:text-lg">
                 {tr.marketing.hero.summary}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -128,12 +143,12 @@ export function MarketingPage() {
           </div>
         </section>
 
-        <section className="border-b border-slate-200 bg-slate-950 text-white" aria-label={tr.marketing.proof.ariaLabel}>
+        <section className="border-b border-slate-800 bg-slate-950 text-white" aria-label={tr.marketing.proof.ariaLabel}>
           <div className="mx-auto grid max-w-7xl divide-y divide-slate-800 px-5 sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:px-8 lg:px-10">
             {tr.marketing.proof.items.map((item) => (
-              <div className="py-6 sm:px-6 sm:first:pl-0 sm:last:pr-0" key={item.title}>
-                <p className="font-bold text-white">{item.title}</p>
-                <p className="mt-1 text-sm leading-6 text-slate-300">{item.description}</p>
+              <div className="py-7 sm:px-6 sm:first:pl-0 sm:last:pr-0" key={item.title}>
+                <p className="font-semibold text-white">{item.title}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{item.description}</p>
               </div>
             ))}
           </div>
@@ -141,27 +156,24 @@ export function MarketingPage() {
 
         <section className="scroll-mt-24 bg-white py-20 sm:py-24" id="how-it-works">
           <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-            <div className="max-w-2xl">
-              <p className="section-kicker">{tr.marketing.workflow.eyebrow}</p>
-              <h2 className="mt-2 text-3xl font-bold leading-tight text-slate-950 sm:text-4xl">
-                {tr.marketing.workflow.title}
-              </h2>
-              <p className="mt-4 text-base leading-7 text-slate-600">{tr.marketing.workflow.summary}</p>
-            </div>
-            <ol className="mt-12 grid border-y border-slate-200 md:grid-cols-3 md:divide-x md:divide-slate-200">
+            <SectionHeading title={tr.marketing.workflow.title} summary={tr.marketing.workflow.summary} />
+            <ol className="mt-12 grid border-y border-slate-200 lg:grid-cols-2">
               {tr.marketing.workflow.steps.map((step, index) => {
                 const Icon = workflowIcons[index];
 
                 return (
-                  <li className="border-b border-slate-200 py-8 last:border-b-0 md:border-b-0 md:px-8 md:first:pl-0 md:last:pr-0" key={step.title}>
-                    <div className="flex items-center justify-between">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-md bg-emerald-50 text-pine">
-                        <Icon aria-hidden="true" size={22} strokeWidth={1.8} />
-                      </span>
-                      <span className="text-sm font-bold text-coral">0{index + 1}</span>
+                  <li
+                    className="grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] gap-4 border-b border-slate-200 py-7 last:border-b-0 lg:px-8 lg:odd:border-r lg:[&:nth-last-child(2)]:border-b-0 lg:first:pl-0 lg:last:pr-0"
+                    key={step.title}
+                  >
+                    <span className="flex h-11 w-11 items-center justify-center rounded-md bg-emerald-50 text-pine">
+                      <Icon aria-hidden="true" size={22} strokeWidth={1.8} />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-coral">0{index + 1}</p>
+                      <h3 className="mt-1 text-lg font-bold text-slate-950">{step.title}</h3>
+                      <p className="mt-2 text-sm leading-6 text-slate-600">{step.description}</p>
                     </div>
-                    <h3 className="mt-6 text-xl font-bold text-slate-950">{step.title}</h3>
-                    <p className="mt-3 text-sm leading-6 text-slate-600">{step.description}</p>
                   </li>
                 );
               })}
@@ -169,41 +181,66 @@ export function MarketingPage() {
           </div>
         </section>
 
-        <section className="scroll-mt-24 bg-emerald-950 py-20 text-white sm:py-24" id="privacy">
-          <div className="mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:px-10">
-            <div>
-              <p className="text-xs font-bold uppercase text-[#f4b4ad]">{tr.marketing.security.eyebrow}</p>
-              <h2 className="mt-2 text-3xl font-bold leading-tight sm:text-4xl">{tr.marketing.security.title}</h2>
-              <p className="mt-5 text-base leading-7 text-emerald-100">{tr.marketing.security.summary}</p>
-            </div>
-            <div className="grid gap-px overflow-hidden rounded-lg border border-emerald-800 bg-emerald-800 sm:grid-cols-2">
-              {tr.marketing.security.items.map((item, index) => {
-                const Icon = index === 0 ? Database : index === 1 ? ShieldCheck : index === 2 ? KeyRound : CheckCircle2;
-
-                return (
-                  <div className="bg-emerald-950 p-6" key={item.title}>
-                    <Icon aria-hidden="true" className="text-[#f4b4ad]" size={22} strokeWidth={1.8} />
-                    <h3 className="mt-4 font-bold">{item.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-emerald-100">{item.description}</p>
-                  </div>
-                );
-              })}
+        <section className="border-y border-slate-200 bg-mist py-20 sm:py-24">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:gap-16">
+              <div>
+                <Network aria-hidden="true" className="text-pine" size={28} strokeWidth={1.8} />
+                <h2 className="mt-5 text-3xl font-bold leading-tight text-slate-950 sm:text-4xl">
+                  {tr.marketing.governance.title}
+                </h2>
+                <p className="mt-5 text-base leading-7 text-slate-600">
+                  {tr.marketing.governance.summary}
+                </p>
+              </div>
+              <div className="border-y border-slate-300">
+                {tr.marketing.governance.items.map((item) => (
+                  <article className="grid gap-2 border-b border-slate-300 py-6 last:border-b-0 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-6" key={item.title}>
+                    <div>
+                      <h3 className="font-bold text-slate-950">{item.title}</h3>
+                      <p className="mt-1 text-xs font-semibold text-pine">{item.access}</p>
+                    </div>
+                    <p className="text-sm leading-6 text-slate-600">{item.description}</p>
+                  </article>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="scroll-mt-24 bg-mist py-20 sm:py-24" id="deployment">
+        <section className="scroll-mt-24 bg-emerald-950 py-20 text-white sm:py-24" id="privacy">
           <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-start">
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:gap-16">
               <div>
-                <p className="section-kicker">{tr.marketing.deployment.eyebrow}</p>
-                <h2 className="mt-2 text-3xl font-bold leading-tight text-slate-950 sm:text-4xl">{tr.marketing.deployment.title}</h2>
-                <p className="mt-4 text-base leading-7 text-slate-600">{tr.marketing.deployment.summary}</p>
+                <ShieldCheck aria-hidden="true" className="text-[#f4b4ad]" size={30} strokeWidth={1.8} />
+                <h2 className="mt-5 text-3xl font-bold leading-tight sm:text-4xl">{tr.marketing.security.title}</h2>
+                <p className="mt-5 text-base leading-7 text-emerald-100">{tr.marketing.security.summary}</p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <DeploymentOption icon={Cloud} {...tr.marketing.deployment.saas} />
-                <DeploymentOption icon={Server} {...tr.marketing.deployment.privateServer} />
+              <div className="border-y border-emerald-800">
+                {tr.marketing.security.items.map((item, index) => {
+                  const Icon = securityIcons[index];
+
+                  return (
+                    <article className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-4 border-b border-emerald-800 py-6 last:border-b-0" key={item.title}>
+                      <Icon aria-hidden="true" className="text-[#f4b4ad]" size={22} strokeWidth={1.8} />
+                      <div>
+                        <h3 className="font-bold text-white">{item.title}</h3>
+                        <p className="mt-2 text-sm leading-6 text-emerald-100">{item.description}</p>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="scroll-mt-24 bg-white py-20 sm:py-24" id="deployment">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+            <SectionHeading title={tr.marketing.deployment.title} summary={tr.marketing.deployment.summary} />
+            <div className="mt-12 grid gap-5 lg:grid-cols-2">
+              <DeploymentOption icon={Cloud} {...tr.marketing.deployment.saas} />
+              <DeploymentOption icon={Server} {...tr.marketing.deployment.privateServer} />
             </div>
           </div>
         </section>
@@ -235,6 +272,15 @@ export function MarketingPage() {
   );
 }
 
+function SectionHeading({ summary, title }: { readonly summary: string; readonly title: string }) {
+  return (
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-end lg:gap-16">
+      <h2 className="text-3xl font-bold leading-tight text-slate-950 sm:text-4xl">{title}</h2>
+      <p className="max-w-2xl text-base leading-7 text-slate-600">{summary}</p>
+    </div>
+  );
+}
+
 function PublicNavLink({ href, label }: { readonly href: string; readonly label: string }) {
   return <a className="focus-ring rounded-md px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-950" href={href}>{label}</a>;
 }
@@ -245,18 +291,28 @@ function MobileNavLink({ href, label, onClick }: { readonly href: string; readon
 
 function DeploymentOption({
   description,
+  features,
   icon: Icon,
   title
 }: {
   readonly description: string;
-  readonly icon: typeof Cloud;
+  readonly features: readonly string[];
+  readonly icon: LucideIcon;
   readonly title: string;
 }) {
   return (
-    <article className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-      <Icon aria-hidden="true" className="text-pine" size={24} strokeWidth={1.8} />
-      <h3 className="mt-5 text-lg font-bold text-slate-950">{title}</h3>
+    <article className="rounded-lg border border-slate-200 bg-mist p-6 sm:p-8">
+      <Icon aria-hidden="true" className="text-pine" size={26} strokeWidth={1.8} />
+      <h3 className="mt-5 text-xl font-bold text-slate-950">{title}</h3>
       <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
+      <ul className="mt-6 grid gap-3 border-t border-slate-200 pt-5">
+        {features.map((feature) => (
+          <li className="flex items-start gap-3 text-sm font-medium text-slate-800" key={feature}>
+            <Check aria-hidden="true" className="mt-0.5 shrink-0 text-pine" size={17} strokeWidth={2} />
+            <span>{feature}</span>
+          </li>
+        ))}
+      </ul>
     </article>
   );
 }

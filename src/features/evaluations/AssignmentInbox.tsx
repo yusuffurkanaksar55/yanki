@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { tr } from "../../locales/tr/messages";
 import {
+  createAssignmentSummary,
+  type AssignmentInboxSummary
+} from "./assignmentSummary";
+import {
   browserEvaluationAssignmentService,
   type EvaluationAssignment,
   type EvaluationAssignmentAvailability,
@@ -8,15 +12,15 @@ import {
 } from "./evaluationAssignmentService";
 import { EvaluationSubmissionForm } from "./EvaluationSubmissionForm";
 
-export type AssignmentInboxSummary = {
-  readonly activeCycleCount: number;
-  readonly pendingAssignmentCount: number;
-};
-
 type AssignmentInboxProps = {
   readonly onSummaryChange?: (summary: AssignmentInboxSummary) => void;
   readonly service?: EvaluationAssignmentService;
+  readonly showHeader?: boolean;
 };
+
+type AssignmentFilter = "active" | "completed" | "all";
+
+const assignmentPageSize = 6;
 
 type AssignmentInboxState =
   | { readonly status: "loading" }
@@ -28,7 +32,8 @@ type AssignmentInboxState =
 
 export function AssignmentInbox({
   onSummaryChange,
-  service = browserEvaluationAssignmentService
+  service = browserEvaluationAssignmentService,
+  showHeader = true
 }: AssignmentInboxProps) {
   const [reloadKey, setReloadKey] = useState(0);
   const [state, setState] = useState<AssignmentInboxState>({
@@ -41,6 +46,8 @@ export function AssignmentInbox({
     Awaited<ReturnType<EvaluationAssignmentService["prepareSubmission"]>> | null
   >(null);
   const [submissionFeedback, setSubmissionFeedback] = useState<string | null>(null);
+  const [filter, setFilter] = useState<AssignmentFilter>("active");
+  const [visibleCount, setVisibleCount] = useState(assignmentPageSize);
 
   useEffect(() => {
     let isActive = true;
@@ -56,7 +63,7 @@ export function AssignmentInbox({
         }
 
         setState({ status: "ready", assignments });
-        onSummaryChange?.(createSummary(assignments));
+        onSummaryChange?.(createAssignmentSummary(assignments));
       } catch {
         if (!isActive) {
           return;
@@ -93,25 +100,62 @@ export function AssignmentInbox({
     setReloadKey((current) => current + 1);
   }
 
+  const assignments = state.status === "ready" ? state.assignments : [];
+  const filteredAssignments = sortAssignments(
+    assignments.filter((assignment) => matchesFilter(assignment, filter))
+  );
+  const visibleAssignments = filteredAssignments.slice(0, visibleCount);
+
+  function changeFilter(nextFilter: AssignmentFilter) {
+    setFilter(nextFilter);
+    setVisibleCount(assignmentPageSize);
+  }
+
   return (
     <section
       aria-label={tr.assignments.sectionLabel}
-      className="mt-8"
+      className={showHeader ? "mt-8" : "mt-6"}
       id="assignments"
     >
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      {showHeader ? (
         <div>
-          <h2 className="text-xl font-semibold">{tr.assignments.title}</h2>
+          <h2 className="text-xl font-semibold text-slate-950">
+            {tr.assignments.title}
+          </h2>
           <p className="mt-1 text-sm leading-6 text-slate-600">
             {tr.assignments.description}
           </p>
         </div>
-        {state.status === "ready" ? (
-          <span className="text-sm font-semibold text-slate-700">
-            {formatCount(state.assignments.length)}
+      ) : null}
+
+      {state.status === "ready" && state.assignments.length > 0 ? (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            aria-label={tr.assignments.filters.label}
+            className="flex w-fit max-w-full overflow-x-auto rounded-md border border-slate-300 bg-white p-1 scrollbar-none"
+            role="group"
+          >
+            {(["active", "completed", "all"] as const).map((filterName) => (
+              <button
+                aria-pressed={filter === filterName}
+                className={`min-h-9 whitespace-nowrap rounded px-3 py-1.5 text-sm font-semibold transition focus-ring ${
+                  filter === filterName
+                    ? "bg-pine text-white"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+                }`}
+                key={filterName}
+                onClick={() => changeFilter(filterName)}
+                type="button"
+              >
+                {tr.assignments.filters[filterName]}
+              </button>
+            ))}
+          </div>
+          <span className="text-sm font-semibold text-slate-600">
+            {formatCount(filteredAssignments.length)}
           </span>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {state.status === "loading" ? (
         <div className="mt-4 rounded-lg border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
@@ -145,9 +189,22 @@ export function AssignmentInbox({
         </div>
       ) : null}
 
-      {state.status === "ready" && state.assignments.length > 0 ? (
+      {state.status === "ready"
+        && state.assignments.length > 0
+        && filteredAssignments.length === 0 ? (
+        <div className="mt-4 border-y border-slate-200 bg-white px-4 py-6">
+          <p className="font-semibold text-slate-800">
+            {tr.assignments.filteredEmpty.title}
+          </p>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            {tr.assignments.filteredEmpty.description}
+          </p>
+        </div>
+      ) : null}
+
+      {state.status === "ready" && visibleAssignments.length > 0 ? (
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          {state.assignments.map((assignment) => (
+          {visibleAssignments.map((assignment) => (
             <AssignmentCard
               assignment={assignment}
               isPreparing={preparingAssignmentId === assignment.id}
@@ -155,6 +212,18 @@ export function AssignmentInbox({
               onStart={() => void prepareSubmission(assignment.id)}
             />
           ))}
+        </div>
+      ) : null}
+
+      {visibleAssignments.length < filteredAssignments.length ? (
+        <div className="mt-5 flex justify-center">
+          <button
+            className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 focus-ring"
+            onClick={() => setVisibleCount((current) => current + assignmentPageSize)}
+            type="button"
+          >
+            {tr.assignments.actions.showMore}
+          </button>
         </div>
       ) : null}
 
@@ -268,24 +337,42 @@ function AssignmentDetail({
   );
 }
 
-function createSummary(
-  assignments: readonly EvaluationAssignment[]
-): AssignmentInboxSummary {
-  const activeCycleIds = new Set(
-    assignments
-      .filter((assignment) => assignment.availabilityStatus === "AVAILABLE")
-      .map((assignment) => assignment.evaluationCycleId)
-  );
-  const pendingAssignmentCount = assignments.filter(
-    (assignment) =>
-      assignment.assignmentStatus === "PENDING"
-      && ["AVAILABLE", "UPCOMING"].includes(assignment.availabilityStatus)
-  ).length;
+function matchesFilter(
+  assignment: EvaluationAssignment,
+  filter: AssignmentFilter
+): boolean {
+  if (filter === "active") {
+    return ["AVAILABLE", "UPCOMING"].includes(assignment.availabilityStatus);
+  }
 
-  return {
-    activeCycleCount: activeCycleIds.size,
-    pendingAssignmentCount
+  if (filter === "completed") {
+    return assignment.availabilityStatus === "COMPLETED";
+  }
+
+  return true;
+}
+
+function sortAssignments(
+  assignments: readonly EvaluationAssignment[]
+): readonly EvaluationAssignment[] {
+  const statusPriority: Record<EvaluationAssignmentAvailability, number> = {
+    AVAILABLE: 0,
+    UPCOMING: 1,
+    COMPLETED: 2,
+    CLOSED: 3
   };
+
+  return [...assignments].sort((left, right) => {
+    const priorityDifference =
+      statusPriority[left.availabilityStatus]
+      - statusPriority[right.availabilityStatus];
+
+    if (priorityDifference !== 0) {
+      return priorityDifference;
+    }
+
+    return new Date(right.closesAt).getTime() - new Date(left.closesAt).getTime();
+  });
 }
 
 function formatCount(count: number): string {

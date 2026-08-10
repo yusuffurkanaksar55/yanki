@@ -83,10 +83,7 @@ export function AuthPage() {
             <span className="flex h-9 w-9 items-center justify-center rounded-md bg-pine text-white">
               <MessageSquareText aria-hidden="true" size={20} strokeWidth={1.8} />
             </span>
-            <span>
-              <span className="block font-bold leading-5 text-slate-950">{tr.app.name}</span>
-              <span className="block text-xs font-medium text-slate-500">{tr.app.kicker}</span>
-            </span>
+            <span className="font-bold leading-5 text-slate-950">{tr.app.name}</span>
           </a>
 
           <div className="hidden max-w-md lg:absolute lg:left-10 lg:top-1/2 lg:block lg:-translate-y-1/2">

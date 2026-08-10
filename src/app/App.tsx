@@ -9,6 +9,7 @@ import { AuthGate } from "../features/authentication/AuthGate";
 import { AuthProvider } from "../features/authentication/AuthProvider";
 import type { AuthService } from "../features/authentication/authService";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
+import type { DashboardView } from "../features/dashboard/DashboardPage";
 import type {
   EvaluationAssignmentService
 } from "../features/evaluations/evaluationAssignmentService";
@@ -32,7 +33,13 @@ type AppProps = {
   readonly workspaceContextService?: WorkspaceContextService;
 };
 
-type AppRoute = "marketing" | "login" | "dashboard" | "administration";
+type AppRoute =
+  | "marketing"
+  | "login"
+  | "dashboard"
+  | "assignments"
+  | "reports"
+  | "administration";
 
 export function App({
   authService,
@@ -67,6 +74,7 @@ export function App({
               <WorkspaceContextGate service={workspaceContextService}>
                 {({ workspaceContext }) => (
                   <>
+                    <AuthenticatedRouteRedirect route={route} />
                     {route === "administration" ? (
                       <AdministrationPage
                         evaluationTemplateService={evaluationTemplateService}
@@ -82,6 +90,7 @@ export function App({
                       />
                     ) : (
                       <DashboardPage
+                        activeView={toDashboardView(route)}
                         evaluationAssignmentService={evaluationAssignmentService}
                         evaluationReportService={evaluationReportService}
                         isSigningOut={isSigningOut}
@@ -149,6 +158,14 @@ function readRouteFromHash(): AppRoute {
     return "dashboard";
   }
 
+  if (window.location.hash === "#assignments") {
+    return "assignments";
+  }
+
+  if (window.location.hash === "#reports") {
+    return "reports";
+  }
+
   if (window.location.hash === "#login") {
     return "login";
   }
@@ -158,6 +175,30 @@ function readRouteFromHash(): AppRoute {
   }
 
   return "marketing";
+}
+
+function AuthenticatedRouteRedirect({ route }: { readonly route: AppRoute }) {
+  useEffect(() => {
+    if (route !== "login") {
+      return;
+    }
+
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${window.location.pathname}${window.location.search}#dashboard`
+    );
+  }, [route]);
+
+  return null;
+}
+
+function toDashboardView(route: AppRoute): DashboardView {
+  if (route === "assignments" || route === "reports") {
+    return route;
+  }
+
+  return "dashboard";
 }
 
 function isAuthCallbackLocation(location: Location): boolean {

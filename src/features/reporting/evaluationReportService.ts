@@ -47,8 +47,8 @@ export type EvaluationReportQuestion = {
         readonly distribution: readonly EvaluationReportDistributionItem[];
       }
     | {
-        readonly kind: "TEXT_WITHHELD";
-        readonly responseCount: number;
+        readonly kind: "TEXT_COMMENTS";
+        readonly comments: readonly string[];
       };
 };
 
@@ -226,14 +226,28 @@ function toAggregation(
     };
   }
 
-  if (record.kind === "TEXT_WITHHELD") {
+  if (record.kind === "TEXT_COMMENTS") {
     return {
-      kind: "TEXT_WITHHELD",
-      responseCount: readNumber(record.responseCount)
+      comments: readComments(record.comments),
+      kind: "TEXT_COMMENTS"
     };
   }
 
   throw new EvaluationReportServiceError();
+}
+
+function readComments(value: unknown): readonly string[] {
+  const comments = readArray(value);
+
+  if (comments.some((comment) => (
+    typeof comment !== "string"
+    || comment.trim().length === 0
+    || comment.length > 5000
+  ))) {
+    throw new EvaluationReportServiceError();
+  }
+
+  return comments as string[];
 }
 
 function readDistribution(

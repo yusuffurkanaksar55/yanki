@@ -6,12 +6,19 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added corporate typography, an expanded public product narrative, a visual reporting hierarchy, and deduplicated role-scope summaries.
+- Added authorized identity-separated written comments, independently shuffled per question without evaluator, submission, timestamp, or cross-question linkage metadata.
+- Added ADR-0032 and browser/security regression coverage for the qualitative reporting boundary.
+- Added protected `#assignments` and `#reports` application routes with active navigation state, explicit report-target selection, assignment filters, and bounded task rendering.
+- Added route-level regression coverage plus Vite and production-container Playwright coverage for the separated assignment and reporting views.
 - Added production-container Playwright acceptance with a process-only required gateway token, direct sensitive-endpoint `403` verification, and same-origin Supabase browser routing.
 - Added automated WCAG 2 A/AA and 2.1/2.2 AA checks for public/auth surfaces plus keyboard-only navigation acceptance.
 - Added loopback-only synthetic E2E tenant cleanup with strict organization/user identity validation, dependency-ordered deletion, and outer cleanup on successful or failed runs.
 
 ### Fixed
 
+- Fixed assignment and report links falling through to the public product site, and normalized authenticated visits away from the sign-in hash.
+- Simplified invitation administration, collapsed project details until requested, and removed the excessive empty space and long historical-list expansion found in desktop/mobile browser review.
 - Corrected the coral design token to pass text contrast requirements across white, mist, and light-red surfaces.
 - Removed stale local E2E organizations and Auth users without resetting demo/development data, and ensured future runs leave no synthetic tenant, temporary image, container, listener, or secret file.
 

@@ -116,11 +116,6 @@ function Brand({ compact = false }: { readonly compact?: boolean }) {
       </span>
       <span className="min-w-0">
         <span className="block text-lg font-bold leading-5">{tr.app.name}</span>
-        {!compact ? (
-          <span className="mt-1 block text-xs font-medium text-slate-500">
-            {tr.app.kicker}
-          </span>
-        ) : null}
       </span>
     </a>
   );

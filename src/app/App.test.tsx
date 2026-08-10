@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { tr } from "../locales/tr/messages";
@@ -12,6 +12,8 @@ import type {
   EvaluationAssignment,
   EvaluationAssignmentService
 } from "../features/evaluations/evaluationAssignmentService";
+import type { EvaluationReportService } from
+  "../features/reporting/evaluationReportService";
 import type { Session } from "@supabase/supabase-js";
 import type {
   ProfileService,
@@ -58,14 +60,14 @@ describe("App", () => {
     expect(
       screen.getByRole("link", { name: tr.dashboard.administration.action })
     ).toHaveAttribute("href", "#administration");
-    expect(screen.getByText("person@example.com")).toBeInTheDocument();
-    expect(screen.getByText("Person Example")).toBeInTheDocument();
+    expect(screen.getAllByText("person@example.com")).toHaveLength(2);
+    expect(screen.getAllByText("Person Example")).toHaveLength(2);
     expect(screen.getByText(tr.dashboard.workspace.title)).toBeInTheDocument();
     expect(screen.getByText(/Product Team/)).toBeInTheDocument();
     expect(screen.getByText("Demo CEO")).toBeInTheDocument();
     expect(
-      await screen.findByRole("heading", { name: "Proje Değerlendirmesi" })
-    ).toBeInTheDocument();
+      screen.getByRole("link", { name: /Değerlendirme görevlerim/ })
+    ).toHaveAttribute("href", "#assignments");
     const administrationLinks = screen.getAllByRole("link", {
       name: tr.navigation.administration
     });
@@ -73,6 +75,60 @@ describe("App", () => {
     expect(administrationLinks.length).toBeGreaterThan(0);
     for (const administrationLink of administrationLinks) {
       expect(administrationLink).toHaveAttribute("href", "#administration");
+    }
+  });
+
+  it("renders assignments as a protected application route", async () => {
+    window.history.replaceState(null, "", "/#assignments");
+
+    render(
+      <App
+        authService={createAuthServiceStub(createSessionStub())}
+        evaluationAssignmentService={createEvaluationAssignmentServiceStub()}
+        profileService={createProfileServiceStub(createProfileStub())}
+        workspaceContextService={createWorkspaceContextServiceStub(
+          createWorkspaceContextStub()
+        )}
+      />
+    );
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: tr.assignments.title })
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Proje Değerlendirmesi" })
+    ).toBeInTheDocument();
+
+    for (const assignmentsLink of screen.getAllByRole("link", {
+      name: tr.navigation.cycles
+    })) {
+      expect(assignmentsLink).toHaveAttribute("aria-current", "page");
+    }
+  });
+
+  it("renders reports as a protected application route", async () => {
+    window.history.replaceState(null, "", "/#reports");
+
+    render(
+      <App
+        authService={createAuthServiceStub(createSessionStub())}
+        evaluationReportService={createEvaluationReportServiceStub()}
+        profileService={createProfileServiceStub(createProfileStub())}
+        workspaceContextService={createWorkspaceContextServiceStub(
+          createWorkspaceContextStub()
+        )}
+      />
+    );
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: tr.reports.title })
+    ).toBeInTheDocument();
+    expect(await screen.findByText(tr.reports.empty.title)).toBeInTheDocument();
+
+    for (const reportsLink of screen.getAllByRole("link", {
+      name: tr.navigation.reports
+    })) {
+      expect(reportsLink).toHaveAttribute("aria-current", "page");
     }
   });
 
@@ -146,6 +202,26 @@ describe("App", () => {
     expect(
       await screen.findByRole("heading", { name: tr.auth.pageTitle })
     ).toBeInTheDocument();
+  });
+
+  it("moves an existing session from the sign-in hash to the dashboard", async () => {
+    window.history.replaceState(null, "", "/#login");
+
+    render(
+      <App
+        authService={createAuthServiceStub(createSessionStub())}
+        evaluationAssignmentService={createEvaluationAssignmentServiceStub()}
+        profileService={createProfileServiceStub(createProfileStub())}
+        workspaceContextService={createWorkspaceContextServiceStub(
+          createWorkspaceContextStub()
+        )}
+      />
+    );
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: tr.dashboard.title })
+    ).toBeInTheDocument();
+    await waitFor(() => expect(window.location.hash).toBe("#dashboard"));
   });
 
   it("mounts authentication for an invitation callback instead of the public site", async () => {
@@ -224,6 +300,13 @@ function createEvaluationAssignmentServiceStub(): EvaluationAssignmentService {
     listMyAssignments: vi.fn(async () => [createEvaluationAssignmentStub()]),
     prepareSubmission: vi.fn(),
     submitEvaluation: vi.fn()
+  };
+}
+
+function createEvaluationReportServiceStub(): EvaluationReportService {
+  return {
+    getReport: vi.fn(),
+    listTargets: vi.fn(async () => [])
   };
 }
 

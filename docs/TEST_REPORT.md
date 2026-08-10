@@ -1,5 +1,89 @@
 # Test Report
 
+## 2026-08-10 - Corporate UI And Qualitative Reporting Regression
+
+### Environment
+
+- Windows 11, Node.js 24, React 19, Vite 8, Vitest, Playwright Chromium, Docker Desktop, local Supabase/PostgreSQL/Functions/Mailpit, linked synthetic Supabase, and the Codex in-app browser.
+
+### Commands executed
+
+- `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build`
+- `npm run e2e:local`
+- `npm run e2e:container:local`
+- `npm run supabase:test:local`, `npm run supabase:lint:local`, `npm run supabase:lint:linked`, `npm run supabase:push:dry-run`, and `npm run deployment:config`
+- Manual 1440x1000 and 390x844 public/dashboard browser review with overflow measurements
+
+### Passed
+
+- All 53 Vitest files and 237 tests passed; lint, typecheck, and the production build passed.
+- Vite and production Nginx modes each passed three Playwright tests covering invitation, onboarding, immutable templates, project assignments, encrypted submission, immediate aggregate reporting, and identity-separated written comments.
+- Authorized reviewer comments rendered while active system-administrator and evaluated-person report requests remained `403`.
+- Container mode denied direct sensitive-endpoint bypass and passed automated WCAG, keyboard navigation, responsive overflow, and synthetic cleanup checks.
+- All 185 pgTAP cases passed, local/linked schema lint returned no findings, deployment Compose validation passed, and the linked migration dry-run reported the remote database current.
+- Manual review found no horizontal overflow in desktop/mobile public and authenticated hierarchy layouts; removed marketing and logo phrases were absent.
+
+### Failed And Corrected
+
+- The first unit run found that the existing dashboard test expected the profile name/email only once. The visual hierarchy intentionally adds a second semantic occurrence, so the assertion now verifies both contexts.
+- The first local E2E attempt found the PostgreSQL container stopped with exit `137`; manually starting only the database left the API unavailable. A data-preserving full Supabase stop/start restored the complete stack and both E2E modes then passed.
+- The first sandboxed Compose validation could not spawn Docker and the first linked lint call timed out. Unchanged retries in the approved Docker/network boundary passed.
+
+### Security checks
+
+- Verified text comments remain encrypted in persistence and appear only after the existing trusted report authorization boundary.
+- Verified the frontend contract contains no evaluator, assignment, submission, ciphertext, timestamp, stable sequence, or cross-question grouping fields.
+- Verified report discovery remains participation-independent and administrator/self-access denials remain active.
+
+### Skipped
+
+- No production employee data, approved production mailbox, customer server, or public TLS/DNS staging environment was used.
+
+### Remaining risks
+
+- One or a few comments may still permit contextual or writing-style inference; the UI and ADR state this limitation explicitly.
+- The production build passes with a roughly 596 kB JavaScript chunk warning; route-level code splitting remains planned.
+
+## 2026-08-10 - Workspace Routing And Responsive Interface Regression
+
+### Environment
+
+- Windows 11, Node.js 24, React 19, Vite 8, Vitest, Playwright Chromium, Docker Desktop, local Supabase/PostgreSQL/Functions/Mailpit, linked synthetic Supabase, and the Codex in-app browser.
+
+### Commands executed
+
+- Focused App, assignment, report, invitation, template, and project administration Vitest suites
+- `npm run check`
+- `npm run e2e:local`
+- `npm run e2e:container:local`
+- Manual 1440x900 and 390x844 in-app browser review across public, auth, overview, assignment, report, and six administration-module views
+
+### Passed
+
+- Full application checks passed 53 Vitest files and 237 tests, lint, typecheck, the production build, and bounded-memory verification.
+- Both Vite and production-container modes passed all three Playwright tests, including the encrypted lifecycle, immediate aggregate reporting, direct endpoint denial, administrator/self denial, WCAG, keyboard, mobile overflow, and synthetic cleanup assertions.
+- Direct assignment/report hashes rendered protected H1 content and active navigation state; authenticated sign-in hashes normalized to the dashboard.
+- Manual review found no horizontal overflow, confirmed the corrected invitation form proportions and compact project disclosures, and displayed a four-submission report with numeric distributions and withheld free text.
+
+### Failed And Corrected
+
+- The first full suite exposed two interaction-heavy form tests crossing the five-second default only under parallel jsdom load. Focused runs passed; both received scoped 10-second budgets without changing the global timeout.
+- The first sandboxed E2E run hit the already documented Supabase telemetry write boundary. The approved retry then found the local database container externally stopped with exit `137`; logs showed healthy checkpoints and no disk/database corruption. A data-preserving Supabase stop/start restored the complete stack before both E2E modes passed.
+
+### Security checks
+
+- Verified route changes do not replace server-side authorization, raw text never reaches the report UI, and administrators/users still cannot obtain prohibited reports.
+- Verified production Nginx denies direct sensitive-function bypass and synthetic E2E records are removed after each run.
+
+### Skipped
+
+- No production employee data, approved production mailbox, real production key, customer server, or public TLS/DNS staging environment was used.
+
+### Remaining risks
+
+- The production build passes but retains a 587.91 kB JavaScript chunk warning; route-level code splitting remains planned.
+- Current linked demo report names include technical smoke labels and should be replaced with a curated demo fixture before customer-facing use.
+
 ## 2026-08-10 - Container Gateway, Accessibility, And Artifact Cleanup
 
 ### Environment
@@ -136,85 +220,3 @@
 
 - One-person and sparse aggregates permit contextual inference by design under ADR-0030. Customer policy and onboarding must reflect this limitation.
 - The production build passes but reports a 581.93 kB JavaScript chunk; route-level code splitting remains required before material frontend growth.
-
-## 2026-08-09 - Product UI And Responsive Layout Verification
-
-### Environment
-
-- Windows 11, Node.js 24, Vite 8, React 19, Vitest, and the Codex in-app Chromium browser.
-- Local Vite server with the linked synthetic Supabase project and the synthetic HR administrator account.
-
-### Commands executed
-
-- Focused App, AuthPage, and AdministrationPage Vitest suites
-- `npm run lint`, `npm run typecheck`, and `npm run check`
-- In-app browser inspection at 1440x900 and 390x844
-
-### Passed
-
-- Full application checks passed 49 Vitest files and 215 tests, lint, typecheck, production build, and bounded-memory verification.
-- Authentication, dashboard, project administration, and every system-administration module rendered under the intended permissions.
-- The generated authentication image loaded at both breakpoints; current page reload and module navigation produced no new browser warning or error.
-- Dashboard and administration document widths stayed within the tested mobile viewport after the grid minimum-width correction.
-
-### Failed And Corrected
-
-- Initial responsive inspection found the administration tab row expanding the mobile grid to 751 pixels; `min-width: 0` and bounded overflow now keep the page within the viewport.
-- Initial desktop inspection found project assignment metrics compressed and overlapping; the split project layout now starts only at the 2XL breakpoint.
-- Project status and date fields initially exposed raw API values; they now use centralized Turkish labels and locale formatting.
-- Transitional hot-reload errors occurred while dependent locale/component edits were incomplete; a clean reload and complete module pass produced no current console errors.
-
-### Security checks
-
-- Project managers receive only the project module; platform-only user, hierarchy, template, security, and retention modules remain absent.
-- Removed visible implementation notes without weakening server-side authorization or changing sensitive data flows.
-
-### Skipped
-
-- No permanent screenshot-baseline suite or automated keyboard-only browser workflow was added in this change.
-
-### Remaining risks
-
-- The production build remains valid but reports a bundle-size warning; route-level code splitting should be added before the administration surface grows materially.
-
-## 2026-08-09 - Signed Container Release And Customer Acceptance
-
-### Environment
-
-- Windows 11, Node.js 24, npm, Docker Desktop, and the repository's pinned Node 22/Nginx 1.28 Alpine image manifests.
-- Synthetic source commit, release version, public runtime URL/key, and gateway token only; no Supabase, signing, database, or customer secret was used.
-
-### Commands executed
-
-- Focused container-release, deployment-foundation, and project-memory Vitest suites
-- `npm run lint`, `npm run check`, and `npm run deployment:config`
-- Real Docker build with release OCI build arguments
-- Real temporary container label, health, `nginx -t`, `/healthz`, and `/app-config.js` inspection
-
-### Passed
-
-- Full application checks passed 49 Vitest files and 214 tests, lint, typecheck, production build, and bounded-memory verification.
-- Seven release-contract tests covered exact package-version tags, digest-only references, trusted workflow identity, two-platform metadata, manifest tampering, standalone metadata validation, complete package generation, deterministic checksum inventory, pinned bases/Actions, SBOM/provenance configuration, signatures, and existing-release mutation denial.
-- Docker Compose configuration validation passed.
-- The real image resolved the exact pinned base manifests and built successfully. OCI source, full revision, and version labels matched expected values; the temporary container reported `healthy`; Nginx syntax and health endpoint passed; browser runtime output contained the synthetic public URL/key and no server-only value.
-- Test container and image tag cleanup succeeded, limiting local Docker disk use.
-
-### Failed And Corrected
-
-- The first lint run found one unused test import and requested the explicit `{2}` form for the checksum separator regex; both were corrected without changing behavior.
-- The first checksum-order assertion sorted complete hash-prefixed lines, then used default lexical case ordering. It now compares extracted file names with the same locale ordering as the generator.
-
-### Security checks
-
-- Verified the workflow publishes no `latest` tag, deploys by `image@sha256`, pins every external Action/full base-image manifest, and exposes no application secret.
-- Verified the signed manifest requires the exact repository/workflow/tag/OIDC identity and binds every customer artifact hash plus required OCI source labels.
-- Verified customer instructions independently validate the manifest signature and verifier hash before executing downloaded code.
-- Verified the release Compose file has no build section and the standalone acceptance command has no production signature bypass; `--metadata-only` is explicitly non-production.
-
-### Skipped
-
-- No real product tag, GHCR image, Sigstore certificate, GitHub Release, or GitHub artifact attestation was created. Those actions intentionally wait for the first approved release version.
-
-### Remaining risks
-
-- Repository settings must enable immutable Releases and tag protection. The first hosted run must prove package visibility, OIDC/Cosign, optional private-repository attestation plan support, and clean-machine customer acceptance.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted on 2026-08-09. Supersedes the availability and cycle-closure rules in ADR-0021.
+Accepted on 2026-08-09. Supersedes the availability and cycle-closure rules in ADR-0021. The raw-text withholding rule is superseded by ADR-0032 on 2026-08-10.
 
 ## Context
 

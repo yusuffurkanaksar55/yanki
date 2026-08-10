@@ -143,7 +143,7 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
     });
     console.log("[e2e] Project assignments generated.");
 
-    await employeePage.goto("/#dashboard");
+    await employeePage.goto("/#assignments");
     await employeePage.reload();
     await expect(employeePage.getByRole("heading", {
       name: cycleName
@@ -171,6 +171,7 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
     const reviewerPage = await reviewerContext.newPage();
     collectPageErrors(reviewerPage);
     await signIn(reviewerPage, fixture.reviewer);
+    await reviewerPage.goto("/#reports");
     const reportTarget = reviewerPage.getByLabel(tr.reports.targetLabel);
     const subjectOption = reportTarget.locator("option").filter({
       hasText: fixture.subject.displayName
@@ -192,10 +193,13 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
     await expect(ratingResult.getByText("5", { exact: true }).first())
       .toBeVisible();
     await expect(reviewerPage.getByText(
-      tr.reports.textWithheld.title
+      tr.reports.textComments.title
     )).toBeVisible();
-    await expect(reviewerPage.getByText(rawTextMarker)).toHaveCount(0);
-    console.log("[e2e] Immediate aggregate report verified.");
+    await expect(reviewerPage.getByText(rawTextMarker)).toBeVisible();
+    await expect(reviewerPage.getByText(
+      tr.reports.textComments.contextRisk
+    )).toBeVisible();
+    console.log("[e2e] Immediate aggregate report and identity-separated comments verified.");
 
     const evaluationCycleId = (targetValue ?? "").split(":")[0];
 
@@ -223,6 +227,7 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
     const subjectPage = await subjectContext.newPage();
     collectPageErrors(subjectPage);
     await signIn(subjectPage, fixture.subject);
+    await subjectPage.goto("/#reports");
     const subjectTargets = subjectPage.getByLabel(tr.reports.targetLabel);
     await expect(subjectTargets).toBeVisible();
     await expect(subjectTargets.locator("option").filter({
@@ -347,6 +352,10 @@ async function createProjectAndAssignments(
   const projectArticle = page.locator("article").filter({
     hasText: input.projectName
   });
+
+  await projectArticle.getByRole("button", {
+    name: `${input.projectName}: ${tr.administration.projects.list.showDetails}`
+  }).click();
 
   await selectOptionContaining(
     projectArticle.getByLabel(tr.administration.projects.members.user),

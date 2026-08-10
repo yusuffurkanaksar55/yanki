@@ -44,7 +44,7 @@ const questions: readonly ReportingQuestion[] = [
 ];
 
 describe("aggregateEvaluationPayloads", () => {
-  it("aggregates structured answers and withholds raw text", () => {
+  it("aggregates structured answers and returns independently grouped text comments", () => {
     const payloads = [
       createPayload(2, true, "A", ["X", "Y"], "Secret alpha"),
       createPayload(3, false, "A", ["Y"], "Secret beta"),
@@ -88,10 +88,18 @@ describe("aggregateEvaluationPayloads", () => {
       kind: "OPTIONS"
     });
     expect(result[4]?.aggregation).toEqual({
-      kind: "TEXT_WITHHELD",
-      responseCount: 3
+      comments: expect.arrayContaining([
+        "Secret alpha",
+        "Secret beta",
+        "Secret delta"
+      ]),
+      kind: "TEXT_COMMENTS"
     });
-    expect(JSON.stringify(result)).not.toContain("Secret");
+    expect(
+      result[4]?.aggregation.kind === "TEXT_COMMENTS"
+        ? result[4].aggregation.comments
+        : []
+    ).toHaveLength(3);
   });
 
   it("rejects payloads with missing, duplicate, or type-mismatched answers", () => {

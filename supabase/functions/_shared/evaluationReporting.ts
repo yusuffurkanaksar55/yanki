@@ -49,8 +49,8 @@ export type AggregatedQuestionResult = {
         readonly allowsMultiple: boolean;
       }
     | {
-        readonly kind: "TEXT_WITHHELD";
-        readonly responseCount: number;
+        readonly kind: "TEXT_COMMENTS";
+        readonly comments: readonly string[];
       };
 };
 
@@ -194,10 +194,37 @@ function aggregateQuestion(
   return {
     ...base,
     aggregation: {
-      kind: "TEXT_WITHHELD",
-      responseCount: answeredValues.length
+      comments: shuffleAnonymousComments(answeredValues.map(String)),
+      kind: "TEXT_COMMENTS"
     }
   };
+}
+
+function shuffleAnonymousComments(values: readonly string[]): readonly string[] {
+  const shuffled = [...values];
+
+  // Each question is shuffled independently to avoid linking answer rows.
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const replacementIndex = randomIndex(index + 1);
+    const current = shuffled[index];
+
+    shuffled[index] = shuffled[replacementIndex];
+    shuffled[replacementIndex] = current;
+  }
+
+  return shuffled;
+}
+
+function randomIndex(maximumExclusive: number): number {
+  const range = 0x1_0000_0000;
+  const acceptedLimit = range - (range % maximumExclusive);
+  const randomValue = new Uint32Array(1);
+
+  do {
+    crypto.getRandomValues(randomValue);
+  } while (randomValue[0] >= acceptedLimit);
+
+  return randomValue[0] % maximumExclusive;
 }
 
 function validateAnswerValue(

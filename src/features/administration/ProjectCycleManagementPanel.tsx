@@ -4,6 +4,7 @@ import {
   useState,
   type FormEvent
 } from "react";
+import { ChevronDown } from "lucide-react";
 import { tr } from "../../locales/tr/messages";
 import type { WorkspaceContext } from "../workspace/workspaceContextService";
 import {
@@ -690,6 +691,8 @@ function ProjectList({
   readonly submittingMemberProjectId: string | null;
   readonly updatingDateCycleId: string | null;
 }) {
+  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
+
   if (loadState.status === "loading") {
     return (
       <p className="mt-4 text-sm leading-6 text-slate-600">
@@ -716,96 +719,125 @@ function ProjectList({
 
   return (
     <div className="mt-4 space-y-3">
-      {loadState.projects.map((project) => (
+      {loadState.projects.map((project) => {
+        const isExpanded = expandedProjectId === project.id;
+
+        return (
         <article
-          className="rounded-md border border-slate-200 bg-slate-50 p-4"
+          className="overflow-hidden rounded-md border border-slate-200 bg-slate-50"
           key={project.id}
         >
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <div>
+          <button
+            aria-expanded={isExpanded}
+            aria-label={`${project.name}: ${
+              isExpanded
+                ? tr.administration.projects.list.hideDetails
+                : tr.administration.projects.list.showDetails
+            }`}
+            className="flex min-h-16 w-full items-start justify-between gap-4 p-4 text-left transition hover:bg-white focus-ring"
+            onClick={() => setExpandedProjectId(isExpanded ? null : project.id)}
+            type="button"
+          >
+            <span className="min-w-0">
               <h3 className="text-base font-semibold">{project.name}</h3>
               {project.code ? (
                 <p className="mt-1 text-sm text-slate-600">{project.code}</p>
               ) : null}
-            </div>
-            <span className="w-fit rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
-              {formatProjectStatus(project.status)}
             </span>
-          </div>
-          <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-            <ProjectDate
-              label={tr.administration.projects.list.projectCompletedOn}
-              value={project.completesOn}
-            />
-            <ProjectDate
-              label={tr.administration.projects.list.evaluationClose}
-              value={project.cycles[0]?.closesAt ?? null}
-            />
-            <ProjectDate
-              label={tr.administration.projects.list.templateVersion}
-              value={project.cycles[0]
-                ? `${project.cycles[0].templateName} - v${project.cycles[0].templateVersionNumber}`
-                : tr.administration.projects.list.noTemplateVersion}
-            />
-          </dl>
-          {canUpdateProjectDates(project) ? (
-            <ProjectDateManagement
-              cycle={project.cycles[0] ?? null}
-              isSubmitting={
-                project.cycles[0]?.id === updatingDateCycleId
-              }
-              onChange={(nextState) => {
-                const cycleId = project.cycles[0]?.id;
+            <span className="flex shrink-0 items-center gap-2">
+              <span className="w-fit rounded-md bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
+                {formatProjectStatus(project.status)}
+              </span>
+              <ChevronDown
+                aria-hidden="true"
+                className={`text-slate-500 transition-transform ${
+                  isExpanded ? "rotate-180" : ""
+                }`}
+                size={19}
+                strokeWidth={1.8}
+              />
+            </span>
+          </button>
 
-                if (!cycleId) {
-                  return;
+          {isExpanded ? (
+            <div className="border-t border-slate-200 bg-white p-4">
+              <dl className="grid gap-3 sm:grid-cols-2">
+                <ProjectDate
+                  label={tr.administration.projects.list.projectCompletedOn}
+                  value={project.completesOn}
+                />
+                <ProjectDate
+                  label={tr.administration.projects.list.evaluationClose}
+                  value={project.cycles[0]?.closesAt ?? null}
+                />
+                <ProjectDate
+                  label={tr.administration.projects.list.templateVersion}
+                  value={project.cycles[0]
+                    ? `${project.cycles[0].templateName} - v${project.cycles[0].templateVersionNumber}`
+                    : tr.administration.projects.list.noTemplateVersion}
+                />
+              </dl>
+              {canUpdateProjectDates(project) ? (
+                <ProjectDateManagement
+                  cycle={project.cycles[0] ?? null}
+                  isSubmitting={
+                    project.cycles[0]?.id === updatingDateCycleId
+                  }
+                  onChange={(nextState) => {
+                    const cycleId = project.cycles[0]?.id;
+
+                    if (!cycleId) {
+                      return;
+                    }
+
+                    onDateFormChange((current) => ({
+                      ...current,
+                      [cycleId]: nextState
+                    }));
+                  }}
+                  onSubmit={onUpdateProjectDates}
+                  project={project}
+                  state={
+                    project.cycles[0]
+                      ? dateFormStates[project.cycles[0].id]
+                        ?? toDateFormState(project, project.cycles[0])
+                      : null
+                  }
+                />
+              ) : null}
+              <ProjectAssignmentPlanning
+                canGenerate={canAdministerProject(project)}
+                cycle={project.cycles[0] ?? null}
+                isGenerating={
+                  project.cycles[0]?.id === generatingAssignmentCycleId
                 }
-
-                onDateFormChange((current) => ({
-                  ...current,
-                  [cycleId]: nextState
-                }));
-              }}
-              onSubmit={onUpdateProjectDates}
-              project={project}
-              state={
-                project.cycles[0]
-                  ? dateFormStates[project.cycles[0].id]
-                    ?? toDateFormState(project, project.cycles[0])
-                  : null
-              }
-            />
-          ) : null}
-          <ProjectAssignmentPlanning
-            canGenerate={canAdministerProject(project)}
-            cycle={project.cycles[0] ?? null}
-            isGenerating={
-              project.cycles[0]?.id === generatingAssignmentCycleId
-            }
-            onGenerate={onGenerateProjectAssignments}
-          />
-          {canAdministerProject(project) ? (
-            <ProjectMembers
-              members={project.members}
-              organizationMembers={
-                loadState.organizationMembersById[project.organizationId] ?? []
-              }
-              project={project}
-              state={memberFormStates[project.id] ?? initialMemberFormState}
-              isSubmitting={submittingMemberProjectId === project.id}
-              onChange={(nextState) => {
-                onMemberFormChange((current) => ({
-                  ...current,
-                  [project.id]: nextState
-                }));
-              }}
-              onSubmit={(draft) => {
-                onAddProjectMember(project.id, draft);
-              }}
-            />
+                onGenerate={onGenerateProjectAssignments}
+              />
+              {canAdministerProject(project) ? (
+                <ProjectMembers
+                  members={project.members}
+                  organizationMembers={
+                    loadState.organizationMembersById[project.organizationId] ?? []
+                  }
+                  project={project}
+                  state={memberFormStates[project.id] ?? initialMemberFormState}
+                  isSubmitting={submittingMemberProjectId === project.id}
+                  onChange={(nextState) => {
+                    onMemberFormChange((current) => ({
+                      ...current,
+                      [project.id]: nextState
+                    }));
+                  }}
+                  onSubmit={(draft) => {
+                    onAddProjectMember(project.id, draft);
+                  }}
+                />
+              ) : null}
+            </div>
           ) : null}
         </article>
-      ))}
+        );
+      })}
     </div>
   );
 }

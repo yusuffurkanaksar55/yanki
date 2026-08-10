@@ -1,7 +1,6 @@
 export const tr = {
   app: {
     name: "Yankı",
-    kicker: "Anonim değerlendirme",
     accountFallback: "Kullanıcı hesabı"
   },
   marketing: {
@@ -9,20 +8,19 @@ export const tr = {
       ariaLabel: "Tanıtım sitesi gezinmesi",
       mobileAriaLabel: "Mobil tanıtım sitesi gezinmesi",
       home: "Yankı ana sayfa",
-      howItWorks: "Nasıl çalışır?",
-      privacy: "Güvenlik yaklaşımı",
+      howItWorks: "Platform",
+      privacy: "Veri güvenliği",
       deployment: "Kurulum seçenekleri",
       signIn: "Oturum aç",
       openMenu: "Menüyü aç",
       closeMenu: "Menüyü kapat"
     },
     hero: {
-      eyebrow: "Çalışan deneyiminin dürüst sinyali",
-      title: "İnsanların gerçekten düşündüğünü, kimliklerini yanıtlarına bağlamadan duyun.",
+      title: "Kurumsal değerlendirme süreçlerini güvenle yönetin.",
       summary:
-        "Yankı; çalışan, ekip ve proje değerlendirmelerini güvenli iş akışlarıyla toplar, yetkili kişilere karar verebilecekleri toplu sonuçlar sunar.",
+        "Çalışan, ekip, yönetici ve proje değerlendirmelerini tek çalışma alanında planlayın; yanıtları kimlikten ayrıştırılmış biçimde toplayın ve yetkili yöneticilere karar desteği sunun.",
       primaryAction: "Çalışma alanına gir",
-      secondaryAction: "Nasıl çalıştığını gör"
+      secondaryAction: "Platformu incele"
     },
     proof: {
       ariaLabel: "Yankı ürün ilkeleri",
@@ -42,28 +40,65 @@ export const tr = {
       ]
     },
     workflow: {
-      eyebrow: "Sade iş akışı",
-      title: "Doğru kişiye, doğru zamanda, doğru kapsamda geri bildirim",
+      title: "Değerlendirme yaşam döngüsü tek çalışma alanında",
       summary:
-        "Organizasyon yapısı esnektir; roller, yönetici ilişkileri ve proje sorumlulukları şirketin gerçek çalışma biçimine göre tanımlanır.",
+        "Yankı, organizasyon kurgusundan raporlamaya kadar sürecin her aşamasını izlenebilir ve rol bazlı bir arayüzle yönetir.",
       steps: [
         {
-          title: "Yapıyı kurun",
-          description: "Şirketi, ekipleri, projeleri, rolleri ve raporlama ilişkilerini tek bir çalışma alanında tanımlayın."
+          title: "Organizasyonu tanımlayın",
+          description: "Şirketleri, birimleri, ekipleri ve doğrudan ya da fonksiyonel yönetici ilişkilerini gerçek yapınıza göre kurun."
         },
         {
-          title: "Süreci açın",
-          description: "Değiştirilemez şablonu, değerlendirilecek kişileri ve son tarihi seçerek değerlendirmeyi başlatın."
+          title: "Yetkileri kapsamlandırın",
+          description: "Yönetim, proje ve raporlama rollerini organizasyon, ekip, proje veya değerlendirme süreci kapsamına atayın."
         },
         {
-          title: "Sonucu izleyin",
-          description: "Yetkili kişiler, ilk değerlendirmeden itibaren güncellenen kimliksiz toplu skorları izler."
+          title: "Şablonu yayınlayın",
+          description: "Puan, seçim ve yorum sorularından oluşan sürümlü şablonları yayınlayın; geçmiş değerlendirmeleri değişikliklerden koruyun."
+        },
+        {
+          title: "Süreci planlayın",
+          description: "Değerlendirilecek kişileri, projeyi, başlangıç ve son tarihleri belirleyerek görevleri oluşturun."
+        },
+        {
+          title: "Yanıtları toplayın",
+          description: "Kullanıcılar yalnızca kendi açık görevlerini görür; değerlendirme içeriği şifrelenerek ve kimlikten ayrıştırılarak kaydedilir."
+        },
+        {
+          title: "Sonuçları değerlendirin",
+          description: "Yetkili üst roller, kendi kapsamlarındaki toplu skorları ve kimlikten ayrıştırılmış yorumları tek raporda inceler."
+        }
+      ]
+    },
+    governance: {
+      title: "Her rol için açık sorumluluk ve kontrollü erişim",
+      summary:
+        "Arayüz, kullanıcının rolüne göre yalnızca ilgili iş akışlarını gösterir. Hassas erişim kararları sunucuda aynı kapsam kurallarıyla yeniden doğrulanır.",
+      items: [
+        {
+          title: "Çalışan",
+          description: "Kendisine atanmış değerlendirmeleri tamamlar; gönderilmiş içeriklere ve sonuçlara erişemez.",
+          access: "Görev ve değerlendirme formu"
+        },
+        {
+          title: "Takım ve üst yönetim",
+          description: "Yalnızca tanımlı hiyerarşi ve organizasyon kapsamındaki kişilerin kimlikten ayrıştırılmış sonuçlarını inceler.",
+          access: "Yetkili raporlar"
+        },
+        {
+          title: "Proje müdürü",
+          description: "Atandığı projelerin takvimini ve değerlendirme bitiş tarihlerini yönetir; rapor erişimi ayrıca yetkilendirilir.",
+          access: "Proje operasyonları"
+        },
+        {
+          title: "Sistem yöneticisi",
+          description: "Kullanıcı, yapı, şablon ve süreç ayarlarını yönetir; değerlendirme içeriğini okuyamaz.",
+          access: "Yapılandırma"
         }
       ]
     },
     security: {
-      eyebrow: "Güvenlik yaklaşımı",
-      title: "Güven, tasarımın sonradan eklenen parçası değil",
+      title: "Kurumsal veri sınırları ürünün merkezinde",
       summary:
         "Yankı; hassas içeriği tarayıcıdan, sistem yöneticilerinden ve yetkisiz organizasyon kapsamlarından ayıran katmanlı bir model kullanır.",
       items: [
@@ -86,17 +121,18 @@ export const tr = {
       ]
     },
     deployment: {
-      eyebrow: "Dağıtım esnekliği",
-      title: "Bugün bulutta, gerektiğinde kurum altyapısında",
+      title: "İşletim modelinize uygun kurulum",
       summary:
         "Tek ürün yaklaşımı iki dağıtım modelini de korur. Böylece küçük ekipler hızlı başlayabilir, özel altyapı isteyen kurumlar kontrolü kendi ortamında tutabilir.",
       saas: {
         title: "Yönetilen Yankı",
-        description: "Kurulumla uğraşmadan şirket hesabınızı oluşturun; güncelleme, işletim ve yedekleme süreçlerini Yankı yönetsin."
+        description: "Kurulumla uğraşmadan şirket hesabınızı oluşturun; güncelleme, işletim ve yedekleme süreçlerini Yankı yönetsin.",
+        features: ["Hızlı şirket kurulumu", "Merkezi güncelleme ve izleme", "Firma bazında mantıksal veri ayrımı"]
       },
       privateServer: {
         title: "Kuruma özel kurulum",
-        description: "Uygulamayı, veritabanını ve güvenilir servisleri şirketin kendi sunucu veya özel bulut ortamında çalıştırın."
+        description: "Uygulamayı, veritabanını ve güvenilir servisleri şirketin kendi sunucu veya özel bulut ortamında çalıştırın.",
+        features: ["Kuruma ait altyapı ve anahtarlar", "Özel ağ ve güvenlik politikaları", "Aynı ürün ve veri modeli"]
       }
     },
     cta: {
@@ -120,6 +156,12 @@ export const tr = {
     description: "Size atanmış değerlendirmeler ve son teslim tarihleri.",
     loading: "Değerlendirme görevleri yükleniyor...",
     count: "{count} görev",
+    filters: {
+      label: "Görevleri filtrele",
+      active: "Açık",
+      completed: "Tamamlanan",
+      all: "Tümü"
+    },
     labels: {
       subject: "Değerlendirilecek kişi",
       project: "Proje",
@@ -141,10 +183,15 @@ export const tr = {
       title: "Atanmış değerlendirme bulunmuyor",
       description: "Yeni bir görev atandığında burada görüntülenecek."
     },
+    filteredEmpty: {
+      title: "Bu görünümde görev yok",
+      description: "Diğer görevleri incelemek için üstteki filtrelerden birini seçin."
+    },
     actions: {
       retry: "Yeniden dene",
       start: "Değerlendir",
-      preparing: "Form hazırlanıyor..."
+      preparing: "Form hazırlanıyor...",
+      showMore: "Daha fazla göster"
     },
     feedback: {
       readFailed: "Değerlendirme görevleri şu anda yüklenemedi."
@@ -191,6 +238,7 @@ export const tr = {
     aggregateOnly: "Kimliksiz toplu sonuç",
     loadingTargets: "Erişilebilir raporlar yükleniyor...",
     targetLabel: "Rapor konusu",
+    targetPlaceholder: "Kişi ve değerlendirme süreci seçin",
     actions: {
       load: "Raporu görüntüle",
       loading: "Rapor hazırlanıyor...",
@@ -208,7 +256,7 @@ export const tr = {
     noResponses: {
       title: "Henüz değerlendirme bulunmuyor",
       description:
-        "İlk değerlendirme gönderildiğinde toplu sonuçlar burada görüntülenecek."
+        "Bu kişi için henüz değerlendirme gönderilmedi. Başka bir rapor konusu seçebilir veya ilk değerlendirmeyi bekleyebilirsiniz."
     },
     labels: {
       submissions: "Toplu yanıt",
@@ -221,10 +269,12 @@ export const tr = {
       no: "Hayır",
       organizationWide: "Organizasyon geneli"
     },
-    textWithheld: {
-      title: "Serbest metin içeriği gösterilmez",
+    textComments: {
+      title: "Kimlikten ayrıştırılmış yorumlar",
       description:
-        "Bu soruya {count} yanıt verildi. Metinler kimlik çıkarımı riskine karşı ham biçimde rapora dahil edilmez."
+        "Yorumlar değerlendirici kimliği, gönderim zamanı ve diğer cevaplarla eşleştirme bilgisi olmadan gösterilir.",
+      contextRisk:
+        "Az katılımlı raporlarda ifade biçimi veya yorumdaki ayrıntılar kişiyi tahmin edilebilir kılabilir."
     }
   },
   dashboard: {
@@ -242,6 +292,10 @@ export const tr = {
         label: "Bekleyen görev"
       }
     },
+    quickAccess: {
+      sectionLabel: "Hızlı erişim bağlantıları",
+      title: "Hızlı erişim"
+    },
     session: {
       profile: "Profil",
       signedInAs: "Oturum",
@@ -251,17 +305,31 @@ export const tr = {
     workspace: {
       sectionLabel: "Çalışma bağlamı",
       eyebrow: "Organizasyon",
-      title: "Çalışma bilgilerin",
+      title: "Organizasyon bağlantın",
+      description: "Organizasyon içindeki konumun, bağlı olduğun yöneticiler ve etkin yetki kapsamların.",
+      hierarchyTitle: "Raporlama yolu",
+      rolesTitle: "Görev ve yetki kapsamların",
       labels: {
         roles: "Roller",
+        organization: "Organizasyon",
         memberships: "Birimler",
-        managers: "Yöneticiler"
+        managers: "Bağlı yönetici",
+        you: "Sen"
       },
       empty: {
         roles: "Rol ataması yok.",
         memberships: "Birim üyeliği yok.",
         managers: "Yönetici ataması yok.",
         managerName: "Tanımlı yönetici"
+      },
+      values: {
+        primaryMembership: "Ana birim",
+        roleScope: "{scope} kapsamında",
+        roleScopeCount: "{scope} kapsamında {count} atama"
+      },
+      relationshipLabels: {
+        DIRECT: "Doğrudan yönetici",
+        FUNCTIONAL: "Fonksiyonel yönetici"
       },
       roleLabels: {
         SYSTEM_ADMIN: "Sistem yöneticisi",
@@ -579,6 +647,8 @@ export const tr = {
         title: "Projeler",
         loading: "Projeler yükleniyor.",
         empty: "Henüz görüntülenebilir proje yok.",
+        showDetails: "Ayrıntıları göster",
+        hideDetails: "Ayrıntıları gizle",
         projectCompletedOn: "Proje bitişi",
         evaluationClose: "Değerlendirme kapanışı",
         templateVersion: "Şablon sürümü",
