@@ -47,6 +47,8 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 - Before the first encrypted submission, a report must return `EMPTY` without questions, ciphertext, or a participation count.
 - After the first encrypted submission, authorized reviewers may see the current aggregate while the cycle remains active.
 - Authorized reviewers may read written comments for their exact cycle-plus-subject report group. Comments must be returned only after server-side authorization, grouped and independently shuffled per question, without evaluator, assignment, submission, timestamp, sequence, or cross-question linkage metadata.
+- Authorized person reports must summarize normalized rating performance, response/question/comment totals, strongest and development-focus rating areas, percentage distributions, and question-level results without introducing evaluator-level slices or cross-question answer linkage.
+- Selecting an evaluated person should open that person's latest authorized cycle directly. A synthetic example may explain the report layout when no response exists, but it must be visibly distinguished from real evaluation data.
 - Product copy must not promise group anonymity for sparse aggregates; it must describe evaluator identity separation and contextual inference risk accurately.
 - Anonymous submission abuse controls must protect valid credentials from invalid-traffic exhaustion and must not retain IP, device, user, assignment, credential digest, request body, or evaluation content.
 - Active system administrators may see only aggregate invalid-credential and rate-limited request counts, never request-level records or evaluation content.

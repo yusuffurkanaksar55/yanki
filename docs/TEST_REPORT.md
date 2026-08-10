@@ -1,5 +1,47 @@
 # Test Report
 
+## 2026-08-10 - Detailed Person Report Regression
+
+### Environment
+
+- Windows 11, Node.js 24, React 19, Vite 8, Vitest, Playwright Chromium, Docker Desktop, and local Supabase/Functions/Mailpit.
+
+### Commands executed
+
+- Focused `EvaluationReportsPanel` Vitest suite
+- `npm run check`
+- `npm run e2e:local`
+- Desktop 1440x1000 and mobile 390x844 report screenshot inspection
+
+### Passed
+
+- Full application checks passed 53 Vitest files and 238 tests, lint, typecheck, production build, and bounded-memory verification.
+- All three Playwright tests passed, including invitation, immutable template, assignment, encrypted submission, automatic person-report loading, detailed summary visibility, identity-separated comments, administrator/self denial, WCAG, keyboard, mobile overflow, and cleanup.
+- The empty-report component test opened a clearly marked six-question synthetic example without issuing another backend request.
+- Desktop and mobile report captures showed readable metrics, insights, percentage distributions, comments, and no horizontal overflow.
+
+### Failed And Corrected
+
+- The first lint run found one unused aggregation parameter; the redundant parameter was removed and the full quality gate passed.
+- The first sandboxed E2E attempt hit the known Supabase telemetry write boundary, and the approved retry found the local database container stopped. A data-preserving full Supabase stop/start restored the stack; unchanged E2E retries passed twice.
+- Screenshot review found desktop filter labels vertically offset by the cycle context line. The grid now aligns labels at the top and places the action button on the input row.
+
+### Security checks
+
+- Verified no evaluator-level field, answer slice, or cross-question linkage was added to the report contract.
+- Verified the example is frontend-only, visibly marked as synthetic, and does not replace actual empty/report authorization states.
+- Existing active system-administrator and evaluated-person report requests remained denied in the critical lifecycle.
+
+### Skipped
+
+- No production employee data, approved SMTP mailbox, public TLS/DNS staging environment, or customer server was used.
+- Production-container E2E was not rerun because the reporting change is frontend-only and the same production-container boundary passed in the immediately preceding report regression.
+
+### Remaining risks
+
+- One or a few real responses can still permit contextual inference; the report retains the warning.
+- The production build passes with a 609.46 kB JavaScript chunk warning; route-level code splitting remains planned.
+
 ## 2026-08-10 - Person-First Report Selection Regression
 
 ### Environment
@@ -167,48 +209,3 @@
 
 - Local production-container acceptance does not prove provider logging, TLS, secret custody, SMTP delivery, capacity, or infrastructure monitoring in a real environment.
 - The production build passes but retains the known 582.47 kB JavaScript chunk warning; route-level code splitting is the next frontend performance task.
-
-## 2026-08-09 - Critical Local Browser Lifecycle And Portable Privileges
-
-### Environment
-
-- Windows 11, Node.js 24, Vite 8, React 19, Playwright Chromium, Docker Desktop, Supabase CLI 2.109.1, local Supabase/PostgreSQL/Functions/Mailpit, and linked synthetic Supabase.
-
-### Commands executed
-
-- `npm run e2e:local`
-- `npm run check`
-- `npm run deployment:config`
-- `npm run supabase:lint:local` and `npm run supabase:test:local`
-- `npm run supabase:push:dry-run`, linked migration push/list, and `npm run supabase:lint:linked`
-
-### Passed
-
-- Playwright completed one critical browser workflow: invitation creation, local email verification, password setup, acceptance, template publication, project assignments, encrypted submission, immediate aggregate reporting, administrator/self denial, raw-text withholding, and mobile overflow.
-- Full application checks passed 51 Vitest files and 224 tests, lint, typecheck, production build, and bounded-memory verification.
-- Local and linked schema lint reported no errors; all 185 pgTAP cases passed across eight suites on a persistent database containing prior E2E ciphertext.
-- Migration dry-run identified only `20260809223000`; it applied to the linked project and local/remote histories now match.
-- Docker Compose configuration validation passed.
-
-### Failed And Corrected
-
-- The project-cycle creation UI test passed alone but exceeded the five-second default twice under full parallel load; a 10-second timeout is now scoped only to that interaction-heavy test.
-- Hash-only navigation kept the already-mounted assignment inbox stale after an administrator generated assignments; the acceptance flow now performs the same full refresh a returning employee uses.
-- Submission success closes its modal and renders feedback in the inbox; the test now asserts the real page-level behavior.
-- The first mobile assertion required equality even when document width was safely smaller than viewport width; it now rejects only actual overflow.
-- Persistent E2E ciphertext exposed two global-empty pgTAP assumptions; both assertions are now fixture/inventory scoped and pass with existing local data.
-
-### Security checks
-
-- Verified invitation callback tokens are not captured in Playwright traces/video and every E2E service URL is loopback-only.
-- Verified raw text never reaches the reviewer UI, administrators cannot obtain reports, and users cannot access reports about themselves.
-- Verified browser own-profile capability remains RLS constrained and sensitive content/operational tables are excluded from the explicit service-role table grant.
-
-### Skipped
-
-- No production employee data, production encryption key, approved SMTP mailbox, production gateway token, or customer server was used.
-
-### Remaining risks
-
-- Local Mailpit proves application callback behavior, not production email deliverability.
-- The production build passes but retains the known large JavaScript chunk warning.

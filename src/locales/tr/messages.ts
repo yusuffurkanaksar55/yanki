@@ -247,7 +247,8 @@ export const tr = {
     actions: {
       load: "Raporu görüntüle",
       loading: "Rapor hazırlanıyor...",
-      retry: "Yeniden dene"
+      retry: "Yeniden dene",
+      showExample: "Örnek raporu incele"
     },
     empty: {
       title: "Görüntülenebilir rapor yok",
@@ -261,7 +262,7 @@ export const tr = {
     noResponses: {
       title: "Henüz değerlendirme bulunmuyor",
       description:
-        "Bu kişi için henüz değerlendirme gönderilmedi. Başka bir rapor konusu seçebilir veya ilk değerlendirmeyi bekleyebilirsiniz."
+        "Bu kişi için henüz değerlendirme gönderilmedi. İlk yanıt geldiğinde rapor burada otomatik oluşur; bu sırada örnek görünümü inceleyebilirsiniz."
     },
     labels: {
       subject: "Değerlendirilen kişi",
@@ -281,6 +282,63 @@ export const tr = {
         "Yorumlar değerlendirici kimliği, gönderim zamanı ve diğer cevaplarla eşleştirme bilgisi olmadan gösterilir.",
       contextRisk:
         "Az katılımlı raporlarda ifade biçimi veya yorumdaki ayrıntılar kişiyi tahmin edilebilir kılabilir."
+    },
+    summary: {
+      sectionLabel: "Kişi raporu özeti",
+      overallScore: "Genel skor",
+      responses: "Değerlendirme",
+      answeredQuestions: "Yanıtlanan soru",
+      comments: "Yazılı yorum",
+      scoreMethod:
+        "Genel skor, farklı puan ölçeklerindeki soruların 100 üzerinden normalize edilmiş ortalamasıdır."
+    },
+    insights: {
+      sectionLabel: "Öne çıkan rapor bulguları",
+      strengths: "En güçlü alanlar",
+      focusAreas: "Gelişim odağı",
+      empty: "Karşılaştırılabilir puanlı soru bulunmuyor."
+    },
+    detail: {
+      eyebrow: "Soru analizi",
+      title: "Ayrıntılı sonuçlar",
+      description:
+        "Her soru için ortalamayı, yanıt oranını ve dağılımı inceleyin. Çoklu seçimlerde yüzdeler, seçeneği işaretleyen katılımcı oranını gösterir."
+    },
+    example: {
+      noticeTitle: "Örnek rapor",
+      noticeDescription:
+        "Bu görünüm yalnızca raporun nasıl çalıştığını gösterir; gerçek bir kişiye veya değerlendirmeye ait değildir.",
+      organizationName: "Yankı Örnek Şirketi",
+      projectName: "Müşteri Deneyimi Dönüşümü",
+      projectCode: "MXD-26",
+      cycleName: "2026 Proje Sonu Liderlik Değerlendirmesi",
+      subjectName: "Ayşe Demir",
+      subjectEmail: "ayse.demir@example.com",
+      templateName: "Liderlik ve İş Birliği",
+      questions: {
+        leadership: "Ekip hedeflerini açık ve anlaşılır biçimde yönlendirir.",
+        feedback: "Zamanında ve geliştirici geri bildirim verir.",
+        trust: "Ekip içinde güven ve sorumluluk duygusu oluşturur.",
+        support: "Zorlayıcı durumlarda ekibin ihtiyaç duyduğu desteği sağlar mı?",
+        strengths: "Bu kişinin en güçlü liderlik davranışları nelerdir?",
+        comment: "Bu kişinin gelişimini destekleyecek öneriniz nedir?"
+      },
+      options: {
+        communication: "Açık iletişim",
+        ownership: "Sorumluluk alma",
+        coaching: "Koçluk ve gelişim desteği",
+        planning: "Planlama ve önceliklendirme"
+      },
+      comments: {
+        first:
+          "Toplantılarda hedefi netleştiriyor ve ekipteki herkesin kararın gerekçesini anlamasını sağlıyor.",
+        second:
+          "Geri bildirimleri daha kısa aralıklarla paylaşması, sorunların daha erken görünür olmasına yardımcı olabilir.",
+        third:
+          "Yoğun dönemlerde sorumluluğu ekiple paylaşması ve engelleri hızlı kaldırması güçlü bir liderlik etkisi yaratıyor.",
+        fourth:
+          "Öncelikler değiştiğinde yeni planı ve beklentileri daha erken duyurması ekip koordinasyonunu güçlendirecektir."
+      }
     }
   },
   dashboard: {

@@ -10,7 +10,7 @@ import type {
 } from "./evaluationReportService";
 
 describe("EvaluationReportsPanel", () => {
-  it("renders aggregate data and identity-separated text comments", async () => {
+  it("loads the latest person report and renders detailed aggregate data", async () => {
     const service = createService(createAvailableReport());
     const user = userEvent.setup();
 
@@ -25,22 +25,18 @@ describe("EvaluationReportsPanel", () => {
       screen.getByLabelText(tr.reports.subjectLabel),
       "subject-id"
     );
-    await user.selectOptions(
-      screen.getByLabelText(tr.reports.cycleLabel),
-      "cycle-id:subject-id"
-    );
-    await user.click(
-      screen.getByRole("button", { name: tr.reports.actions.load })
-    );
 
     expect(await screen.findByText("4,25")).toBeInTheDocument();
+    expect(screen.getByText("85 / 100")).toBeInTheDocument();
+    expect(screen.getByText(tr.reports.insights.strengths)).toBeInTheDocument();
+    expect(screen.getByText(tr.reports.detail.title)).toBeInTheDocument();
     expect(screen.getByText("Takım Lideri için yazılan yorumlar")).toBeInTheDocument();
     expect(screen.getByText("Gizli serbest metin")).toBeInTheDocument();
     expect(screen.getByText(tr.reports.textComments.contextRisk)).toBeInTheDocument();
     expect(service.getReport).toHaveBeenCalledWith("cycle-id", "subject-id");
   });
 
-  it("shows an empty state until the first evaluation is submitted", async () => {
+  it("shows a clearly marked example report when a person has no responses", async () => {
     const service = createService({
       ...createTarget(),
       questions: [],
@@ -56,17 +52,18 @@ describe("EvaluationReportsPanel", () => {
       screen.getByLabelText(tr.reports.subjectLabel),
       "subject-id"
     );
-    await user.selectOptions(
-      screen.getByLabelText(tr.reports.cycleLabel),
-      "cycle-id:subject-id"
-    );
-    await user.click(
-      screen.getByRole("button", { name: tr.reports.actions.load })
-    );
-
     expect(await screen.findByText(tr.reports.noResponses.title)).toBeInTheDocument();
     expect(screen.getByText(tr.reports.noResponses.description)).toBeInTheDocument();
     expect(screen.queryByText(tr.reports.labels.submissions)).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: tr.reports.actions.showExample })
+    );
+
+    expect(screen.getByText(tr.reports.example.noticeTitle)).toBeInTheDocument();
+    expect(screen.getByText(tr.reports.example.subjectName)).toBeInTheDocument();
+    expect(screen.getByText("81,33 / 100")).toBeInTheDocument();
+    expect(service.getReport).toHaveBeenCalledTimes(1);
   });
 
   it("filters report targets by evaluated person before cycle selection", async () => {
@@ -99,6 +96,7 @@ describe("EvaluationReportsPanel", () => {
     expect(
       screen.getByRole("option", { name: /Proje Sonu Değerlendirmesi/ })
     ).toBeInTheDocument();
+    expect(service.getReport).toHaveBeenCalledWith("ahmet-cycle-id", "ahmet-id");
   });
 });
 

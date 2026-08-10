@@ -1,5 +1,44 @@
 # Development Log
 
+## 2026-08-10 - Detailed Person Reports And Guided Example
+
+### Objective
+
+Open a useful report as soon as an authorized reviewer selects a person, provide a realistic example when that person has no responses, and turn the existing question list into a detailed management report.
+
+### Changes
+
+- Automatically selected and loaded the evaluated person's latest authorized cycle while retaining manual cycle switching and report refresh.
+- Added request sequencing so a slower prior report response cannot replace the newest person/cycle selection.
+- Added a clearly marked synthetic report example to the no-response state; every example label and content string is centralized in the Turkish locale.
+- Added a normalized 100-point overall score, evaluation/question/comment totals, strongest and development-focus rating areas, percentage distributions, rating scales, and full-width qualitative comment analysis.
+- Added desktop/mobile report screenshots and automatic-selection assertions to the critical Playwright lifecycle.
+
+### Database changes
+
+None. The example report exists only in frontend memory and is never persisted. Real reports continue to use the existing trusted cycle-plus-subject reporting boundary.
+
+### Security impact
+
+Neutral. No evaluator identity, answer linkage, new backend field, or client-selected subgroup was introduced. The synthetic example is visibly identified as non-real data, and actual comments retain the existing identity-separated delivery and contextual-inference warning.
+
+### Tests performed
+
+- Focused report-panel Vitest suite passed all three tests.
+- Full `npm run check` passed lint, typecheck, 53 Vitest files and 238 tests, the production build, and bounded-memory verification.
+- `npm run e2e:local` passed all three Playwright tests, including automatic latest-cycle loading, detailed report summary visibility, encrypted submission, access denials, WCAG, keyboard use, responsive overflow, and fixture cleanup.
+- Desktop 1440x1000 and mobile 390x844 report screenshots were inspected; a misaligned desktop filter row was corrected.
+
+### Result
+
+Selecting a person now opens their latest available report directly. If no evaluation has arrived, the reviewer can inspect a clearly labelled example; real results provide an at-a-glance summary, actionable comparison, distributions, and comments in one report.
+
+### Remaining work
+
+- Replace technical local E2E labels with a persistent curated customer-demo tenant when operator credentials are available.
+- Add route-level code splitting for the known production JavaScript chunk warning.
+- Complete production-like staging, SMTP, monitoring, recovery, and signed-release gates.
+
 ## 2026-08-10 - Person-First Report Filtering And Comment Context
 
 ### Objective
@@ -155,42 +194,3 @@ The critical product workflow, public/auth accessibility, and required gateway b
 - Repeat the container workflow in production-like staging through real TLS/DNS and isolated Supabase.
 - Add route-level code splitting for the known 582 kB production JavaScript chunk warning.
 - Complete approved SMTP, first signed release, real provider, monitoring, and recovery gates before live employee use.
-
-## 2026-08-09 - Critical Browser Lifecycle Acceptance
-
-### Objective
-
-Add a repeatable browser-level acceptance gate for the highest-risk invitation-to-report workflow while preserving local developer servers, secret boundaries, tenant isolation, and the direct sensitive-table deny model.
-
-### Changes
-
-- Added an isolated Playwright runner for local Supabase, Mailpit, Edge Functions, PostgreSQL, and Vite port `4173`, with strict loopback guards and a process-scoped random E2E encryption key.
-- Covered administrator invitation, real local Auth email verification, password setup, atomic onboarding, immutable template publication, project/member/assignment creation, employee submission, immediate reviewer aggregation, administrator/self denial, raw-text withholding, and mobile overflow.
-- Preserved the authentication route while Supabase clears invitation/recovery callback parameters and added focused routing regression tests.
-- Made pgTAP ciphertext/key-inventory assertions fixture scoped so persistent local demo and E2E data cannot make database tests order-dependent.
-- Added ADR-0031 and explicit portable API privileges for own-profile browser reads plus reviewed service-role identity/configuration access.
-
-### Database changes
-
-Applied `20260809223000_explicit_identity_domain_privileges.sql` locally and to linked project `daxaymcmtbmummrxdyjy`. The browser receives only own-profile `SELECT` subject to RLS; trusted service code receives the reviewed identity/configuration table capabilities. Sensitive content and operational tables remain excluded.
-
-### Security impact
-
-Positive. Clean and dedicated installations no longer depend on historical Supabase grants, invitation callback tokens are not retained in Playwright traces/video, the E2E harness rejects non-loopback services, and sensitive-table direct access remains denied. Synthetic local records contain no real employee data.
-
-### Tests performed
-
-- `npm run e2e:local`: one critical Playwright workflow passed end to end, including mobile screenshots and access denials.
-- Full `npm run check`: 51 Vitest files and 224 tests, lint, typecheck, production build, and bounded-memory verification.
-- `npm run deployment:config`, local/linked schema lint, migration dry-run/list parity, and 185 pgTAP cases across eight suites passed.
-- Linked migration `20260809223000` applied successfully; local and remote migration histories match.
-
-### Result
-
-The critical synthetic user journey now has one-command browser acceptance on the local Docker stack, and fresh Supabase deployments receive the same explicit authorization capabilities as the linked project.
-
-### Remaining work
-
-- Run the same synthetic acceptance against a production-like staging deployment with approved SMTP and gateway enforcement.
-- Add keyboard/accessibility and deployed-container Playwright coverage.
-- Complete the remaining production provider, recovery, monitoring, and first signed-release gates before live employee use.

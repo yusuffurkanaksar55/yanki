@@ -189,12 +189,12 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
     const targetValue = await cycleOption.getAttribute("value");
 
     expect(targetValue).not.toBeNull();
-    await reportCycle.selectOption(targetValue ?? "");
-    await reviewerPage.getByRole("button", {
-      name: tr.reports.actions.load
-    }).click();
+    await expect(reportCycle).toHaveValue(targetValue ?? "");
     await expect(reviewerPage.getByRole("heading", {
       name: fixture.subject.displayName
+    })).toBeVisible();
+    await expect(reviewerPage.getByRole("region", {
+      name: tr.reports.summary.sectionLabel
     })).toBeVisible();
     const ratingResult = reviewerPage.locator("article").filter({
       hasText: ratingPrompt
@@ -211,6 +211,15 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
     await expect(reviewerPage.getByText(
       tr.reports.textComments.contextRisk
     )).toBeVisible();
+    await reviewerPage.screenshot({
+      fullPage: true,
+      path: testInfo.outputPath("reviewer-report-desktop.png")
+    });
+    await assertResponsiveLayout(
+      reviewerPage,
+      testInfo,
+      "reviewer-report"
+    );
     console.log("[e2e] Immediate aggregate report and identity-separated comments verified.");
 
     const evaluationCycleId = (targetValue ?? "").split(":")[0];
