@@ -17,6 +17,7 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- Split report targeting into evaluated-person search, person selection, and cycle selection; repeated the evaluated person's name in the report summary and every written-comment group.
 - Fixed assignment and report links falling through to the public product site, and normalized authenticated visits away from the sign-in hash.
 - Simplified invitation administration, collapsed project details until requested, and removed the excessive empty space and long historical-list expansion found in desktop/mobile browser review.
 - Corrected the coral design token to pass text contrast requirements across white, mist, and light-red surfaces.

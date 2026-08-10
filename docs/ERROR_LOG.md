@@ -1,5 +1,39 @@
 # Error Log
 
+## ERR-20260810-069 - Combined report target obscured who comments were about
+
+### Context
+
+Authorized reviewers selected one combined person-and-cycle value before opening a report.
+
+### Symptoms
+
+The evaluated person was technically present in the selector and report header, but reviewers could not naturally search for a person such as Ahmet or retain that context while reading comment cards farther down the page.
+
+### Root cause
+
+The interface modeled the backend's composite cycle-plus-subject key directly instead of presenting the user's person-first reporting task. Comment groups used a generic identity-separated label and did not repeat their subject.
+
+### Correct solution
+
+Add client-side ad/e-mail search over the already authorized target set, select the evaluated person first, then list only that person's cycles. Repeat the evaluated person's name in the report summary and every written-comment group.
+
+### Prevention
+
+Keep backend composite identifiers inside service/UI state. User-facing report controls and acceptance tests must express the business sequence: person, cycle, report, subject-labelled result.
+
+### Related files
+
+- `src/features/reporting/EvaluationReportsPanel.tsx`
+- `src/locales/tr/messages.ts`
+- `tests/e2e/critical-lifecycle.e2e.ts`
+
+### Related tests
+
+- `src/features/reporting/EvaluationReportsPanel.test.tsx`
+- `npm run e2e:local`
+- `npm run e2e:container:local`
+
 ## ERR-20260810-068 - Partial local Supabase restart left the API unavailable
 
 ### Context
@@ -286,39 +320,6 @@ Database tests must remain deterministic on a persistent local stack containing 
 ### Related tests
 
 - `npm run supabase:test:local`
-
-## ERR-20260809-059 - Supabase callback cleanup returned invited users to the public site
-
-### Context
-
-Playwright redeemed a real local Supabase Auth invitation and opened the callback in the application.
-
-### Symptoms
-
-The password-setup screen appeared briefly, then Supabase removed the token hash and the root hash router rendered the public product page.
-
-### Root cause
-
-The route parser recognized only application hashes. It did not treat Auth callback parameters as an authentication route or preserve that route through the one-time SDK hash cleanup.
-
-### Correct solution
-
-Recognize implicit and PKCE invitation/recovery/error callback parameters, remember the pending callback for one cleanup transition, and normalize the cleared URL to `#login` without retaining tokens.
-
-### Prevention
-
-Exercise real Auth callback URLs in browser acceptance and retain focused route tests for both initial callback recognition and post-consumption hash cleanup.
-
-### Related files
-
-- `src/app/App.tsx`
-- `src/app/App.test.tsx`
-- `tests/e2e/critical-lifecycle.e2e.ts`
-
-### Related tests
-
-- `npm test -- --run src/app/App.test.tsx`
-- `npm run e2e:local`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

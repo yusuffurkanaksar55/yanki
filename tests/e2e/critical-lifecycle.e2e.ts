@@ -172,15 +172,24 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
     collectPageErrors(reviewerPage);
     await signIn(reviewerPage, fixture.reviewer);
     await reviewerPage.goto("/#reports");
-    const reportTarget = reviewerPage.getByLabel(tr.reports.targetLabel);
-    const subjectOption = reportTarget.locator("option").filter({
+    const reportSubject = reviewerPage.getByLabel(tr.reports.subjectLabel);
+    const subjectOption = reportSubject.locator("option").filter({
       hasText: fixture.subject.displayName
     });
     await expect(subjectOption).toHaveCount(1);
-    const targetValue = await subjectOption.getAttribute("value");
+    const subjectValue = await subjectOption.getAttribute("value");
+
+    expect(subjectValue).not.toBeNull();
+    await reportSubject.selectOption(subjectValue ?? "");
+    const reportCycle = reviewerPage.getByLabel(tr.reports.cycleLabel);
+    const cycleOption = reportCycle.locator("option").filter({
+      hasText: cycleName
+    });
+    await expect(cycleOption).toHaveCount(1);
+    const targetValue = await cycleOption.getAttribute("value");
 
     expect(targetValue).not.toBeNull();
-    await reportTarget.selectOption(targetValue ?? "");
+    await reportCycle.selectOption(targetValue ?? "");
     await reviewerPage.getByRole("button", {
       name: tr.reports.actions.load
     }).click();
@@ -193,7 +202,10 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
     await expect(ratingResult.getByText("5", { exact: true }).first())
       .toBeVisible();
     await expect(reviewerPage.getByText(
-      tr.reports.textComments.title
+      tr.reports.textComments.forSubjectTitle.replace(
+        "{subject}",
+        fixture.subject.displayName
+      )
     )).toBeVisible();
     await expect(reviewerPage.getByText(rawTextMarker)).toBeVisible();
     await expect(reviewerPage.getByText(
@@ -228,7 +240,7 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
     collectPageErrors(subjectPage);
     await signIn(subjectPage, fixture.subject);
     await subjectPage.goto("/#reports");
-    const subjectTargets = subjectPage.getByLabel(tr.reports.targetLabel);
+    const subjectTargets = subjectPage.getByLabel(tr.reports.subjectLabel);
     await expect(subjectTargets).toBeVisible();
     await expect(subjectTargets.locator("option").filter({
       hasText: fixture.subject.displayName

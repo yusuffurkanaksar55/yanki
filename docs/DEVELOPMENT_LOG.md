@@ -1,5 +1,43 @@
 # Development Log
 
+## 2026-08-10 - Person-First Report Filtering And Comment Context
+
+### Objective
+
+Make it immediately clear who a written comment is about and let authorized reviewers narrow reports by person before choosing an evaluation cycle.
+
+### Changes
+
+- Replaced the combined person/cycle report selector with an ad-or-email search field, an evaluated-person selector, and a dependent evaluation-cycle selector.
+- Kept the cycle selector disabled until a person is selected and reset stale reports whenever the search, person, or cycle changes.
+- Added an explicit evaluated-person label above the report subject and repeated `{subject} için yazılan yorumlar` in every text-question result.
+- Added focused component and critical Playwright coverage for the person-first selection flow.
+
+### Database changes
+
+None. Existing report targets already identify the evaluated subject and remain filtered by the trusted authorization boundary.
+
+### Security impact
+
+Neutral. The evaluated person is required report context and was already returned in authorized target/report responses. Evaluator identity remains hidden; administrator denial, self-access denial, tenant scope, reviewer role scope, and manager relationship checks are unchanged.
+
+### Tests performed
+
+- Full `npm run check`: 53 Vitest files and 238 tests, lint, typecheck, production build, and bounded-memory verification passed.
+- `npm run e2e:local`: all three Playwright tests passed through Vite.
+- `npm run e2e:container:local`: all three Playwright tests passed through production Nginx, including direct sensitive-endpoint denial.
+- Manual in-app browser review verified name/email search, dependent cycle selection, explicit comment subject context, and no horizontal overflow at 1440x1000 and 390x844.
+
+### Result
+
+An authorized reviewer can now search for Ahmet, select Ahmet, see only Ahmet's available evaluation cycles, and read comment groups that explicitly state they were written about Ahmet.
+
+### Remaining work
+
+- Replace technical smoke-fixture names with curated customer-demo people, projects, and cycles.
+- Add route-level code splitting for the known production JavaScript chunk warning.
+- Complete production-like staging, SMTP, monitoring, recovery, and signed-release gates.
+
 ## 2026-08-10 - Corporate Product UI, Visual Hierarchy, And Identity-Separated Comments
 
 ### Objective
@@ -156,43 +194,3 @@ The critical synthetic user journey now has one-command browser acceptance on th
 - Run the same synthetic acceptance against a production-like staging deployment with approved SMTP and gateway enforcement.
 - Add keyboard/accessibility and deployed-container Playwright coverage.
 - Complete the remaining production provider, recovery, monitoring, and first signed-release gates before live employee use.
-
-## 2026-08-09 - Public Product Site And Immediate Aggregate Reporting
-
-### Objective
-
-Introduce a polished public Yankı product experience, improve authentication and responsive navigation, and make authorized aggregate results available after the first evaluation without weakening identity/content separation or server-side authorization.
-
-### Changes
-
-- Added a public Turkish product site at the root route with generated project-owned artwork, workflow, security, deployment, and authenticated workspace entry sections.
-- Redesigned the dedicated sign-in route, collapsed password recovery until requested, and added an explicit return path to the public site.
-- Replaced clipped mobile workspace navigation with stable equal-width targets and added global horizontal-overflow safeguards.
-- Replaced the four-submission/closed-cycle reporting rule with `EMPTY` before participation and `AVAILABLE` after the first encrypted submission, including during active cycles.
-- Updated the reporting UI, synthetic fixture/smoke workflow, public claims, focused documentation, ADR-0030, and all relevant security tests.
-
-### Database changes
-
-Applied `20260809210000_immediate_evaluation_reporting.sql` locally and to linked project `daxaymcmtbmummrxdyjy`. Existing cycle compatibility thresholds were normalized to `1`; authorized target discovery now includes every non-draft cycle; trusted batch access preserves system-admin, self, tenant, role, scope, and manager-relationship checks.
-
-### Security impact
-
-Mixed but explicit. Authorization, encryption, evaluator-link separation, direct-table denial, and raw-text withholding remain intact. Removing the group-size threshold creates contextual inference risk for one-person and sparse aggregates, so product and security documentation no longer claims group anonymity from sample size.
-
-### Tests performed
-
-- Full `npm run check`: 49 Vitest files and 216 tests, lint, typecheck, production build, and bounded-memory verification.
-- Local migration application, clean local schema lint, and 185 pgTAP cases across eight database suites.
-- Linked migration/list verification, clean linked schema lint, and deployments of `evaluation-reports` and `admin-project-cycles`.
-- Linked synthetic report acceptance verified active-target discovery, `EMPTY`, first-submission availability, four identity-free submissions, a `3.5` aggregate average, raw-text withholding, and administrator/self/employee/anonymous denial.
-- In-app browser verification at 1280x720 and 390x844 covered public, authentication, dashboard, and administration views with no page-level horizontal overflow.
-
-### Result
-
-The root URL now introduces Yankı publicly, `#login` provides a dedicated sign-in experience, and authenticated workspaces remain protected. Authorized reviewers can see active aggregate results after the first encrypted submission, with the remaining sparse-group privacy limitation documented honestly.
-
-### Remaining work
-
-- Add route-level code splitting to remove the current production bundle-size warning.
-- Add persistent Playwright visual, keyboard, and authenticated routing regression coverage.
-- Complete production provider, invitation-mail, recovery, and environment-specific security acceptance before live employee use.

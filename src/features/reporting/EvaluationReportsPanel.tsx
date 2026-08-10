@@ -31,6 +31,8 @@ export function EvaluationReportsPanel({
   const [targetState, setTargetState] = useState<TargetState>({
     status: "loading"
   });
+  const [subjectSearch, setSubjectSearch] = useState("");
+  const [selectedSubjectUserId, setSelectedSubjectUserId] = useState("");
   const [selectedKey, setSelectedKey] = useState("");
   const [report, setReport] = useState<EvaluationReport | null>(null);
   const [isLoadingReport, setIsLoadingReport] = useState(false);
@@ -64,9 +66,21 @@ export function EvaluationReportsPanel({
     };
   }, [reloadKey, service]);
 
-  const selectedTarget = targetState.status === "ready"
-    ? targetState.targets.find((target) => toTargetKey(target) === selectedKey)
-    : undefined;
+  const targets = targetState.status === "ready" ? targetState.targets : [];
+  const subjects = getReportSubjects(targets);
+  const visibleSubjects = filterReportSubjects(subjects, subjectSearch);
+  const subjectTargets = targets.filter(
+    (target) => target.subjectUserId === selectedSubjectUserId
+  );
+  const selectedTarget = subjectTargets.find(
+    (target) => toTargetKey(target) === selectedKey
+  );
+
+  function resetReportSelection() {
+    setSelectedKey("");
+    setReport(null);
+    setReportError(false);
+  }
 
   async function loadReport() {
     if (!selectedTarget) {
@@ -141,11 +155,49 @@ export function EvaluationReportsPanel({
       ) : null}
 
       {targetState.status === "ready" && targetState.targets.length > 0 ? (
-        <div className="surface-panel mt-4 grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <div className="surface-panel mt-4 grid gap-4 p-4 sm:p-5 xl:grid-cols-[minmax(12rem,0.7fr)_minmax(13rem,0.9fr)_minmax(15rem,1.2fr)_auto] xl:items-end">
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
-            {tr.reports.targetLabel}
+            {tr.reports.subjectSearchLabel}
+            <input
+              className="app-input text-sm font-normal"
+              onChange={(event) => {
+                setSubjectSearch(event.target.value);
+                setSelectedSubjectUserId("");
+                resetReportSelection();
+              }}
+              placeholder={tr.reports.subjectSearchPlaceholder}
+              type="search"
+              value={subjectSearch}
+            />
+          </label>
+          <label className="grid gap-2 text-sm font-semibold text-slate-800">
+            {tr.reports.subjectLabel}
             <select
               className="app-input text-sm font-normal"
+              onChange={(event) => {
+                setSelectedSubjectUserId(event.target.value);
+                resetReportSelection();
+              }}
+              value={selectedSubjectUserId}
+            >
+              <option value="">{tr.reports.subjectPlaceholder}</option>
+              {visibleSubjects.map((subject) => (
+                <option key={subject.subjectUserId} value={subject.subjectUserId}>
+                  {formatSubjectOption(subject)}
+                </option>
+              ))}
+            </select>
+            {subjectSearch.trim().length > 0 && visibleSubjects.length === 0 ? (
+              <span className="font-normal leading-5 text-slate-500">
+                {tr.reports.subjectSearchEmpty}
+              </span>
+            ) : null}
+          </label>
+          <label className="grid gap-2 text-sm font-semibold text-slate-800">
+            {tr.reports.cycleLabel}
+            <select
+              className="app-input text-sm font-normal"
+              disabled={!selectedSubjectUserId}
               onChange={(event) => {
                 setSelectedKey(event.target.value);
                 setReport(null);
@@ -153,10 +205,10 @@ export function EvaluationReportsPanel({
               }}
               value={selectedKey}
             >
-              <option value="">{tr.reports.targetPlaceholder}</option>
-              {targetState.targets.map((target) => (
+              <option value="">{tr.reports.cyclePlaceholder}</option>
+              {subjectTargets.map((target) => (
                 <option key={toTargetKey(target)} value={toTargetKey(target)}>
-                  {formatTargetOption(target)}
+                  {formatCycleOption(target)}
                 </option>
               ))}
             </select>
@@ -221,6 +273,9 @@ function AvailableReport({
           <p className="text-sm font-medium text-slate-600">
             {report.organizationName} / {formatProject(report)}
           </p>
+          <p className="mt-3 text-xs font-bold uppercase text-coral">
+            {tr.reports.labels.subject}
+          </p>
           <h3 className="mt-1 text-2xl font-semibold text-slate-900">
             {subjectName}
           </h3>
@@ -242,7 +297,11 @@ function AvailableReport({
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
         {report.questions.map((question) => (
-          <QuestionResult key={question.id} question={question} />
+          <QuestionResult
+            key={question.id}
+            question={question}
+            subjectName={subjectName}
+          />
         ))}
       </div>
     </div>
@@ -250,9 +309,11 @@ function AvailableReport({
 }
 
 function QuestionResult({
-  question
+  question,
+  subjectName
 }: {
   readonly question: EvaluationReportQuestion;
+  readonly subjectName: string;
 }) {
   return (
     <article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
@@ -265,16 +326,18 @@ function QuestionResult({
         </span>
       </div>
       <div className="mt-4">
-        <AggregationResult question={question} />
+        <AggregationResult question={question} subjectName={subjectName} />
       </div>
     </article>
   );
 }
 
 function AggregationResult({
-  question
+  question,
+  subjectName
 }: {
   readonly question: EvaluationReportQuestion;
+  readonly subjectName: string;
 }) {
   const aggregation = question.aggregation;
 
@@ -312,7 +375,7 @@ function AggregationResult({
       <div className="flex items-center gap-2 text-pine">
         <MessageSquareQuote aria-hidden="true" size={18} strokeWidth={1.8} />
         <p className="text-sm font-semibold text-slate-900">
-          {tr.reports.textComments.title}
+          {tr.reports.textComments.forSubjectTitle.replace("{subject}", subjectName)}
         </p>
       </div>
       <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -368,10 +431,51 @@ function toTargetKey(target: EvaluationReportTarget | undefined): string {
     : "";
 }
 
-function formatTargetOption(target: EvaluationReportTarget): string {
-  const subjectName = target.subjectDisplayName ?? target.subjectEmail;
+type ReportSubject = Pick<
+  EvaluationReportTarget,
+  "subjectDisplayName" | "subjectEmail" | "subjectUserId"
+>;
 
-  return `${subjectName} / ${target.evaluationCycleName}`;
+function getReportSubjects(
+  targets: readonly EvaluationReportTarget[]
+): readonly ReportSubject[] {
+  const subjects = new Map<string, ReportSubject>();
+
+  for (const target of targets) {
+    if (!subjects.has(target.subjectUserId)) {
+      subjects.set(target.subjectUserId, target);
+    }
+  }
+
+  return Array.from(subjects.values()).sort((left, right) =>
+    formatSubjectOption(left).localeCompare(formatSubjectOption(right), "tr")
+  );
+}
+
+function filterReportSubjects(
+  subjects: readonly ReportSubject[],
+  search: string
+): readonly ReportSubject[] {
+  const normalizedSearch = search.trim().toLocaleLowerCase("tr-TR");
+
+  if (!normalizedSearch) {
+    return subjects;
+  }
+
+  return subjects.filter((subject) => (
+    (subject.subjectDisplayName ?? "").toLocaleLowerCase("tr-TR").includes(normalizedSearch)
+    || subject.subjectEmail.toLocaleLowerCase("tr-TR").includes(normalizedSearch)
+  ));
+}
+
+function formatSubjectOption(subject: ReportSubject): string {
+  return subject.subjectDisplayName
+    ? `${subject.subjectDisplayName} (${subject.subjectEmail})`
+    : subject.subjectEmail;
+}
+
+function formatCycleOption(target: EvaluationReportTarget): string {
+  return `${target.evaluationCycleName} / ${formatProject(target)}`;
 }
 
 function formatProject(target: EvaluationReportTarget): string {

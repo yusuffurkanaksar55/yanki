@@ -1,5 +1,44 @@
 # Test Report
 
+## 2026-08-10 - Person-First Report Selection Regression
+
+### Environment
+
+- Windows 11, Node.js 24, React 19, Vite 8, Vitest, Playwright Chromium, Docker Desktop, local Supabase/Functions/Mailpit, linked synthetic Supabase, and the Codex in-app browser.
+
+### Commands executed
+
+- Focused report-panel Vitest suite
+- `npm run check`
+- `npm run e2e:local`
+- `npm run e2e:container:local`
+- Manual 1440x1000 and 390x844 report-filter browser review
+
+### Passed
+
+- Full application checks passed 53 Vitest files and 238 tests, lint, typecheck, production build, and bounded-memory verification.
+- Vite and production-container modes each passed all three Playwright tests, including person selection, dependent cycle selection, encrypted submission, visible identity-separated comments, administrator/self denial, WCAG, keyboard, mobile overflow, and cleanup.
+- Manual linked-data review filtered the person list to one team leader, listed only that person's cycles, and rendered the subject in the report header plus both comment-group headings.
+- Desktop and mobile report views had no horizontal overflow.
+
+### Failed And Corrected
+
+- None.
+
+### Security checks
+
+- The UI exposes only the evaluated person already present in the authorized report target; no evaluator identity or new backend field was added.
+- Existing system-administrator, self-access, scope, and manager-relationship boundaries remained covered by the critical lifecycle.
+
+### Skipped
+
+- No production employee data, customer server, approved SMTP mailbox, or public TLS/DNS staging environment was used.
+
+### Remaining risks
+
+- Large organizations may eventually benefit from a server-paginated accessible combobox; the current client-side search is appropriate for the already authorized target set.
+- The production build passes with a roughly 598 kB JavaScript chunk warning.
+
 ## 2026-08-10 - Corporate UI And Qualitative Reporting Regression
 
 ### Environment
@@ -173,50 +212,3 @@
 
 - Local Mailpit proves application callback behavior, not production email deliverability.
 - The production build passes but retains the known large JavaScript chunk warning.
-
-## 2026-08-09 - Public Site, Responsive Navigation, And Immediate Reporting
-
-### Environment
-
-- Windows 11, Node.js 24, Vite 8, React 19, Vitest, Docker Desktop, Supabase CLI 2.109.1, local Supabase, linked synthetic Supabase, and the Codex in-app Chromium browser.
-
-### Commands executed
-
-- `npm run check`
-- `npx supabase migration up --local`
-- `npm run supabase:lint:local` and `npm run supabase:test:local`
-- `npm run supabase:push:dry-run`, linked migration push/list, and `npm run supabase:lint:linked`
-- Deployments of `evaluation-reports` and `admin-project-cycles`
-- `npm run smoke:reports` with process-only synthetic credentials
-- Browser inspection at 1280x720 and 390x844
-
-### Passed
-
-- Full application checks passed 49 Vitest files and 216 tests, lint, typecheck, production build, and bounded-memory verification.
-- Local schema lint reported no errors and 185 pgTAP cases passed across eight suites, including the updated reporting authorization suite.
-- Linked migration `20260809210000` matches local history, linked schema lint is clean, and both updated Edge Functions deployed successfully.
-- Live synthetic reporting returned `EMPTY` before participation, became `AVAILABLE` after the first encrypted submission while active, retained four identity-free submissions with a `3.5` aggregate average, and withheld raw text.
-- Live system-admin, self, employee, and anonymous result access remained denied.
-- Public, sign-in, dashboard, and administration pages stayed within the tested desktop and mobile document widths; all mobile workspace destinations are visible without horizontal navigation scrolling.
-
-### Failed And Corrected
-
-- The first live smoke invocation lacked `REPORT_*` aliases and stopped before any remote mutation. The rerun used previously approved synthetic credentials in process memory only and passed.
-- Supabase reported a post-apply pg-delta catalog cache certificate warning. Migration list parity and clean linked lint independently confirmed that the migration applied successfully.
-- Desktop sign-in copy initially sat over the lower artwork ribbons; the final layout anchors copy at the visual center.
-- Mobile workspace navigation initially hid the fourth item beyond a horizontal scroller; stable equal-width targets now fit without page overflow.
-
-### Security checks
-
-- Verified evaluator identity never enters report batches or frontend result models, raw free text remains withheld, and direct ciphertext-table access is unchanged.
-- Verified public copy distinguishes identity separation from guaranteed group anonymity and states sparse-group inference risk.
-- Verified no test credentials were written to a repository file.
-
-### Skipped
-
-- No production employee data, production encryption key, real SMTP flow, customer server, or permanent screenshot baseline was used.
-
-### Remaining risks
-
-- One-person and sparse aggregates permit contextual inference by design under ADR-0030. Customer policy and onboarding must reflect this limitation.
-- The production build passes but reports a 581.93 kB JavaScript chunk; route-level code splitting remains required before material frontend growth.

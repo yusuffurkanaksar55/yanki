@@ -16,13 +16,17 @@ describe("EvaluationReportsPanel", () => {
 
     render(<EvaluationReportsPanel service={service} />);
 
-    await screen.findByRole("option", { name: /Yıllık Değerlendirme/ });
+    await screen.findByRole("option", { name: /Takım Lideri/ });
     expect(
       screen.getByRole("button", { name: tr.reports.actions.load })
     ).toBeDisabled();
     expect(service.getReport).not.toHaveBeenCalled();
     await user.selectOptions(
-      screen.getByLabelText(tr.reports.targetLabel),
+      screen.getByLabelText(tr.reports.subjectLabel),
+      "subject-id"
+    );
+    await user.selectOptions(
+      screen.getByLabelText(tr.reports.cycleLabel),
       "cycle-id:subject-id"
     );
     await user.click(
@@ -30,7 +34,7 @@ describe("EvaluationReportsPanel", () => {
     );
 
     expect(await screen.findByText("4,25")).toBeInTheDocument();
-    expect(screen.getByText(tr.reports.textComments.title)).toBeInTheDocument();
+    expect(screen.getByText("Takım Lideri için yazılan yorumlar")).toBeInTheDocument();
     expect(screen.getByText("Gizli serbest metin")).toBeInTheDocument();
     expect(screen.getByText(tr.reports.textComments.contextRisk)).toBeInTheDocument();
     expect(service.getReport).toHaveBeenCalledWith("cycle-id", "subject-id");
@@ -47,9 +51,13 @@ describe("EvaluationReportsPanel", () => {
 
     render(<EvaluationReportsPanel service={service} />);
 
-    await screen.findByRole("option", { name: /Yıllık Değerlendirme/ });
+    await screen.findByRole("option", { name: /Takım Lideri/ });
     await user.selectOptions(
-      screen.getByLabelText(tr.reports.targetLabel),
+      screen.getByLabelText(tr.reports.subjectLabel),
+      "subject-id"
+    );
+    await user.selectOptions(
+      screen.getByLabelText(tr.reports.cycleLabel),
       "cycle-id:subject-id"
     );
     await user.click(
@@ -60,16 +68,53 @@ describe("EvaluationReportsPanel", () => {
     expect(screen.getByText(tr.reports.noResponses.description)).toBeInTheDocument();
     expect(screen.queryByText(tr.reports.labels.submissions)).not.toBeInTheDocument();
   });
+
+  it("filters report targets by evaluated person before cycle selection", async () => {
+    const ahmetTarget = createTarget({
+      evaluationCycleId: "ahmet-cycle-id",
+      evaluationCycleName: "Proje Sonu Değerlendirmesi",
+      subjectDisplayName: "Ahmet Yılmaz",
+      subjectEmail: "ahmet@example.com",
+      subjectUserId: "ahmet-id"
+    });
+    const service = createService(createAvailableReport(), [
+      createTarget(),
+      ahmetTarget
+    ]);
+    const user = userEvent.setup();
+
+    render(<EvaluationReportsPanel service={service} />);
+
+    await screen.findByRole("option", { name: /Takım Lideri/ });
+    await user.type(
+      screen.getByLabelText(tr.reports.subjectSearchLabel),
+      "Ahmet"
+    );
+
+    expect(screen.queryByRole("option", { name: /Takım Lideri/ })).not.toBeInTheDocument();
+    await user.selectOptions(
+      screen.getByLabelText(tr.reports.subjectLabel),
+      "ahmet-id"
+    );
+    expect(
+      screen.getByRole("option", { name: /Proje Sonu Değerlendirmesi/ })
+    ).toBeInTheDocument();
+  });
 });
 
-function createService(report: EvaluationReport): EvaluationReportService {
+function createService(
+  report: EvaluationReport,
+  targets: readonly EvaluationReportTarget[] = [createTarget()]
+): EvaluationReportService {
   return {
     getReport: vi.fn(async () => report),
-    listTargets: vi.fn(async () => [createTarget()])
+    listTargets: vi.fn(async () => targets)
   };
 }
 
-function createTarget(): EvaluationReportTarget {
+function createTarget(
+  overrides: Partial<EvaluationReportTarget> = {}
+): EvaluationReportTarget {
   return {
     closedAt: "2026-08-01T12:00:00.000Z",
     evaluationCycleId: "cycle-id",
@@ -84,7 +129,8 @@ function createTarget(): EvaluationReportTarget {
     subjectUserId: "subject-id",
     templateName: "Liderlik Geri Bildirimi",
     templateVersionId: "template-version-id",
-    templateVersionNumber: 1
+    templateVersionNumber: 1,
+    ...overrides
   };
 }
 

@@ -237,8 +237,13 @@ export const tr = {
       "Yetki kapsamındaki aktif ve tamamlanmış süreçler, ilk değerlendirmeden itibaren toplu sonuç olarak güncellenir.",
     aggregateOnly: "Kimliksiz toplu sonuç",
     loadingTargets: "Erişilebilir raporlar yükleniyor...",
-    targetLabel: "Rapor konusu",
-    targetPlaceholder: "Kişi ve değerlendirme süreci seçin",
+    subjectSearchLabel: "Kişi ara",
+    subjectSearchPlaceholder: "Ad veya e-posta yazın",
+    subjectSearchEmpty: "Aramanızla eşleşen kişi bulunamadı.",
+    subjectLabel: "Değerlendirilen kişi",
+    subjectPlaceholder: "Kişi seçin",
+    cycleLabel: "Değerlendirme süreci",
+    cyclePlaceholder: "Önce kişi, sonra süreç seçin",
     actions: {
       load: "Raporu görüntüle",
       loading: "Rapor hazırlanıyor...",
@@ -259,6 +264,7 @@ export const tr = {
         "Bu kişi için henüz değerlendirme gönderilmedi. Başka bir rapor konusu seçebilir veya ilk değerlendirmeyi bekleyebilirsiniz."
     },
     labels: {
+      subject: "Değerlendirilen kişi",
       submissions: "Toplu yanıt",
       cycleEnd: "Süreç bitişi",
       answers: "yanıt",
@@ -270,7 +276,7 @@ export const tr = {
       organizationWide: "Organizasyon geneli"
     },
     textComments: {
-      title: "Kimlikten ayrıştırılmış yorumlar",
+      forSubjectTitle: "{subject} için yazılan yorumlar",
       description:
         "Yorumlar değerlendirici kimliği, gönderim zamanı ve diğer cevaplarla eşleştirme bilgisi olmadan gösterilir.",
       contextRisk:

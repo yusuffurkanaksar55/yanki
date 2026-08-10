@@ -90,6 +90,7 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Recent Major Changes
 
+- 2026-08-10: Added evaluated-person search and separate person/cycle report filters, with explicit subject labels in every written-comment group.
 - 2026-08-10: Added corporate typography and public product detail, a readable workspace hierarchy, and authorized identity-separated comments with independent question-level shuffling.
 - 2026-08-10: Added protected assignment/report routes, compact task filters, explicit report selection, collapsible project details, and simplified invitation administration after full desktop/mobile browser review.
 - 2026-08-10: Added production-container browser acceptance, direct sensitive-endpoint bypass denial, automated WCAG/keyboard checks, corrected color contrast, and fail-safe local synthetic-fixture cleanup.
