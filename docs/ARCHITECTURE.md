@@ -13,14 +13,14 @@ The target system is a single-page web application with a trusted backend bounda
 - Database: Supabase PostgreSQL with Row Level Security enabled for all exposed tables.
 - Trusted server code: Supabase Edge Functions for sensitive validation, anonymous credential handling, encryption, decryption, aggregation, and reporting.
 - Runtime delivery: one Docker image serving the static SPA through Nginx, configured at container startup with public Supabase values.
-- Tests: Vitest and React Testing Library for frontend and documentation checks, Docker-backed Supabase pgTAP tests for database authorization, and Playwright for the critical browser lifecycle, automated WCAG analysis, keyboard operation, responsive overflow, and production-container gateway behavior.
+- Tests: Vitest and React Testing Library for frontend and documentation checks, Docker-backed Supabase pgTAP tests for database authorization, and Playwright for the critical browser lifecycle, automated WCAG analysis, keyboard operation, responsive overflow, and production-container gateway behavior. Daily `docker:acceptance` reuses the synthetic local Supabase stack; full self-hosted staging uses a hash-verified official Supabase commit on a separately sized host.
 
 ## Deployment Topologies
 
 - Shared SaaS: one vendor-operated stack stores multiple companies with `organizations.id` as the tenant boundary.
 - Dedicated: one customer-operated application container and one official self-hosted Supabase stack.
 
-Both topologies use the same migrations, Edge Functions, and tenant authorization. Dedicated infrastructure is additional isolation and never disables organization scope checks. The official Supabase self-host Compose project remains an external pinned dependency; this repository owns the application image and application-specific database/function artifacts. See `docs/DEPLOYMENT.md` and ADR-0016.
+Both topologies use the same migrations, Edge Functions, and tenant authorization. Dedicated infrastructure is additional isolation and never disables organization scope checks. The official Supabase self-host Compose project remains an external dependency pinned by commit and reviewed-file hashes in `deploy/staging/supabase.lock.json`; this repository owns the application image, Compose overlay, and application-specific database/function artifacts. See `docs/DEPLOYMENT.md`, ADR-0016, and ADR-0034.
 
 ## Runtime Configuration
 

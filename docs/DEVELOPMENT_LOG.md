@@ -1,5 +1,42 @@
 # Development Log
 
+## 2026-08-12 - Resource-Aware Docker And Self-Hosted Staging Acceptance
+
+### Objective
+
+Verify the complete application through Docker without duplicating the workstation's active Supabase image set, and make the future clean self-hosted staging boundary reproducible.
+
+### Changes
+
+- Pinned the official Supabase repository to an exact commit and critical file hashes, then added a Yanki Compose overlay for loopback-only ports, digest-pinned Mailpit, production Nginx, generated secrets, and the Edge Function gateway/encryption boundary.
+- Added an explicit full-stack acceptance runner that prepares an ignored official checkout, applies migrations, verifies container isolation, runs pgTAP/Playwright/restore checks, records content-free evidence, and removes disposable data.
+- Required explicit confirmation and verified Docker storage headroom for full-stack use; added a configuration-only mode that downloads no images.
+- Added `docker:acceptance` as the daily gate. It reuses the synthetic local Supabase stack while checking both Compose definitions, database lint, all pgTAP suites, the production frontend container, gateway denial, accessibility, responsive behavior, and streamed restore.
+- Extended E2E URL handling so browser and Auth traffic can use the production same-origin `/supabase` path while a separate loopback origin verifies direct sensitive-endpoint denial.
+
+### Database changes
+
+None. The local acceptance reused the migrated synthetic development database and removed the strictly recognized E2E tenant/users. The full runner applies existing migrations only to a disposable isolated database.
+
+### Security impact
+
+Positive. Official self-hosted inputs are reproducibly pinned, generated secrets remain under ignored temporary storage, direct sensitive endpoint bypass remains denied, published full-stack ports are required to bind only to loopback during acceptance, and the service-role/gateway/encryption secrets remain absent from browser runtime configuration.
+
+### Tests performed
+
+- `npm run docker:acceptance` passed both Compose validations, local database lint, 186 pgTAP assertions across eight suites, three production-container Playwright tests, direct gateway bypass denial, WCAG and keyboard checks, desktop/mobile overflow checks, and streamed backup/restore security verification.
+- Final `npm run check` passed lint, typecheck, 54 Vitest files and 243 tests, the production build, and bounded-memory verification.
+- The official full-stack configuration passed commit/hash and generated-secret Compose validation without downloading duplicate images.
+
+### Result
+
+Daily Docker acceptance now provides one repeatable command on the constrained workstation, while full clean self-hosted acceptance is reserved for a properly sized isolated staging host. No live employee data, production secret, or existing local database content was used or removed.
+
+### Remaining work
+
+- Run `staging:self-hosted:acceptance` on an isolated host with sufficient Docker storage and retain its report.
+- Complete real TLS/DNS, approved SMTP, alert receiver, capacity, secret custody, and remote recovery evidence before production approval.
+
 ## 2026-08-12 - Multi-Tenant SaaS Production Readiness And Platform Operations Scope
 
 ### Objective
@@ -156,41 +193,3 @@ Yankı now presents a more complete corporate product story, shows a readable pe
 - Complete production-like staging through real TLS/DNS, approved SMTP, monitoring, recovery, and signed release gates.
 - Add route-level code splitting for the known production JavaScript chunk warning.
 - Curate customer-facing demo tenants and content before external demonstrations.
-
-## 2026-08-10 - Protected Workspace Routes And Interface Simplification
-
-### Objective
-
-Fix assignment/report navigation falling back to the public site, make an existing aggregate report discoverable, and simplify the desktop/mobile workspace layouts found during full-page browser review.
-
-### Changes
-
-- Added protected `#assignments` and `#reports` routes with route-aware application navigation and authenticated `#login` normalization.
-- Split the former stacked dashboard into overview, assignment, and reporting views; added compact assignment filters, six-item progressive rendering, and explicit report person/cycle selection.
-- Reworked invitation administration into a balanced vertical form/list flow and collapsed project administration details until the operator requests them.
-- Updated critical Playwright navigation to exercise the real assignment/report routes and added focused routing, selection, disclosure, and active-navigation regression coverage.
-
-### Database changes
-
-None. Existing encrypted synthetic submissions and authorization boundaries were reused for browser verification.
-
-### Security impact
-
-Neutral to positive. Route protection remains an interface concern while all sensitive authorization stays in Edge Functions/RLS. Explicit report selection performs no discovery-time participation query, raw text remains withheld, and administrator/self report denials still pass.
-
-### Tests performed
-
-- Full `npm run check`: 53 Vitest files and 237 tests, lint, typecheck, production build, and bounded-memory verification passed.
-- `npm run e2e:local`: three Playwright tests passed through Vite, including encrypted submission/reporting, access denial, WCAG, keyboard, and mobile overflow checks.
-- `npm run e2e:container:local`: the same three tests passed through production Nginx, including direct sensitive-endpoint `403` enforcement.
-- Manual in-app Chromium review covered public sections, authentication, overview, assignments, reports, and all six administration modules at 1440x900 and 390x844 without horizontal overflow; an existing four-submission aggregate report rendered successfully.
-
-### Result
-
-Assignment and report navigation now stays inside the authenticated application. Dense historical content is bounded or collapsed, the invitation layout no longer leaves an awkward empty column, and authorized users can intentionally select and view aggregate results.
-
-### Remaining work
-
-- Add route-level code splitting for the known 588 kB production JavaScript chunk warning.
-- Replace technical smoke fixture names with a curated product-demo tenant before customer demonstrations.
-- Complete approved SMTP, staging TLS/DNS, monitoring, recovery, and first signed-release gates before live employee use.

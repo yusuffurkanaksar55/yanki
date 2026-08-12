@@ -26,6 +26,7 @@ export type E2EFixture = {
 type Environment = {
   readonly anonKey: string;
   readonly databaseUrl: string;
+  readonly directSupabaseUrl: string;
   readonly mailpitUrl: string;
   readonly serviceRoleKey: string;
   readonly supabaseUrl: string;
@@ -210,10 +211,15 @@ export async function redeemLocalInvitationLink(
 ): Promise<string> {
   const environment = readEnvironment();
   const verificationUrl = new URL(invitationLink);
+  const supabaseUrl = new URL(environment.supabaseUrl);
+  const expectedVerificationPath = joinUrlPath(
+    supabaseUrl.pathname,
+    "auth/v1/verify"
+  );
 
   if (
-    verificationUrl.origin !== environment.supabaseUrl
-    || verificationUrl.pathname !== "/auth/v1/verify"
+    verificationUrl.origin !== supabaseUrl.origin
+    || verificationUrl.pathname !== expectedVerificationPath
   ) {
     throw new Error("The invitation link does not target local Supabase Auth.");
   }
@@ -228,7 +234,7 @@ export async function redeemLocalInvitationLink(
   }
 
   const callbackUrl = new URL(location);
-  const e2eBaseUrl = new URL(readLocalUrl("E2E_BASE_URL"));
+  const e2eBaseUrl = new URL(readLocalUrl("E2E_BASE_URL", false));
 
   if (
     !["127.0.0.1", "::1", "localhost"].includes(callbackUrl.hostname)
@@ -281,7 +287,7 @@ export async function invokeReportAs(
 export async function invokeDirectSensitiveEndpointWithoutGatewayToken(): Promise<number> {
   const environment = readEnvironment();
   const response = await fetch(
-    `${environment.supabaseUrl}/functions/v1/anonymous-evaluation-submissions`,
+    `${environment.directSupabaseUrl}/functions/v1/anonymous-evaluation-submissions`,
     {
       body: JSON.stringify({ answers: [], credential: "invalid" }),
       headers: {
@@ -402,11 +408,15 @@ function readEnvironment(): Environment {
   return {
     anonKey: readRequiredEnvironment("E2E_SUPABASE_ANON_KEY"),
     databaseUrl: readLocalDatabaseUrl(),
-    mailpitUrl: readLocalUrl("E2E_MAILPIT_URL"),
+    directSupabaseUrl: readOptionalLocalUrl(
+      "E2E_DIRECT_SUPABASE_URL",
+      "E2E_SUPABASE_URL"
+    ),
+    mailpitUrl: readLocalUrl("E2E_MAILPIT_URL", false),
     serviceRoleKey: readRequiredEnvironment(
       "E2E_SUPABASE_SERVICE_ROLE_KEY"
     ),
-    supabaseUrl: readLocalUrl("E2E_SUPABASE_URL")
+    supabaseUrl: readLocalUrl("E2E_SUPABASE_URL", true)
   };
 }
 
@@ -426,7 +436,7 @@ function readLocalDatabaseUrl(): string {
   return value;
 }
 
-function readLocalUrl(name: string): string {
+function readLocalUrl(name: string, allowPath: boolean): string {
   const value = readRequiredEnvironment(name);
   const url = new URL(value);
 
@@ -437,7 +447,29 @@ function readLocalUrl(name: string): string {
     throw new Error(`${name} must target a loopback HTTP service.`);
   }
 
-  return url.origin;
+  if (!allowPath && url.pathname !== "/") {
+    throw new Error(`${name} must not include a path.`);
+  }
+
+  if (url.search || url.hash) {
+    throw new Error(`${name} must not include a query or fragment.`);
+  }
+
+  return `${url.origin}${url.pathname === "/" ? "" : url.pathname.replace(/\/$/u, "")}`;
+}
+
+function readOptionalLocalUrl(name: string, fallbackName: string): string {
+  return process.env[name]?.trim()
+    ? readLocalUrl(name, true)
+    : readLocalUrl(fallbackName, true);
+}
+
+function joinUrlPath(basePath: string, suffix: string): string {
+  const normalizedBase = basePath === "/"
+    ? ""
+    : basePath.replace(/\/$/u, "");
+
+  return `${normalizedBase}/${suffix}`;
 }
 
 function readRequiredEnvironment(name: string): string {

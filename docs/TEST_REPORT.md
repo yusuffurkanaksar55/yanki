@@ -1,5 +1,51 @@
 # Test Report
 
+## 2026-08-12 - Docker And Pinned Self-Hosted Configuration Acceptance
+
+### Environment
+
+- Windows 11, Node.js 24, Docker Desktop 4.85.0 / Engine 29.6.2, Supabase CLI 2.109.1, existing synthetic local Supabase/PostgreSQL, production Nginx container, Mailpit, Playwright Chromium, and the pinned official Supabase Docker source at commit `b5462a96090949a4a39b2e8e10b3baedc8a10781`.
+
+### Commands executed
+
+- `npm run docker:acceptance`
+- Focused `src/app/App.test.tsx` Vitest retry
+- `npm run check`
+- Official self-hosted configuration-only acceptance through the Docker gate
+
+### Passed
+
+- Application Compose and the hash-verified official self-hosted Compose overlay both validated.
+- Local schema lint returned no errors and all 186 pgTAP assertions across eight database suites passed.
+- All three production-container Playwright tests passed: invitation/password/acceptance, immutable template and project assignment, encrypted anonymous submission, immediate subject-labelled reporting, system-admin/self denials, direct sensitive-endpoint denial, WCAG, keyboard use, and mobile overflow.
+- Synthetic cleanup removed one tenant and four users.
+- The compressed 702,350-byte database stream restored into a disposable target; all nine migration, table, function, and privilege invariants passed; the target and temporary frontend image/container were removed.
+- Browser runtime configuration contained only the same-origin public URL and anon key, never the service-role, gateway, database, or evaluation-encryption secret.
+- Final application checks passed 54 Vitest files and 243 tests, lint, typecheck, the production build, and bounded-memory verification.
+
+### Failed And Corrected
+
+- Starting a second complete Supabase image set expanded the Docker Desktop WSL disk and reduced system-drive headroom. The run was stopped before database creation, its unused images and one unstarted Mailpit container were removed, and the daily gate was changed to reuse the existing synthetic stack.
+- The first Docker orchestrator used nested `npm.cmd` processes and hit Windows `spawnSync EINVAL`. It now invokes each reviewed Node CLI directly.
+- The first full Vitest pass after Docker acceptance timed out once in the authenticated profile-loading assertion under concurrent test load. The unchanged focused file passed in 275 ms and the unchanged full quality gate then passed all 243 tests; no product defect or code change was indicated.
+
+### Security checks
+
+- Verified direct anonymous sensitive-endpoint access without the Nginx gateway token returns `403`.
+- Verified evaluated users and system administrators cannot read subject reports, while the scoped reviewer can read aggregate scores and identity-separated subject-labelled comments.
+- Verified browser and service roles retain no restored ciphertext, retention executor, or recovery-canary access.
+
+### Skipped
+
+- The duplicate full official stack was not retained on this storage-constrained workstation. Its configuration, source commit, and hashes passed; runtime acceptance remains assigned to a properly sized isolated staging host.
+- No production TLS/DNS, SMTP provider, live employee data, production key custody, alert receiver, capacity load, or remote backup provider was used.
+
+### Remaining risks
+
+- Full pinned-stack, real-network, and provider evidence remains a critical production gate.
+- Docker Desktop's WSL virtual disk may retain physical size after internal image deletion; local acceptance must continue reusing one Supabase stack.
+- The production build retains the known roughly 609 kB JavaScript chunk warning.
+
 ## 2026-08-12 - SaaS Production Readiness And Platform Scope Regression
 
 ### Environment
@@ -174,43 +220,3 @@
 
 - One or a few comments may still permit contextual or writing-style inference; the UI and ADR state this limitation explicitly.
 - The production build passes with a roughly 596 kB JavaScript chunk warning; route-level code splitting remains planned.
-
-## 2026-08-10 - Workspace Routing And Responsive Interface Regression
-
-### Environment
-
-- Windows 11, Node.js 24, React 19, Vite 8, Vitest, Playwright Chromium, Docker Desktop, local Supabase/PostgreSQL/Functions/Mailpit, linked synthetic Supabase, and the Codex in-app browser.
-
-### Commands executed
-
-- Focused App, assignment, report, invitation, template, and project administration Vitest suites
-- `npm run check`
-- `npm run e2e:local`
-- `npm run e2e:container:local`
-- Manual 1440x900 and 390x844 in-app browser review across public, auth, overview, assignment, report, and six administration-module views
-
-### Passed
-
-- Full application checks passed 53 Vitest files and 237 tests, lint, typecheck, the production build, and bounded-memory verification.
-- Both Vite and production-container modes passed all three Playwright tests, including the encrypted lifecycle, immediate aggregate reporting, direct endpoint denial, administrator/self denial, WCAG, keyboard, mobile overflow, and synthetic cleanup assertions.
-- Direct assignment/report hashes rendered protected H1 content and active navigation state; authenticated sign-in hashes normalized to the dashboard.
-- Manual review found no horizontal overflow, confirmed the corrected invitation form proportions and compact project disclosures, and displayed a four-submission report with numeric distributions and withheld free text.
-
-### Failed And Corrected
-
-- The first full suite exposed two interaction-heavy form tests crossing the five-second default only under parallel jsdom load. Focused runs passed; both received scoped 10-second budgets without changing the global timeout.
-- The first sandboxed E2E run hit the already documented Supabase telemetry write boundary. The approved retry then found the local database container externally stopped with exit `137`; logs showed healthy checkpoints and no disk/database corruption. A data-preserving Supabase stop/start restored the complete stack before both E2E modes passed.
-
-### Security checks
-
-- Verified route changes do not replace server-side authorization, raw text never reaches the report UI, and administrators/users still cannot obtain prohibited reports.
-- Verified production Nginx denies direct sensitive-function bypass and synthetic E2E records are removed after each run.
-
-### Skipped
-
-- No production employee data, approved production mailbox, real production key, customer server, or public TLS/DNS staging environment was used.
-
-### Remaining risks
-
-- The production build passes but retains a 587.91 kB JavaScript chunk warning; route-level code splitting remains planned.
-- Current linked demo report names include technical smoke labels and should be replaced with a curated demo fixture before customer-facing use.

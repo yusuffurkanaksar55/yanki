@@ -94,6 +94,8 @@ The application requires PostgreSQL, Supabase Auth, PostgREST/API gateway behavi
 
 Use an exact reviewed Supabase self-hosting commit or release and record it in the environment release manifest. Apply every repository migration in order, deploy every repository Edge Function, and run the same clean-stack tests before promotion. Supabase recommends Docker for self-hosting and states that the operator owns security, maintenance, backups, availability, and monitoring; see the [self-hosting overview](https://supabase.com/docs/guides/self-hosting) and [Docker guide](https://supabase.com/docs/guides/self-hosting/docker). If Storage is introduced, select and test the object backend explicitly; Supabase documents a configurable [S3-compatible Storage backend](https://supabase.com/docs/guides/self-hosting/self-hosted-s3).
 
+The repository now pins the official Supabase Docker source in `deploy/staging/supabase.lock.json`, verifies critical upstream hashes, and provides both configuration-only and full clean-stack acceptance commands. The resource-efficient local Docker gate passed Compose validation, 186 pgTAP assertions, the production-container browser lifecycle, same-origin gateway denial, accessibility, responsive overflow, and streamed restore on 2026-08-12. This is useful development evidence but does not close the production-like staging requirement below; the full pinned stack must still pass on an isolated, properly sized staging host with real environment controls.
+
 ## Priority Plan
 
 ### Critical Before Production

@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/supabase/supabase.git",
+  "commit": "b5462a96090949a4a39b2e8e10b3baedc8a10781",
+  "sparsePath": "docker",
+  "files": {
+    "docker/docker-compose.yml": "ccff9999a5ec72de91082eef84e2cac7bb6d92dd0057feb4e474c38ebf0b21cb",
+    "docker/.env.example": "34369125f00aedd612917050d2554311ff188e5e4721103fef4b487a34bc851f",
+    "docker/volumes/functions/main/index.ts": "5fb63babd5ebe7fda6f2e541fa9b4e3513a7514f8fa511ad7fdb37f46d2b9a95"
+  }
+}

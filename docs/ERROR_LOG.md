@@ -1,5 +1,100 @@
 # Error Log
 
+## ERR-20260812-073 - One full-suite profile assertion timed out after Docker acceptance
+
+### Context
+
+The full application quality gate ran immediately after image build, Playwright, pgTAP, and restore acceptance on the constrained workstation.
+
+### Symptoms
+
+One `App.test.tsx` case remained on the profile-loading screen until Testing Library's wait expired. The other 242 tests passed in that run. The unchanged focused file then passed the same case in 275 ms, and the unchanged complete quality gate passed all 243 tests.
+
+### Root cause
+
+No deterministic application defect was reproduced. The evidence indicates a transient test-scheduling delay under concurrent Vitest and recently completed Docker workload rather than an incorrect profile result or changed application behavior.
+
+### Correct solution
+
+Run the focused test unchanged to distinguish a deterministic failure, then repeat the complete quality gate. Do not weaken assertions or increase timeouts for a single non-reproducible event.
+
+### Prevention
+
+Keep the production-container lifecycle as an independent behavioral signal and monitor recurrence. If the same assertion repeats across clean runs, capture service mock timing and worker load before changing the test budget.
+
+### Related files
+
+- `src/app/App.test.tsx`
+
+### Related tests
+
+- `npx vitest run src/app/App.test.tsx --reporter=verbose`
+- `npm run check`
+
+## ERR-20260812-072 - Duplicate self-hosted image set exhausted workstation Docker headroom
+
+### Context
+
+The first clean self-hosted acceptance attempted to run the exact official Supabase Compose image set beside the already running Supabase CLI development stack on Docker Desktop.
+
+### Symptoms
+
+Before service creation completed, system-drive free space fell from approximately 13.9 GB to 6.5 GB and later reported 4.76 GB because the WSL virtual disk expanded. Stopping the parent command left one unstarted staging Mailpit container. Removing unused images reclaimed space inside Docker but did not immediately shrink the host VHD file.
+
+### Root cause
+
+The workstation acceptance duplicated multiple 1-1.7 GB Supabase images with different official tags. The runner had no explicit full-run confirmation or host storage policy, and terminating the outer shell prevented its normal `finally` cleanup while the Compose child briefly continued.
+
+### Correct solution
+
+Reserve the exact full stack for a properly sized isolated staging host and require explicit confirmation plus at least 20 GB of verified free Docker storage. For daily local evidence, hash-validate the official configuration but reuse the existing synthetic Supabase stack for migrations, pgTAP, production-container E2E, gateway denial, and restore. Remove only exact unused staging images/container remnants; never prune active project data.
+
+### Prevention
+
+Do not start a duplicate full Supabase stack on constrained Docker Desktop storage. Keep the full/local evidence distinction explicit, run the configuration-only preflight first, and allow the runner to complete its own cleanup instead of terminating its parent process.
+
+### Related files
+
+- `scripts/run-self-hosted-staging-acceptance.mjs`
+- `scripts/run-docker-acceptance.mjs`
+- `deploy/staging/supabase.lock.json`
+- `docs/decisions/ADR-0034-pin-self-hosted-supabase-and-separate-local-from-full-staging-acceptance.md`
+
+### Related tests
+
+- `npm run staging:self-hosted:config`
+- `npm run docker:acceptance`
+
+## ERR-20260812-071 - Nested npm command could not start in Docker acceptance orchestrator
+
+### Context
+
+The initial daily Docker acceptance runner invoked existing package scripts as nested `npm.cmd` child processes on Windows.
+
+### Symptoms
+
+The first check stopped before Docker configuration validation with `spawnSync npm.cmd EINVAL`.
+
+### Root cause
+
+The Node.js child-process boundary in this Windows environment could not start the command shim with the selected synchronous invocation. No application container, database operation, or test had run.
+
+### Correct solution
+
+Invoke the already reviewed Node entry points directly with `process.execPath`, including the Supabase CLI JavaScript entry, local E2E runner, Compose validator, and restore acceptance script.
+
+### Prevention
+
+Orchestration scripts should call stable executable entry points directly instead of recursively invoking the package manager. Retain package scripts as human-facing aliases only.
+
+### Related files
+
+- `scripts/run-docker-acceptance.mjs`
+
+### Related tests
+
+- `npm run docker:acceptance`
+
 ## ERR-20260812-070 - Tenant administrators could read platform-wide security diagnostics
 
 ### Context
@@ -229,103 +324,6 @@ Keep the cleanup helper local-only and fail closed on every identity mismatch. T
 
 - `npm run e2e:local`
 - `npm run e2e:container:local`
-
-## ERR-20260810-063 - Public accent text missed WCAG contrast on light surfaces
-
-### Context
-
-Automated Axe checks were added for public desktop/mobile and authentication surfaces.
-
-### Symptoms
-
-Six nodes using the coral accent failed WCAG AA contrast. White text on the coral call-to-action measured about 4.43:1, while coral text on mist/light-red surfaces was lower.
-
-### Root cause
-
-The original `#c55448` token was visually close to the 4.5:1 threshold but did not leave enough contrast across every actual background combination.
-
-### Correct solution
-
-Darken the shared coral token to `#b94a40` and rerun the real page scans. The final ratios pass on white, mist, and light-red surfaces without component-specific overrides.
-
-### Prevention
-
-Keep automated WCAG scans in both Vite and production-container browser acceptance whenever shared color tokens or public/auth surfaces change.
-
-### Related files
-
-- `tailwind.config.ts`
-- `tests/e2e/public-accessibility.e2e.ts`
-
-### Related tests
-
-- `npm run e2e:local`
-- `npm run e2e:container:local`
-
-## ERR-20260809-062 - Project creation UI test timed out only under the full suite
-
-### Context
-
-The final 51-file Vitest quality gate ran after Playwright and privilege-regression coverage were added.
-
-### Symptoms
-
-The project-cycle creation interaction passed alone in about three seconds but exceeded Vitest's five-second default twice under the fully parallel suite; all assertions and the other 223 tests passed.
-
-### Root cause
-
-The scenario performs many realistic `userEvent` interactions and async rerenders. Shared jsdom CPU load pushed its valid runtime slightly beyond a global timeout intended for smaller unit tests.
-
-### Correct solution
-
-Set a 10-second timeout only on this long interaction test. Do not change production behavior or increase the global test timeout.
-
-### Prevention
-
-Keep expensive interaction workflows focused, use per-test budgets for known long scenarios, and require both focused and full-suite passes before treating a timeout as resolved.
-
-### Related files
-
-- `src/features/administration/ProjectCycleManagementPanel.test.tsx`
-
-### Related tests
-
-- `npm test -- --run src/features/administration/ProjectCycleManagementPanel.test.tsx`
-- `npm run check`
-
-## ERR-20260809-061 - Fresh Supabase stacks lacked required API table privileges
-
-### Context
-
-The first clean local Playwright lifecycle provisioned a tenant and then exercised the real profile and administration APIs.
-
-### Symptoms
-
-Authenticated own-profile reads and service-role identity/configuration table operations failed before their RLS or trusted authorization logic could run, while the older linked project continued to work.
-
-### Root cause
-
-Historical Supabase projects had implicit API table grants that were not present in the fresh local stack. RLS policies and a service-role JWT do not themselves create table-level privileges.
-
-### Correct solution
-
-Add a versioned migration granting authenticated users only profile `SELECT` subject to own-row RLS, and granting the service role CRUD only on the reviewed identity/configuration tables required by trusted Edge Functions. Keep every sensitive content and operational table excluded.
-
-### Prevention
-
-Treat table privileges as source-controlled capabilities, test required positive grants and sensitive negative exclusions, and validate every migration from a clean Supabase stack.
-
-### Related files
-
-- `supabase/migrations/20260809223000_explicit_identity_domain_privileges.sql`
-- `tests/identity-domain-privileges.test.mjs`
-- `docs/decisions/ADR-0031-use-explicit-api-table-privileges.md`
-
-### Related tests
-
-- `npm run e2e:local`
-- `npm run supabase:lint:local`
-- `npm run supabase:lint:linked`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

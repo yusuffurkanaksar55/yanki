@@ -170,7 +170,7 @@ Medium
 
 ### Description
 
-The repository now contains a portable frontend image, signed digest-pinned GHCR release workflow, no-build customer Compose package, standalone container acceptance, self-host deployment runbook, tenant-integrity migration, encrypted evaluation workflows, production tenant bootstrap, pinned encrypted off-site backup scheduling, environment-scoped restore automation, and a critical production-container browser workflow with required gateway enforcement. The hosted workflow has not yet been exercised with a real version tag, air-gapped/customer-registry transfer is not approved, and real staging/provider/systemd acceptance is not complete.
+The repository now contains a portable frontend image, signed digest-pinned GHCR release workflow, no-build customer Compose package, standalone container acceptance, a commit-and-hash-pinned official Supabase staging definition, self-host deployment runbook, tenant-integrity migration, encrypted evaluation workflows, production tenant bootstrap, pinned encrypted off-site backup scheduling, environment-scoped restore automation, and a critical production-container browser workflow with required gateway enforcement. The resource-efficient local Docker acceptance passes without duplicating the Supabase image set. The full pinned stack has not yet passed on a properly sized staging host, the hosted workflow has not been exercised with a real version tag, air-gapped/customer-registry transfer is not approved, and real provider/systemd acceptance is not complete.
 
 ### Impact
 

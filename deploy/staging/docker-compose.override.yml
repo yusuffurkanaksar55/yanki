@@ -1,0 +1,58 @@
+services:
+  api-gw:
+    ports: !override
+      - "127.0.0.1:${YANKI_STAGING_API_PORT:?YANKI_STAGING_API_PORT is required}:8000"
+
+  db:
+    ports:
+      - "127.0.0.1:${YANKI_STAGING_DATABASE_PORT:?YANKI_STAGING_DATABASE_PORT is required}:5432"
+
+  supavisor:
+    ports: !override
+      - "127.0.0.1:${YANKI_STAGING_POOLER_SESSION_PORT:?YANKI_STAGING_POOLER_SESSION_PORT is required}:5432"
+      - "127.0.0.1:${YANKI_STAGING_POOLER_TRANSACTION_PORT:?YANKI_STAGING_POOLER_TRANSACTION_PORT is required}:6543"
+
+  functions:
+    environment:
+      EVALUATION_ACTIVE_ENCRYPTION_KEY_VERSION: STAGING_ACCEPTANCE
+      EVALUATION_ENCRYPTION_KEY_VERSION_STAGING_ACCEPTANCE: ${YANKI_STAGING_EVALUATION_ENCRYPTION_KEY:?YANKI_STAGING_EVALUATION_ENCRYPTION_KEY is required}
+      YANKI_SENSITIVE_GATEWAY_REQUIRED: "true"
+      YANKI_SENSITIVE_GATEWAY_TOKEN: ${YANKI_SENSITIVE_GATEWAY_TOKEN:?YANKI_SENSITIVE_GATEWAY_TOKEN is required}
+
+  mailpit:
+    container_name: yanki-staging-mailpit
+    image: public.ecr.aws/supabase/mailpit@sha256:37a38e48e9338cd7e89dfeb487f37b02ebfcd9cb23111bed2d345e79d37d6dd6
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${YANKI_STAGING_MAILPIT_PORT:?YANKI_STAGING_MAILPIT_PORT is required}:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  yanki-web:
+    container_name: yanki-staging-web
+    build:
+      context: ${YANKI_REPOSITORY_ROOT:?YANKI_REPOSITORY_ROOT is required}
+    image: ${YANKI_STAGING_WEB_IMAGE:?YANKI_STAGING_WEB_IMAGE is required}
+    restart: unless-stopped
+    depends_on:
+      api-gw:
+        condition: service_healthy
+      functions:
+        condition: service_healthy
+    environment:
+      NGINX_LOCAL_RESOLVERS: 127.0.0.11
+      SUPABASE_ANON_KEY: ${ANON_KEY:?ANON_KEY is required}
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:?SUPABASE_PUBLIC_URL is required}
+      SUPABASE_UPSTREAM_URL: http://api-gw:8000
+      YANKI_SENSITIVE_GATEWAY_TOKEN: ${YANKI_SENSITIVE_GATEWAY_TOKEN:?YANKI_SENSITIVE_GATEWAY_TOKEN is required}
+    ports:
+      - "127.0.0.1:${YANKI_STAGING_APP_PORT:?YANKI_STAGING_APP_PORT is required}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s

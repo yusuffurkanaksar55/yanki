@@ -70,6 +70,31 @@ Both commands refuse non-loopback Supabase, PostgreSQL, and Mailpit services, st
 
 Local Mailpit proves message generation and callback handling but is not evidence for production SMTP delivery. Traces and video remain disabled to avoid retaining invitation callback tokens. Outer cleanup removes the temporary Function secret, process, ports, container, image tag, and strictly recognized `yanki-e2e-*` tenant/users even when a test fails. The persistent local Supabase development stack and reusable Docker build cache are intentionally retained; the cleanup never resets the shared database or prunes unrelated Docker resources.
 
+### Docker acceptance modes
+
+Use the resource-efficient local gate during daily development:
+
+```bash
+npm run docker:acceptance
+```
+
+It validates the application Compose file, the hash-locked official self-hosted configuration, local schema lint, all pgTAP suites, the production Nginx container, same-origin sensitive-route enforcement, the critical browser lifecycle, WCAG/keyboard behavior, responsive overflow, and a streamed disposable restore. It reuses the existing synthetic Supabase CLI stack and removes its synthetic tenant, temporary frontend container/image, Function secrets, and restore target. It does not reset the local database or create a second Supabase image set.
+
+`deploy/staging/supabase.lock.json` pins the reviewed official Supabase commit and critical file hashes. `deploy/staging/docker-compose.override.yml` adds loopback-only operator ports, a digest-pinned Mailpit service, the Yanki Functions secret boundary, and the production Nginx application container. Validate that package without downloading its images with:
+
+```bash
+npm run staging:self-hosted:config
+```
+
+Run the clean full stack only on an isolated staging host with at least 20 GB of verified free Docker storage. The command generates per-run secrets, copies reviewed Functions into ignored temporary storage, starts the pinned official service set, applies every migration, runs database/browser/restore acceptance, verifies loopback-only published ports, and removes its containers, volumes, bind data, and secret file:
+
+```bash
+SELF_HOSTED_STAGING_ACCEPTANCE_CONFIRM=RUN_FULL_SELF_HOSTED_STAGING_ACCEPTANCE \
+  npm run staging:self-hosted:acceptance
+```
+
+The Windows workstation's Docker Desktop WSL disk is intentionally not used for this duplicate full stack when storage headroom is constrained. Configuration-only and reused-local-stack results are development evidence; they do not replace real staging TLS/DNS, SMTP, capacity, alerting, secret custody, or remote recovery acceptance. See ADR-0034.
+
 ## Dedicated Installation Procedure
 
 1. Record the customer owner, DNS names, network zones, expected users, retention requirements, backup targets, SMTP decision, recovery objectives, and maintenance window.
