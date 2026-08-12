@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-08-12
+
+### Added
+
+- Added a production-readiness assessment for shared SaaS and customer-managed deployments, including the AWS EC2/self-hosted Supabase target, Istanbul Local Zone data-residency caveats, environment separation, and prioritized production gates.
+- Added ADR-0033 and regression coverage for the platform-operations versus tenant-administration boundary.
+- Added an inventory test that requires RLS on every application table created by migrations and keeps the checked-in browser environment example free of privileged values and development-project coupling.
+
+### Fixed
+
+- Restricted deployment-global encryption-key health and anonymous-abuse diagnostics to exact active platform-scoped system administrators in the UI, Edge Functions, and PostgreSQL.
+- Replaced the linked development project URL in `.env.example` with a portable placeholder.
+
 ## 2026-08-10
 
 ### Added

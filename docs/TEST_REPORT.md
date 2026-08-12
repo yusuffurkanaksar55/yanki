@@ -1,5 +1,55 @@
 # Test Report
 
+## 2026-08-12 - SaaS Production Readiness And Platform Scope Regression
+
+### Environment
+
+- Windows 11, Node.js 24, React 19, Vite 8, Vitest, Docker Desktop, Supabase CLI 2.109.1, local Supabase/PostgreSQL, and the linked synthetic development project.
+
+### Commands executed
+
+- Focused administration, key-health, abuse-boundary, database-inventory, and deployment-foundation Vitest suites
+- `npm run check`
+- `npm run supabase:test:local`
+- `npm run supabase:lint:local`
+- `npm run supabase:lint:linked`
+- `npm run supabase:push:dry-run`
+- `npm run deployment:config`
+- `npx supabase db push --linked --include-all --yes`
+- Linked deployment of `encryption-key-health` and `security-abuse-monitoring`
+- `npx supabase migration list --linked`
+
+### Passed
+
+- Focused coverage passed 5 files and 22 tests.
+- Full application checks passed 54 Vitest files and 243 tests, lint, typecheck, the production build, and bounded-memory verification.
+- All 186 pgTAP assertions across eight database suites passed, including platform-scope positive access and organization-scope denial for global abuse monitoring.
+- Local and linked database lint found no schema errors, Compose configuration validation passed, and the linked dry-run selected only `20260812120000_platform_security_operations_scope.sql`.
+- The migration inventory confirmed RLS is enabled for every application table created in source-controlled migrations.
+- The linked project recorded migration `20260812120000` and both affected Edge Functions deployed successfully.
+
+### Failed And Corrected
+
+- The local database container was already stopped with the documented exit `137` condition. A data-preserving Supabase stop/start restored the full stack.
+- The first pgTAP command could not write the Supabase CLI telemetry file outside the workspace sandbox. The unchanged command passed in the approved local Supabase execution boundary.
+- The first Compose validation could not spawn Docker from the workspace sandbox. The unchanged command passed in the approved Docker execution boundary.
+- The remote push applied successfully but Supabase CLI 2.109.1 could not refresh its optional pg-delta catalog cache because a temporary CA file was missing. A separate linked migration-list query confirmed exact local/remote migration parity.
+
+### Security checks
+
+- Verified organization-scoped system administrators cannot see or invoke platform-global key-health and abuse diagnostics.
+- Verified platform-scoped system administrators retain content-free diagnostics without receiving keys, versions, identities, tenant identifiers, credentials, ciphertext, or evaluation content.
+- Verified no privileged secret or linked development project identifier remains in the checked-in browser environment example.
+
+### Skipped
+
+- No production employee data, AWS production account, public TLS/DNS environment, approved SMTP relay, production encryption key, or customer server was used.
+
+### Remaining risks
+
+- The production build passes with a roughly 610 kB JavaScript chunk warning; route-level code splitting remains planned.
+- Production approval still requires the critical staging, data-residency, secret custody, monitoring, backup/recovery, SMTP, and capacity evidence recorded in the readiness assessment.
+
 ## 2026-08-10 - Detailed Person Report Regression
 
 ### Environment
@@ -164,48 +214,3 @@
 
 - The production build passes but retains a 587.91 kB JavaScript chunk warning; route-level code splitting remains planned.
 - Current linked demo report names include technical smoke labels and should be replaced with a curated demo fixture before customer-facing use.
-
-## 2026-08-10 - Container Gateway, Accessibility, And Artifact Cleanup
-
-### Environment
-
-- Windows 11, Node.js 24, Vite 8, React 19, Playwright Chromium, Axe, Docker Desktop, Supabase CLI 2.109.1, and local Supabase/PostgreSQL/Functions/Mailpit.
-
-### Commands executed
-
-- Focused local E2E environment, container-boundary, and cleanup safety Vitest suites
-- `npm run e2e:local`
-- `npm run e2e:container:local`
-- `npm run check`
-- `npm run supabase:lint:local`, `npm run supabase:test:local`, and `npm run deployment:config`
-- Post-run Docker image/container, listener, temporary-secret, and synthetic-database fixture inspection
-
-### Passed
-
-- Both Vite and production-container modes passed all three Playwright tests: the critical encrypted lifecycle, automated public/auth WCAG analysis, and keyboard-only public-to-sign-in navigation.
-- Container mode denied direct sensitive-Function access with `403`, then completed the same workflow through the Nginx same-origin gateway with a generated required token.
-- Full application checks passed 53 Vitest files and 234 tests, lint, typecheck, production build, and bounded-memory verification.
-- Local schema lint was clean, 185 pgTAP cases passed across eight suites, and Docker Compose configuration validation passed.
-- Cleanup removed 18 stale tenants/64 users from prior runs and the current fixture. Independent checks then found zero synthetic tenants/users, temporary E2E containers/images, listeners on `4173`/`4174`, or `.supabase/e2e-functions.env` file.
-
-### Failed And Corrected
-
-- Axe found six coral text contrast violations, including a 4.43:1 white-surface ratio. The coral token changed from `#c55448` to `#b94a40`, producing passing contrast on every affected surface.
-- The keyboard test retained the button's old "open menu" accessible name after Enter correctly changed it to "close menu". The assertion now reacquires the state-correct button and verifies focus plus `aria-expanded`.
-- Initial fixture cleanup reached published-template deletion guards during organization cascade. Cleanup now transactionally disables only the two template deletion guards after exact local fixture validation, restores them before commit, and rolls back their state on failure.
-- The first sandboxed E2E retry could not write Supabase CLI telemetry under the user profile. The unchanged command passed in the approved local Supabase execution boundary.
-
-### Security checks
-
-- Verified browser success requires the same-origin gateway while direct sensitive access is denied; the generated gateway token is absent from Docker command values and browser runtime configuration.
-- Verified raw evaluation text remains withheld, administrator/self result access remains denied, and synthetic deletion refuses remote databases, mismatched organizations, and non-test users.
-- Verified outer cleanup leaves the persistent local Supabase development stack and shared Docker build cache intact while removing only process/test-owned resources.
-
-### Skipped
-
-- No production employee data, production encryption key, approved SMTP mailbox, real TLS/DNS staging environment, customer server, or hosted signed release was used.
-
-### Remaining risks
-
-- Local production-container acceptance does not prove provider logging, TLS, secret custody, SMTP delivery, capacity, or infrastructure monitoring in a real environment.
-- The production build passes but retains the known 582.47 kB JavaScript chunk warning; route-level code splitting is the next frontend performance task.

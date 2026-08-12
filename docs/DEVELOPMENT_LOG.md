@@ -1,5 +1,45 @@
 # Development Log
 
+## 2026-08-12 - Multi-Tenant SaaS Production Readiness And Platform Operations Scope
+
+### Objective
+
+Audit the existing product for a central multi-tenant SaaS deployment on AWS EC2 with Docker Compose and self-hosted Supabase, preserve the current product behavior, and implement only defects that must be corrected before production.
+
+### Changes
+
+- Confirmed `organizations.id` and existing memberships are the canonical tenant model; no duplicate company tables were introduced.
+- Added a durable production-readiness assessment covering current controls, the target AWS topology, Istanbul Local Zone limitations, data-residency inventory, environment separation, self-hosted Supabase compatibility, and prioritized production work.
+- Separated deployment-global security operations from tenant administration. Organization-scoped system administrators retain users, hierarchy, templates, projects, cycles, and retention but no longer see the platform security module.
+- Required exact active `PLATFORM` scope in both global-diagnostics Edge Functions and added a database migration that repeats the abuse-summary scope check.
+- Updated global-diagnostics smoke clients to require a separate platform-operator identity instead of reusing a customer organization administrator.
+- Replaced the linked development URL in `.env.example` with a portable placeholder and added RLS/browser-environment inventory regression coverage.
+
+### Database changes
+
+Migration `20260812120000_platform_security_operations_scope.sql` replaces the abuse-summary authorization function so only an active platform-scoped system administrator can request deployment-global counters. Function execution remains service-role-only, and backing operational tables remain inaccessible.
+
+### Security impact
+
+Positive. A customer organization administrator can no longer inspect deployment-global key-health or abuse-monitoring aggregates. The authorization is enforced independently in the UI, Edge Functions, and PostgreSQL; no evaluation data model, report behavior, tenant workflow, or content boundary changed.
+
+### Tests performed
+
+- Focused Vitest coverage passed 5 files and 22 tests.
+- Full `npm run check` passed lint, typecheck, 54 Vitest files and 243 tests, production build, and bounded-memory verification.
+- Local pgTAP passed 186 tests across eight suites, including platform-admin success and organization-admin denial.
+- Local and linked database lint returned no schema errors; deployment Compose validation passed; linked migration dry-run listed only the new scope migration.
+
+### Result
+
+The current application architecture remains portable across shared SaaS and dedicated installations. The identified cross-scope operational visibility defect is closed locally and in the linked synthetic development project; both affected Edge Functions were redeployed. The remaining production work is explicitly classified without adding speculative infrastructure or changing product behavior.
+
+### Remaining work
+
+- Complete the Critical Before Production evidence in `docs/PRODUCTION_READINESS_ASSESSMENT.md` before live employee data.
+- Add production-like AWS staging, approved SMTP, infrastructure monitoring, independent secret/key custody, and validated remote recovery.
+- Evaluate EBS snapshots and WAL/PITR in addition to the existing encrypted logical backup workflow.
+
 ## 2026-08-10 - Detailed Person Reports And Guided Example
 
 ### Objective
@@ -154,43 +194,3 @@ Assignment and report navigation now stays inside the authenticated application.
 - Add route-level code splitting for the known 588 kB production JavaScript chunk warning.
 - Replace technical smoke fixture names with a curated product-demo tenant before customer demonstrations.
 - Complete approved SMTP, staging TLS/DNS, monitoring, recovery, and first signed-release gates before live employee use.
-
-## 2026-08-10 - Production-Container Accessibility And Cleanup Acceptance
-
-### Objective
-
-Extend the critical browser lifecycle into the production Nginx runtime, prove required gateway enforcement and public/auth accessibility, and leave no test-owned Docker or database artifacts behind.
-
-### Changes
-
-- Added `e2e:container:local`, which builds a process-named production image, runs it on isolated loopback port `4174`, injects a process-only gateway token, and directs Playwright through same-origin `/supabase`.
-- Added a direct sensitive-endpoint denial assertion, automated WCAG A/AA analysis across public/auth desktop and mobile states, and keyboard-only public-to-sign-in navigation coverage.
-- Corrected the coral design token after real Axe analysis found marginal and failing text contrast on light surfaces.
-- Added strict loopback-only cleanup for `yanki-e2e-*` organizations and matching `example.test` users. It deletes dependencies transactionally, bypasses only two published-template deletion guards, and refuses unrecognized tenant/user identities.
-- Extended outer cleanup to remove the Function secret/process, temporary container/image, listeners, and synthetic tenant records after successful or failed runs.
-
-### Database changes
-
-None. The local test cleaner uses the PostgreSQL superuser only against a loopback database and does not alter migrations or production authorization behavior.
-
-### Security impact
-
-Positive. The production container now proves direct sensitive-Function bypass denial before completing the browser workflow through the gateway. Generated gateway/encryption secrets are not printed or passed as Docker argument values, accessibility checks retain no callback traces/video, and test cleanup cannot target non-loopback databases or identities outside the exact synthetic naming contract.
-
-### Tests performed
-
-- `npm run e2e:local`: three Playwright tests passed; 18 stale synthetic tenants and 64 users were removed, followed by an independent zero-fixture check.
-- `npm run e2e:container:local`: three Playwright tests passed through Nginx, including direct `403`, encrypted lifecycle, WCAG, keyboard, responsive, and cleanup assertions.
-- Full `npm run check`: 53 Vitest files and 234 tests, lint, typecheck, production build, and bounded-memory verification passed.
-- `npm run supabase:test:local`: 185 pgTAP cases across eight suites passed; local schema lint and deployment configuration validation also passed.
-- Post-run inspection found zero `yanki-e2e-*` containers/images, zero listeners on ports `4173`/`4174`, no temporary Function secret, and zero synthetic E2E organizations/users.
-
-### Result
-
-The critical product workflow, public/auth accessibility, and required gateway boundary now have repeatable local acceptance against both Vite and the production container. Test-owned Docker and tenant artifacts are removed without resetting the persistent local development stack.
-
-### Remaining work
-
-- Repeat the container workflow in production-like staging through real TLS/DNS and isolated Supabase.
-- Add route-level code splitting for the known 582 kB production JavaScript chunk warning.
-- Complete approved SMTP, first signed release, real provider, monitoring, and recovery gates before live employee use.

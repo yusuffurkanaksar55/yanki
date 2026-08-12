@@ -7,8 +7,11 @@ const supabaseAnonKey = readRequiredEnvironment(
   "VITE_SUPABASE_ANON_KEY"
 );
 const adminToken = await signIn(
-  readRequiredEnvironment("KEY_HEALTH_ADMIN_EMAIL"),
-  readRequiredEnvironment("KEY_HEALTH_ADMIN_PASSWORD")
+  readRequiredEnvironment("PLATFORM_ADMIN_EMAIL", "KEY_HEALTH_ADMIN_EMAIL"),
+  readRequiredEnvironment(
+    "PLATFORM_ADMIN_PASSWORD",
+    "KEY_HEALTH_ADMIN_PASSWORD"
+  )
 );
 const employeeToken = await signIn(
   readRequiredEnvironment("KEY_HEALTH_EMPLOYEE_EMAIL"),
@@ -19,7 +22,7 @@ const adminResponse = await invokeHealth(adminToken);
 
 if (!adminResponse.response.ok) {
   throw new Error(
-    `The system administrator health check failed: ${adminResponse.response.status} ${JSON.stringify(adminResponse.body)}`
+    `The platform administrator health check failed: ${adminResponse.response.status} ${JSON.stringify(adminResponse.body)}`
   );
 }
 
@@ -42,7 +45,7 @@ if (
   employeeResponse.response.status !== 403
   || readRecord(employeeResponse.body).error !== "SYSTEM_ADMIN_REQUIRED"
 ) {
-  throw new Error("A non-admin account accessed encryption key health.");
+  throw new Error("A non-platform account accessed encryption key health.");
 }
 
 console.log(JSON.stringify({

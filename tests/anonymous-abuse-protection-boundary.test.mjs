@@ -6,11 +6,17 @@ const root = process.cwd();
 const migrationSource = read(
   "supabase/migrations/20260807170000_anonymous_endpoint_abuse_protection.sql"
 );
+const platformScopeMigrationSource = read(
+  "supabase/migrations/20260812120000_platform_security_operations_scope.sql"
+);
 const anonymousFunctionSource = read(
   "supabase/functions/anonymous-evaluation-submissions/index.ts"
 );
 const monitoringFunctionSource = read(
   "supabase/functions/security-abuse-monitoring/index.ts"
+);
+const submissionSmokeSource = read(
+  "scripts/smoke-anonymous-evaluation-submission.mjs"
 );
 const requestBodySource = read("supabase/functions/_shared/requestBody.ts");
 const rateLimitTableSource = migrationSource
@@ -44,15 +50,17 @@ describe("anonymous endpoint abuse protection boundary", () => {
     );
   });
 
-  it("authorizes only service-role decision and admin summary RPCs", () => {
+  it("authorizes only service-role decision and platform-admin summary RPCs", () => {
     expect(migrationSource).toMatch(
       /grant execute on function public\.consume_anonymous_submission_request\(text\)[\s\S]*to service_role/
     );
     expect(migrationSource).toMatch(
       /grant execute on function public\.get_anonymous_submission_abuse_summary\(uuid\)[\s\S]*to service_role/
     );
-    expect(migrationSource).toMatch(/role_code = 'SYSTEM_ADMIN'/);
-    expect(migrationSource).toMatch(/onboarding_status = 'ACTIVE'/);
+    expect(platformScopeMigrationSource).toMatch(/role_code = 'SYSTEM_ADMIN'/);
+    expect(platformScopeMigrationSource).toMatch(/scope_type = 'PLATFORM'/);
+    expect(platformScopeMigrationSource).toMatch(/scope_id is null/);
+    expect(platformScopeMigrationSource).toMatch(/onboarding_status = 'ACTIVE'/);
   });
 
   it("consumes quota before context resolution or encryption", () => {
@@ -79,9 +87,11 @@ describe("anonymous endpoint abuse protection boundary", () => {
     expect(anonymousFunctionSource).toMatch(/maximumRequestBodyBytes = 262144/);
   });
 
-  it("exposes only authenticated aggregate monitoring to system admins", () => {
+  it("exposes authenticated aggregate monitoring only to platform admins", () => {
     expect(monitoringFunctionSource).toMatch(/auth\.getUser\(\)/);
     expect(monitoringFunctionSource).toMatch(/hasActiveSystemAdmin/);
+    expect(monitoringFunctionSource).toMatch(/scope_type", "PLATFORM"/);
+    expect(monitoringFunctionSource).toMatch(/\.is\("scope_id", null\)/);
     expect(monitoringFunctionSource).toMatch(
       /get_anonymous_submission_abuse_summary/
     );
@@ -90,6 +100,10 @@ describe("anonymous endpoint abuse protection boundary", () => {
     );
     expect(monitoringFunctionSource).not.toMatch(
       /console\.(log|info|debug|error)/
+    );
+    expect(submissionSmokeSource).toMatch(/PLATFORM_ADMIN_EMAIL/);
+    expect(submissionSmokeSource).toMatch(
+      /"security-abuse-monitoring",\s+\{\},\s+platformAdminAccessToken/
     );
   });
 });

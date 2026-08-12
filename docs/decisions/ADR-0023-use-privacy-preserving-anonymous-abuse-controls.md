@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted on 2026-08-07.
+Accepted on 2026-08-07. The administrator-scope clause was narrowed by ADR-0033 on 2026-08-12.
 
 ## Context
 
@@ -18,7 +18,7 @@ The anonymous submission endpoint intentionally has no user session and handles 
 - Store invalid-credential and rate-limited events only as five-minute aggregate counters retained for seven days.
 - Do not store IP addresses, device/browser fingerprints, users, organizations, assignments, credential digests, request bodies, evaluation content, or submission linkage in abuse-control tables.
 - Revoke direct table access from browser roles and `service_role`; expose only narrow service-role RPCs.
-- Let authenticated active system administrators view only 60-minute/24-hour aggregate counters and policy constants through `security-abuse-monitoring`. Repeat authorization in Edge and PostgreSQL.
+- Let authenticated active platform-scoped system administrators view only 60-minute/24-hour aggregate counters and policy constants through `security-abuse-monitoring`. Repeat authorization in Edge and PostgreSQL; deny organization-scoped administrators.
 - Return `413` for oversized requests and `429` with `Retry-After` for quota rejection. Keep Turkish user-facing messages centralized.
 - Treat reverse-proxy/WAF connection limits, capacity controls, and alert delivery as a separate production deployment layer.
 
@@ -32,4 +32,4 @@ The anonymous submission endpoint intentionally has no user session and handles 
 
 ## Consequences
 
-Repeated anonymous work is bounded without persisting request-level identity metadata, and invalid traffic cannot consume valid-credential quotas. System administrators gain operational visibility without content access. The global invalid-only quota is deliberately coarse and does not provide per-source attribution. Production still requires external gateway/WAF controls, alert delivery, capacity monitoring, and incident procedures for volumetric attacks.
+Repeated anonymous work is bounded without persisting request-level identity metadata, and invalid traffic cannot consume valid-credential quotas. Platform system administrators gain operational visibility without content access. The global invalid-only quota is deliberately coarse and does not provide per-source attribution. Production still requires external gateway/WAF controls, alert delivery, capacity monitoring, and incident procedures for volumetric attacks.

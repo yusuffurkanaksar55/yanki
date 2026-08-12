@@ -10,12 +10,15 @@ const migrationSource = read(
 const serviceSource = read(
   "src/features/administration/securityOperationsService.ts"
 );
+const smokeSource = read("scripts/smoke-encryption-key-health.mjs");
 
 describe("encryption key health boundary", () => {
-  it("requires authentication, an active profile, and an active system-admin role", () => {
+  it("requires authentication, an active profile, and a platform system-admin role", () => {
     expect(functionSource).toMatch(/auth\.getUser\(\)/u);
     expect(functionSource).toMatch(/onboarding_status", "ACTIVE"/u);
     expect(functionSource).toMatch(/role_code", "SYSTEM_ADMIN"/u);
+    expect(functionSource).toMatch(/scope_type", "PLATFORM"/u);
+    expect(functionSource).toMatch(/\.is\("scope_id", null\)/u);
     expect(functionSource).toMatch(/ends_at\.is\.null,ends_at\.gt/u);
   });
 
@@ -42,6 +45,11 @@ describe("encryption key health boundary", () => {
 
   it("keeps version names out of the browser service model", () => {
     expect(serviceSource).not.toMatch(/configuredVersions|referencedVersions|keyMaterial/u);
+  });
+
+  it("uses a dedicated platform operator for linked smoke verification", () => {
+    expect(smokeSource).toMatch(/PLATFORM_ADMIN_EMAIL/u);
+    expect(smokeSource).toMatch(/PLATFORM_ADMIN_PASSWORD/u);
   });
 });
 

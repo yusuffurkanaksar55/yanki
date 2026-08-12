@@ -47,6 +47,10 @@ describe("AdministrationPage", () => {
       />
     );
 
+    expect(
+      screen.getByRole("tab", { name: tr.administration.modules.security })
+    ).toBeInTheDocument();
+
     await user.click(
       screen.getByRole("tab", { name: tr.administration.modules.users })
     );
@@ -58,6 +62,22 @@ describe("AdministrationPage", () => {
       screen.queryByRole("region", {
         name: tr.administration.projects.sectionLabel
       })
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps platform-wide security operations hidden from organization admins", () => {
+    render(
+      <AdministrationPage
+        projectCycleService={createProjectCycleServiceStub()}
+        workspaceContext={createOrganizationAdminWorkspaceContext()}
+      />
+    );
+
+    expect(
+      screen.getByRole("tab", { name: tr.administration.modules.users })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("tab", { name: tr.administration.modules.security })
     ).not.toBeInTheDocument();
   });
 
@@ -107,6 +127,20 @@ function createSystemAdminWorkspaceContext(): WorkspaceContext {
         roleCode: "SYSTEM_ADMIN",
         scopeType: "PLATFORM",
         scopeId: null
+      }
+    ],
+    memberships: [],
+    managers: []
+  };
+}
+
+function createOrganizationAdminWorkspaceContext(): WorkspaceContext {
+  return {
+    roles: [
+      {
+        roleCode: "SYSTEM_ADMIN",
+        scopeType: "ORGANIZATION",
+        scopeId: "organization-id"
       }
     ],
     memberships: [],

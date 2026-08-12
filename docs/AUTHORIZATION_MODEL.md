@@ -49,7 +49,7 @@ Project date updates are available to platform/matching-organization system admi
 
 `anonymous-evaluation-submissions` has no authenticated user authority. Its sole capability is possession of a valid unexpired random credential. It cannot select an organization, subject, assignment, cycle, or template; those values are derived from the credential digest in trusted code. Atomic redemption permits one encrypted insert and one assignment completion, then makes replay terminal.
 
-`consume_anonymous_submission_request()` is executable only by `service_role`. It returns a quota decision but no credential, user, assignment, tenant, or content data. `security-abuse-monitoring` requires an authenticated active `SYSTEM_ADMIN`, repeats that authorization in `get_anonymous_submission_abuse_summary()`, and returns only global aggregate counters. Browser roles cannot execute either database function directly or read the backing tables.
+`consume_anonymous_submission_request()` is executable only by `service_role`. It returns a quota decision but no credential, user, assignment, tenant, or content data. `security-abuse-monitoring` requires an authenticated active `SYSTEM_ADMIN` with exact `PLATFORM` scope and a null scope id, repeats that authorization in `get_anonymous_submission_abuse_summary()`, and returns only global aggregate counters. Organization-scoped administrators are denied. Browser roles cannot execute either database function directly or read the backing tables.
 
 `get_anonymous_submission_abuse_summary_for_operator()` is executable only by `service_role` and verifies the JWT role again inside the function. It exists solely for the trusted scheduled alert process and returns the same global aggregate shape without adopting an administrator identity. Browser roles cannot execute the operator/helper functions or read backing abuse tables. The webhook bearer token grants delivery only and grants no database or application authority.
 
@@ -57,7 +57,7 @@ The sensitive-gateway token grants only passage through the pre-authorization ou
 
 `evaluation-reports` binds every request to the authenticated active user. `list_my_evaluation_report_targets()` returns only authorized non-draft cycle-plus-subject targets and no participation state. `get_encrypted_evaluation_report_batch()` denies self access, every active `SYSTEM_ADMIN`, unapproved roles, missing active tenant membership, and scope mismatch. It returns `EMPTY` before participation and releases an identity-free ciphertext batch after the first submission. Direct ciphertext-table access remains revoked from `service_role`.
 
-`encryption-key-health` requires an authenticated active `SYSTEM_ADMIN`. Its service-role-only inventory can inspect only distinct key-version identifiers referenced by ciphertext. The browser receives configuration validity, active/historical coverage booleans, and total version counts; it receives no version names, keys, ciphertext, content, identities, or per-version usage.
+`encryption-key-health` requires an authenticated active `SYSTEM_ADMIN` with exact `PLATFORM` scope and a null scope id. Its service-role-only inventory can inspect only distinct key-version identifiers referenced by ciphertext. The browser receives configuration validity, active/historical coverage booleans, and total version counts; it receives no version names, keys, ciphertext, content, identities, or per-version usage. Organization-scoped administrators are denied.
 
 `evaluation-retention-administration` requires an authenticated active `SYSTEM_ADMIN`. Platform administrators can list/update active-organization policies; organization administrators are limited to their exact tenant. PostgreSQL repeats scope authorization for every update. Browser roles and `service_role` have no direct policy-table privileges. The browser cannot execute content deletion. Only the trusted operator can call `execute_due_evaluation_content_retention()`, which skips disabled or legally held tenants and exposes no submission/deletion count.
 
@@ -65,7 +65,7 @@ The sensitive-gateway token grants only passage through the pre-authorization ou
 
 ### `SYSTEM_ADMIN`
 
-Can manage scoped user invitations, hierarchy, projects, project memberships, templates, assignments, cycles, retention policies, and configuration. Can view only content-free global abuse counters, encryption-key health, and retention execution metadata. Cannot trigger destructive retention from the browser or read evaluation content, lessons learned content, decrypted payloads, raw individual responses, participation counts, or request-level abuse records.
+Can manage scoped user invitations, hierarchy, projects, project memberships, templates, assignments, cycles, retention policies, and configuration. Only a `PLATFORM`-scoped assignment can view content-free global abuse counters and encryption-key health; an `ORGANIZATION`-scoped assignment cannot. Cannot trigger destructive retention from the browser or read evaluation content, lessons learned content, decrypted payloads, raw individual responses, participation counts, or request-level abuse records.
 
 ### `EMPLOYEE`
 

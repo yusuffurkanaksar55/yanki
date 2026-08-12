@@ -14,6 +14,14 @@ const adminPassword = readRequiredEnvironment(
   "SUBMISSION_ADMIN_PASSWORD",
   "TEMPLATE_ADMIN_PASSWORD"
 );
+const platformAdminEmail = readRequiredEnvironment(
+  "PLATFORM_ADMIN_EMAIL",
+  "KEY_HEALTH_ADMIN_EMAIL"
+);
+const platformAdminPassword = readRequiredEnvironment(
+  "PLATFORM_ADMIN_PASSWORD",
+  "KEY_HEALTH_ADMIN_PASSWORD"
+);
 const employeeEmail = readRequiredEnvironment(
   "SUBMISSION_EMPLOYEE_EMAIL",
   "ASSIGNMENT_EMPLOYEE_EMAIL"
@@ -24,6 +32,10 @@ const employeePassword = readRequiredEnvironment(
 );
 
 const adminAccessToken = await signIn(adminEmail, adminPassword);
+const platformAdminAccessToken = await signIn(
+  platformAdminEmail,
+  platformAdminPassword
+);
 const employeeAccessToken = await signIn(employeeEmail, employeePassword);
 let assignments = await listAssignments(employeeAccessToken);
 let assignment = assignments.find((candidate) =>
@@ -129,7 +141,7 @@ if (
 const monitoring = await callFunction(
   "security-abuse-monitoring",
   {},
-  adminAccessToken
+  platformAdminAccessToken
 );
 const abuseSummary = readRecord(monitoring.summary);
 

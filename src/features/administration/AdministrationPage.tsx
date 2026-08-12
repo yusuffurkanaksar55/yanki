@@ -83,10 +83,19 @@ export function AdministrationPage({
   }
 
   const administrationRoles = getAdministrationRoles(workspaceContext);
-  const canManagePlatform = workspaceContext.roles.some(
+  const canManageTenantConfiguration = workspaceContext.roles.some(
     (role) => role.roleCode === "SYSTEM_ADMIN"
   );
-  const modules = getAdministrationModules(canManagePlatform);
+  const canManagePlatformOperations = workspaceContext.roles.some(
+    (role) =>
+      role.roleCode === "SYSTEM_ADMIN"
+      && role.scopeType === "PLATFORM"
+      && role.scopeId === null
+  );
+  const modules = getAdministrationModules(
+    canManageTenantConfiguration,
+    canManagePlatformOperations
+  );
 
   return (
     <ApplicationShell
@@ -191,18 +200,29 @@ export function AdministrationPage({
 }
 
 function getAdministrationModules(
-  canManagePlatform: boolean
+  canManageTenantConfiguration: boolean,
+  canManagePlatformOperations: boolean
 ): readonly AdministrationModule[] {
   const modules: AdministrationModule[] = [
     { icon: FolderKanban, id: "projects", label: tr.administration.modules.projects }
   ];
 
-  if (canManagePlatform) {
+  if (canManageTenantConfiguration) {
     modules.push(
       { icon: Users, id: "users", label: tr.administration.modules.users },
       { icon: Boxes, id: "hierarchy", label: tr.administration.modules.hierarchy },
-      { icon: FileStack, id: "templates", label: tr.administration.modules.templates },
-      { icon: ShieldCheck, id: "security", label: tr.administration.modules.security },
+      { icon: FileStack, id: "templates", label: tr.administration.modules.templates }
+    );
+  }
+
+  if (canManagePlatformOperations) {
+    modules.push(
+      { icon: ShieldCheck, id: "security", label: tr.administration.modules.security }
+    );
+  }
+
+  if (canManageTenantConfiguration) {
+    modules.push(
       { icon: Archive, id: "retention", label: tr.administration.modules.retention }
     );
   }

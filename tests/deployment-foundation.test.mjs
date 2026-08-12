@@ -20,7 +20,8 @@ describe("portable deployment foundation", () => {
       "deploy/release/compose.env.example",
       "scripts/verify-release-installation.mjs",
       ".github/workflows/container-release.yml",
-      "docs/DEPLOYMENT.md"
+      "docs/DEPLOYMENT.md",
+      "docs/PRODUCTION_READINESS_ASSESSMENT.md"
     ];
 
     expect(requiredFiles.filter((path) => !existsSync(join(root, path)))).toEqual([]);
@@ -55,5 +56,17 @@ describe("portable deployment foundation", () => {
     expect(guide).toMatch(/Customer-Managed Dedicated Installation/);
     expect(guide).toMatch(/organizations\.id/);
     expect(guide).toMatch(/not approved for live employee data/);
+  });
+
+  it("records the AWS and self-hosted Supabase production decision", () => {
+    const assessment = readProjectFile(
+      "docs/PRODUCTION_READINESS_ASSESSMENT.md"
+    );
+
+    expect(assessment).toMatch(/organizations\.id/);
+    expect(assessment).toMatch(/Istanbul Local Zone/);
+    expect(assessment).toMatch(/Critical Before Production/);
+    expect(assessment).toMatch(/After First Customers/);
+    expect(assessment).toMatch(/At Scale/);
   });
 });

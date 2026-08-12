@@ -111,6 +111,8 @@ async function hasActiveSystemAdminRole(
     .select("id")
     .eq("user_id", userId)
     .eq("role_code", "SYSTEM_ADMIN")
+    .eq("scope_type", "PLATFORM")
+    .is("scope_id", null)
     .lte("starts_at", now)
     .or(`ends_at.is.null,ends_at.gt.${now}`)
     .limit(1)

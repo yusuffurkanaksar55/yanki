@@ -1,5 +1,42 @@
 # Error Log
 
+## ERR-20260812-070 - Tenant administrators could read platform-wide security diagnostics
+
+### Context
+
+The administration security module exposed encryption-key health and anonymous-endpoint abuse summaries. Both summaries describe the entire deployment rather than one customer organization.
+
+### Symptoms
+
+Any active `SYSTEM_ADMIN` assignment passed the UI and Edge Function checks, including an `ORGANIZATION`-scoped customer administrator. The abuse-summary database function repeated only the role-code check and therefore did not close the scope gap.
+
+### Root cause
+
+The initial implementation treated the role code as sufficient and did not distinguish platform operations from tenant configuration. Existing scope semantics already represented the distinction but were not applied to these two global endpoints.
+
+### Correct solution
+
+Require an exact active `SYSTEM_ADMIN` assignment with `scope_type = 'PLATFORM'` and null scope id in the UI, both Edge Functions, and the abuse-summary database function. Keep organization administrators' existing tenant configuration modules unchanged.
+
+### Prevention
+
+Every deployment-global operation must state whether it is platform-only or tenant-filtered, enforce the decision outside the UI, and include both platform-positive and organization-admin-negative regression tests.
+
+### Related files
+
+- `supabase/migrations/20260812120000_platform_security_operations_scope.sql`
+- `supabase/functions/encryption-key-health/index.ts`
+- `supabase/functions/security-abuse-monitoring/index.ts`
+- `src/features/administration/AdministrationPage.tsx`
+- `docs/decisions/ADR-0033-separate-platform-operations-from-tenant-administration.md`
+
+### Related tests
+
+- `supabase/tests/database/anonymous_encrypted_submission.test.sql`
+- `tests/encryption-key-health-boundary.test.mjs`
+- `tests/anonymous-abuse-protection-boundary.test.mjs`
+- `src/features/administration/AdministrationPage.test.tsx`
+
 ## ERR-20260810-069 - Combined report target obscured who comments were about
 
 ### Context
@@ -289,37 +326,6 @@ Treat table privileges as source-controlled capabilities, test required positive
 - `npm run e2e:local`
 - `npm run supabase:lint:local`
 - `npm run supabase:lint:linked`
-
-## ERR-20260809-060 - Persistent E2E data broke global-empty pgTAP assumptions
-
-### Context
-
-The database authorization suite ran after successful browser acceptance had retained synthetic encrypted submissions for inspection.
-
-### Symptoms
-
-Two pgTAP assertions expected exactly one submission globally and no referenced key versions globally, so they failed even though the tested fixture and key inventory behavior were correct.
-
-### Root cause
-
-The tests assumed a freshly reset database instead of isolating assertions to their own tenant/cycle or comparing inventory to the actual stored distinct versions.
-
-### Correct solution
-
-Scope the submission count and payload-type assertions to the fixed fixture organization/cycle, and compare the key inventory function with the exact distinct versions currently referenced by ciphertext.
-
-### Prevention
-
-Database tests must remain deterministic on a persistent local stack containing demo and prior E2E tenants; global counts are allowed only when emptiness is itself established inside the transaction.
-
-### Related files
-
-- `supabase/tests/database/anonymous_encrypted_submission.test.sql`
-- `supabase/tests/database/encryption_key_lifecycle.test.sql`
-
-### Related tests
-
-- `npm run supabase:test:local`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

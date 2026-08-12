@@ -21,6 +21,8 @@ The default scenario models the user's requested hierarchy without hard-coding t
 
 The application must support other organization structures through configurable organization units, memberships, role scopes, and manager assignments.
 
+The customer fixture deliberately does not grant `PLATFORM` authority. Deployment-global security smoke tests require a separate synthetic operator with an active `SYSTEM_ADMIN`/`PLATFORM` assignment, supplied through `PLATFORM_ADMIN_EMAIL` and `PLATFORM_ADMIN_PASSWORD` (or the legacy `KEY_HEALTH_ADMIN_*` names). Never reuse a customer organization administrator for this boundary.
+
 ## Baseline Project Scenario
 
 The fixture also creates a synthetic project and time-bound evaluation cycle:

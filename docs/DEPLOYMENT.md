@@ -19,6 +19,8 @@
 
 Supabase documents Docker Compose as the recommended self-hosting route and makes the operator responsible for security, maintenance, backups, availability, and monitoring. Self-hosted Supabase represents one project and does not include every managed-platform feature. See the official [self-hosting overview](https://supabase.com/docs/guides/self-hosting) and [Docker guide](https://supabase.com/docs/guides/self-hosting/docker).
 
+The reviewed AWS EC2/self-hosted Supabase target, Istanbul Local Zone caveats, environment matrix, data-residency inventory, and prioritized production gates are maintained in `docs/PRODUCTION_READINESS_ASSESSMENT.md`.
+
 ## Required Tools
 
 | Tool | Purpose |
@@ -220,7 +222,7 @@ Run an isolated drill at least quarterly and after backup-tool, PostgreSQL-major
 
 - The application baseline is 12 requests per recognized credential per 10 minutes, 120 unknown-credential requests per minute globally, a 256 KiB anonymous body limit, and a 16 KiB credential-preparation body limit.
 - Application rate buckets expire after one day. Five-minute aggregate invalid/rate-limited counters are retained for seven days.
-- `security-abuse-monitoring` is restricted to active system administrators and exposes only aggregate 60-minute/24-hour counts and policy constants.
+- `security-abuse-monitoring` is restricted to active platform-scoped system administrators and exposes only aggregate 60-minute/24-hour counts and policy constants. Organization-scoped administrators cannot read deployment-global diagnostics.
 - Do not add IP addresses, device fingerprints, request bodies, credential digests, users, assignments, or content to product abuse tables or application logs.
 - Run `npm run smoke:abuse` with synthetic users after every anonymous submission, shared request-body, gateway, or monitoring change.
 

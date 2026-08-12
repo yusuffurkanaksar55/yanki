@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(53);
+select plan(54);
 
 select has_table(
   'public',
@@ -339,12 +339,19 @@ insert into public.user_role_assignments (
   scope_type,
   scope_id
 )
-values (
-  '41111111-1111-4111-8111-111111111111',
-  'SYSTEM_ADMIN',
-  'ORGANIZATION',
-  '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
-);
+values
+  (
+    '41111111-1111-4111-8111-111111111111',
+    'SYSTEM_ADMIN',
+    'PLATFORM',
+    null
+  ),
+  (
+    '44444444-4444-4444-8444-444444444444',
+    'SYSTEM_ADMIN',
+    'ORGANIZATION',
+    '4aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+  );
 
 create temporary table submission_template_state as
 select public.admin_save_evaluation_template_draft(
@@ -549,6 +556,17 @@ select ok(
     ]
   ),
   'The abuse summary contains no user, tenant, credential, assignment, or content keys'
+);
+
+select throws_ok(
+  $$
+    select public.get_anonymous_submission_abuse_summary(
+      '44444444-4444-4444-8444-444444444444'
+    )
+  $$,
+  '42501',
+  'SECURITY_MONITORING_ACCESS_DENIED',
+  'An organization-scoped system admin cannot read platform-wide abuse counters'
 );
 
 select throws_ok(
