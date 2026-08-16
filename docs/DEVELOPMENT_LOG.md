@@ -1,5 +1,45 @@
 # Development Log
 
+## 2026-08-16 - Responsive Surface Audit And Platform Customer Onboarding
+
+### Objective
+
+Eliminate remaining layout drift across every primary application surface and implement the next real SaaS operation: creating a customer organization and its first administrator without exposing privileged bootstrap credentials to the browser.
+
+### Changes
+
+- Unified protected dashboard and administration page widths, exposed every administration module in a responsive mobile grid, normalized panel spacing, aligned report actions, reset hash-route scroll position, and made 1-to-10 rating controls fit mobile screens.
+- Added automatic 1440, 1024, and 390-pixel overflow plus interactive-control clipping checks across all administration modules, public/auth pages, dashboards, assignments, the evaluation dialog, and reports.
+- Added a platform-only customer onboarding module with company/slug/initial-unit/first-administrator creation, onboarding metrics, content-free tenant summaries, and pending-invitation renewal.
+- Reused the existing idempotent bootstrap and Supabase Auth delivery instead of introducing a second provisioning model; retained the CLI for first-platform-operator and dedicated installation use.
+- Extended strict synthetic fixture cleanup to recognize and remove both the primary E2E organization and the platform-created customer tenant.
+
+### Database changes
+
+Migration `20260816170000_platform_tenant_administration.sql` adds exact platform-system-administrator authorization plus service-role-only tenant list, bootstrap wrapper, and initial-invitation renewal functions. Browser roles have no execute grant and every operation repeats authorization in PostgreSQL.
+
+### Security impact
+
+Positive. Service-role credentials remain in the Edge Function, organization administrators cannot discover or create other tenants, the new list contains only identity-domain onboarding metadata, Auth failures compensate only the newly created identity, and no evaluation table or content is read.
+
+### Tests performed
+
+- Focused component, service, static-boundary, app-route, and cleanup suites passed.
+- All 210 pgTAP assertions across ten suites passed, including platform success, organization-admin denial, direct browser denial, content-free listing, audit metadata, and invitation renewal.
+- The complete local Playwright lifecycle passed all three tests, created and removed two synthetic tenants and five users, exercised a real customer opening through the new Edge Function, and checked every supported viewport without horizontal overflow or clipped controls.
+- `npm run check` passed lint, typecheck, all 58 Vitest files and 261 tests, the production build, and bounded-memory verification.
+- The migration was applied to the linked synthetic development project, linked schema lint passed, migration history matched, and `platform-tenant-administration` deployed successfully.
+
+### Result
+
+The main frontend surfaces now share stable responsive constraints and are protected by a broader visual regression contract. An authorized Yankı platform operator can onboard a sold SaaS customer from the UI while dedicated installations retain the reviewed CLI path.
+
+### Remaining work
+
+- Provision or designate the first exact platform operator through the reviewed trusted process before using the new linked-project UI; do not elevate an organization administrator implicitly.
+- Complete approved production SMTP, domain/TLS, AWS staging, monitoring, capacity, backup, and recovery acceptance before onboarding a real customer.
+- Add route-level code splitting for the known production JavaScript chunk warning.
+
 ## 2026-08-16 - Clearer Administration And Operational Retention
 
 ### Objective
@@ -153,42 +193,3 @@ The current application architecture remains portable across shared SaaS and ded
 - Complete the Critical Before Production evidence in `docs/PRODUCTION_READINESS_ASSESSMENT.md` before live employee data.
 - Add production-like AWS staging, approved SMTP, infrastructure monitoring, independent secret/key custody, and validated remote recovery.
 - Evaluate EBS snapshots and WAL/PITR in addition to the existing encrypted logical backup workflow.
-
-## 2026-08-10 - Detailed Person Reports And Guided Example
-
-### Objective
-
-Open a useful report as soon as an authorized reviewer selects a person, provide a realistic example when that person has no responses, and turn the existing question list into a detailed management report.
-
-### Changes
-
-- Automatically selected and loaded the evaluated person's latest authorized cycle while retaining manual cycle switching and report refresh.
-- Added request sequencing so a slower prior report response cannot replace the newest person/cycle selection.
-- Added a clearly marked synthetic report example to the no-response state; every example label and content string is centralized in the Turkish locale.
-- Added a normalized 100-point overall score, evaluation/question/comment totals, strongest and development-focus rating areas, percentage distributions, rating scales, and full-width qualitative comment analysis.
-- Added desktop/mobile report screenshots and automatic-selection assertions to the critical Playwright lifecycle.
-
-### Database changes
-
-None. The example report exists only in frontend memory and is never persisted. Real reports continue to use the existing trusted cycle-plus-subject reporting boundary.
-
-### Security impact
-
-Neutral. No evaluator identity, answer linkage, new backend field, or client-selected subgroup was introduced. The synthetic example is visibly identified as non-real data, and actual comments retain the existing identity-separated delivery and contextual-inference warning.
-
-### Tests performed
-
-- Focused report-panel Vitest suite passed all three tests.
-- Full `npm run check` passed lint, typecheck, 53 Vitest files and 238 tests, the production build, and bounded-memory verification.
-- `npm run e2e:local` passed all three Playwright tests, including automatic latest-cycle loading, detailed report summary visibility, encrypted submission, access denials, WCAG, keyboard use, responsive overflow, and fixture cleanup.
-- Desktop 1440x1000 and mobile 390x844 report screenshots were inspected; a misaligned desktop filter row was corrected.
-
-### Result
-
-Selecting a person now opens their latest available report directly. If no evaluation has arrived, the reviewer can inspect a clearly labelled example; real results provide an at-a-glance summary, actionable comparison, distributions, and comments in one report.
-
-### Remaining work
-
-- Replace technical local E2E labels with a persistent curated customer-demo tenant when operator credentials are available.
-- Add route-level code splitting for the known production JavaScript chunk warning.
-- Complete production-like staging, SMTP, monitoring, recovery, and signed-release gates.

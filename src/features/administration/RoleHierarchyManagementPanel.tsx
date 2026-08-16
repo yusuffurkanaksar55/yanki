@@ -351,7 +351,7 @@ export function RoleHierarchyManagementPanel({
   return (
     <section
       aria-label={tr.administration.hierarchy.sectionLabel}
-      className="mt-8 border-y border-slate-200 bg-white py-6"
+      className="surface-panel mt-8 overflow-hidden px-5 py-6 sm:px-6"
     >
       <p className="text-xs font-semibold uppercase tracking-normal text-pine">
         {tr.administration.hierarchy.eyebrow}
@@ -383,7 +383,7 @@ export function RoleHierarchyManagementPanel({
 
       {loadState.status === "ready" && loadState.data.organizations.length > 0 ? (
         <>
-          <div className="mt-5 border-y border-slate-200 bg-slate-50 px-4 py-5 sm:px-5">
+          <div className="-mx-5 mt-5 border-y border-slate-200 bg-slate-50 px-5 py-5 sm:-mx-6 sm:px-6">
             <h3 className="text-base font-semibold text-slate-900">
               {tr.administration.hierarchy.organizationSettings.title}
             </h3>

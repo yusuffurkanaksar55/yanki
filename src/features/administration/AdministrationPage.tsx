@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import {
   Archive,
+  Building2,
   Boxes,
   FileStack,
   FolderKanban,
@@ -28,6 +29,8 @@ import type { EvaluationRetentionService } from "./evaluationRetentionService";
 import type { HierarchyAdministrationService } from "./hierarchyAdministrationService";
 import { ProjectCycleManagementPanel } from "./ProjectCycleManagementPanel";
 import type { ProjectCycleService } from "./projectCycleService";
+import { PlatformTenantManagementPanel } from "./PlatformTenantManagementPanel";
+import type { PlatformTenantService } from "./platformTenantService";
 import { RoleHierarchyManagementPanel } from "./RoleHierarchyManagementPanel";
 import { SecurityOperationsPanel } from "./SecurityOperationsPanel";
 import type { SecurityOperationsService } from "./securityOperationsService";
@@ -40,6 +43,7 @@ type AdministrationPageProps = {
   readonly hierarchyAdministrationService?: HierarchyAdministrationService;
   readonly isSigningOut?: boolean;
   readonly onSignOut?: () => Promise<void>;
+  readonly platformTenantService?: PlatformTenantService;
   readonly profileDisplayName?: string | null;
   readonly projectCycleService?: ProjectCycleService;
   readonly securityOperationsService?: SecurityOperationsService;
@@ -49,6 +53,7 @@ type AdministrationPageProps = {
 };
 
 type AdministrationModuleId =
+  | "tenants"
   | "users"
   | "hierarchy"
   | "projects"
@@ -68,6 +73,7 @@ export function AdministrationPage({
   hierarchyAdministrationService,
   isSigningOut = false,
   onSignOut,
+  platformTenantService,
   profileDisplayName,
   projectCycleService,
   securityOperationsService,
@@ -117,7 +123,7 @@ export function AdministrationPage({
       profileDisplayName={profileDisplayName}
       userEmail={userEmail}
     >
-      <main className="mx-auto w-full max-w-[92rem] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <main className="app-page">
         <section className="border-b border-slate-200 pb-7">
           <p className="section-kicker">{tr.administration.eyebrow}</p>
           <h1 className="mt-2 text-3xl font-bold text-slate-950">
@@ -147,7 +153,7 @@ export function AdministrationPage({
             className="min-w-0 max-w-full"
           >
             <div
-              className="scrollbar-none flex w-full max-w-full gap-2 overflow-x-auto pb-1 xl:block xl:space-y-1"
+              className="grid w-full max-w-full grid-cols-2 gap-2 sm:grid-cols-3 xl:block xl:space-y-1"
               role="tablist"
             >
               {modules.map((module) => {
@@ -158,7 +164,7 @@ export function AdministrationPage({
                   <button
                     aria-controls={`administration-panel-${module.id}`}
                     aria-selected={isActive}
-                    className={`flex h-11 w-44 shrink-0 items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-semibold transition focus-ring xl:w-full ${
+                    className={`flex h-12 w-full min-w-0 items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-semibold transition focus-ring ${
                       isActive
                         ? "bg-emerald-50 text-pine"
                         : "text-slate-600 hover:bg-white hover:text-slate-950"
@@ -193,6 +199,7 @@ export function AdministrationPage({
               evaluationTemplateService,
               hierarchyAdministrationService,
               projectCycleService,
+              platformTenantService,
               securityOperationsService,
               userAdministrationService,
               workspaceContext
@@ -211,6 +218,12 @@ function getAdministrationModules(
   const modules: AdministrationModule[] = [
     { icon: FolderKanban, id: "projects", label: tr.administration.modules.projects }
   ];
+
+  if (canManagePlatformOperations) {
+    modules.unshift(
+      { icon: Building2, id: "tenants", label: tr.administration.modules.tenants }
+    );
+  }
 
   if (canManageTenantConfiguration) {
     modules.push(
@@ -241,12 +254,19 @@ function renderAdministrationModule(
     readonly evaluationRetentionService?: EvaluationRetentionService;
     readonly evaluationTemplateService?: EvaluationTemplateService;
     readonly hierarchyAdministrationService?: HierarchyAdministrationService;
+    readonly platformTenantService?: PlatformTenantService;
     readonly projectCycleService?: ProjectCycleService;
     readonly securityOperationsService?: SecurityOperationsService;
     readonly userAdministrationService?: UserAdministrationService;
     readonly workspaceContext: WorkspaceContext;
   }
 ): ReactNode {
+  if (activeModule === "tenants") {
+    return (
+      <PlatformTenantManagementPanel service={services.platformTenantService} />
+    );
+  }
+
   if (activeModule === "users") {
     return (
       <UserInvitationManagementPanel

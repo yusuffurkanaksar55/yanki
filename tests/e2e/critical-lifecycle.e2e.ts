@@ -29,6 +29,10 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
   const projectName = `E2E Project ${fixture.runId}`;
   const projectCode = `E2E-${fixture.runId}`.slice(0, 36);
   const cycleName = `E2E Evaluation ${fixture.runId}`;
+  const customerName = `Yanki E2E Customer ${fixture.runId}`;
+  const customerSlug = `yanki-e2e-customer-${fixture.runId}`;
+  const customerAdministratorEmail =
+    `e2e-customer-admin-${fixture.runId}@example.test`;
   const ratingPrompt = `E2E collaboration rating ${fixture.runId}`;
   const textPrompt = `E2E development note ${fixture.runId}`;
   const rawTextMarker = `RAW-TEXT-MUST-STAY-HIDDEN-${fixture.runId}`;
@@ -55,12 +59,26 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
       name: tr.administration.title
     })).toBeVisible();
 
+    await createPlatformTenant(adminPage, {
+      administratorEmail: customerAdministratorEmail,
+      administratorName: `E2E Customer Admin ${fixture.runId}`,
+      organizationName: customerName,
+      organizationSlug: customerSlug
+    });
+    await assertAdministrationModulesLayout(adminPage, testInfo);
+    await adminPage.setViewportSize({ height: 1000, width: 1440 });
+    console.log("[e2e] Customer onboarding and every administration module layout verified.");
+
     await adminPage.getByRole("tab", {
       name: tr.administration.modules.hierarchy
     }).click();
     const hierarchyPanel = adminPage.getByRole("region", {
       name: tr.administration.hierarchy.sectionLabel
     });
+    await hierarchyPanel.getByRole("combobox", {
+      name: tr.administration.hierarchy.organization,
+      exact: true
+    }).selectOption(fixture.organizationId);
     const organizationNameInput = hierarchyPanel.getByLabel(
       tr.administration.hierarchy.organizationSettings.name
     );
@@ -95,6 +113,10 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
       name: tr.administration.users.sectionLabel
     });
 
+    await invitationPanel.getByRole("combobox", {
+      name: tr.administration.users.form.organization,
+      exact: true
+    }).selectOption(fixture.organizationId);
     await invitationPanel.getByLabel(tr.administration.users.form.displayName)
       .fill(invitee.displayName);
     await invitationPanel.getByLabel(tr.administration.users.form.email)
@@ -178,12 +200,15 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
     await expect(employeePage.getByRole("heading", {
       name: cycleName
     })).toBeVisible();
+    await employeePage.setViewportSize({ height: 844, width: 390 });
+    await assertCurrentPageLayout(employeePage, "assignment inbox mobile");
     await employeePage.getByRole("button", {
       name: tr.assignments.actions.start
     }).click();
     const dialog = employeePage.getByRole("dialog", { name: cycleName });
     await expect(dialog).toBeVisible();
-    await dialog.getByRole("button", { name: "5", exact: true }).click();
+    await assertCurrentPageLayout(employeePage, "evaluation dialog mobile");
+    await dialog.getByRole("button", { name: "10", exact: true }).click();
     await dialog.getByRole("textbox").fill(rawTextMarker);
     await dialog.getByRole("button", {
       name: tr.assignments.submission.actions.submit
@@ -229,7 +254,7 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
     const ratingResult = reviewerPage.locator("article").filter({
       hasText: ratingPrompt
     });
-    await expect(ratingResult.getByText("5", { exact: true }).first())
+    await expect(ratingResult.getByText("10", { exact: true }).first())
       .toBeVisible();
     await expect(reviewerPage.getByText(
       tr.reports.textComments.forSubjectTitle.replace(
@@ -329,8 +354,113 @@ async function assertAdministrationGeometry(
 
   expect(panelBox).not.toBeNull();
   expect(firstColumnBox).not.toBeNull();
-  expect(Math.abs((firstColumnBox?.x ?? 0) - (panelBox?.x ?? 0)))
-    .toBeLessThanOrEqual(1);
+  const contentInset = (firstColumnBox?.x ?? 0) - (panelBox?.x ?? 0);
+
+  expect(contentInset).toBeGreaterThanOrEqual(23);
+  expect(contentInset).toBeLessThanOrEqual(26);
+}
+
+async function createPlatformTenant(
+  page: Page,
+  input: {
+    readonly administratorEmail: string;
+    readonly administratorName: string;
+    readonly organizationName: string;
+    readonly organizationSlug: string;
+  }
+): Promise<void> {
+  await page.getByRole("tab", {
+    name: tr.administration.modules.tenants
+  }).click();
+  const panel = page.getByRole("region", {
+    name: tr.administration.tenants.sectionLabel
+  });
+
+  await expect(panel).toBeVisible();
+  await panel.getByLabel(tr.administration.tenants.form.organizationName)
+    .fill(input.organizationName);
+  await expect(panel.getByLabel(
+    tr.administration.tenants.form.organizationSlug
+  )).toHaveValue(input.organizationSlug);
+  await panel.getByLabel(tr.administration.tenants.form.administratorName)
+    .fill(input.administratorName);
+  await panel.getByLabel(tr.administration.tenants.form.administratorEmail)
+    .fill(input.administratorEmail);
+  await panel.getByRole("button", {
+    name: tr.administration.tenants.form.submit
+  }).click();
+
+  await expect(page.getByText(tr.administration.tenants.feedback.created))
+    .toBeVisible();
+  await expect(panel.getByText(input.organizationName)).toBeVisible();
+  await expect(panel.getByText(input.administratorEmail)).toBeVisible();
+}
+
+async function assertAdministrationModulesLayout(
+  page: Page,
+  testInfo: TestInfo
+): Promise<void> {
+  const modules = [
+    {
+      id: "tenants",
+      label: tr.administration.modules.tenants,
+      loadingText: tr.administration.tenants.loading
+    },
+    {
+      id: "projects",
+      label: tr.administration.modules.projects,
+      loadingText: tr.administration.projects.list.loading
+    },
+    {
+      id: "users",
+      label: tr.administration.modules.users,
+      loadingText: tr.administration.users.loading
+    },
+    {
+      id: "hierarchy",
+      label: tr.administration.modules.hierarchy,
+      loadingText: tr.administration.hierarchy.loading
+    },
+    {
+      id: "templates",
+      label: tr.administration.modules.templates,
+      loadingText: tr.administration.templates.loading
+    },
+    {
+      id: "security",
+      label: tr.administration.modules.security,
+      loadingText: tr.administration.securityOperations.refreshing
+    },
+    {
+      id: "retention",
+      label: tr.administration.modules.retention,
+      loadingText: tr.administration.retention.loading
+    }
+  ] as const;
+
+  for (const module of modules) {
+    await page.setViewportSize({ height: 1000, width: 1440 });
+    const tab = page.getByRole("tab", { name: module.label });
+
+    await tab.click();
+    await expect(tab).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByText(module.loadingText, { exact: true }))
+      .toHaveCount(0);
+    await page.waitForTimeout(50);
+    await assertCurrentPageLayout(page, `${module.id} desktop`);
+    await page.screenshot({
+      path: testInfo.outputPath(`admin-${module.id}-desktop.png`)
+    });
+
+    await page.setViewportSize({ height: 900, width: 1024 });
+    await assertCurrentPageLayout(page, `${module.id} intermediate`);
+
+    await page.setViewportSize({ height: 844, width: 390 });
+    await assertCurrentPageLayout(page, `${module.id} mobile`);
+    await page.screenshot({
+      path: testInfo.outputPath(`admin-${module.id}-mobile.png`)
+    });
+  }
 }
 
 async function createAndPublishTemplate(
@@ -356,6 +486,8 @@ async function createAndPublishTemplate(
     .fill(input.templateName);
   await form.getByLabel(`${tr.administration.templates.form.prompt} 1`)
     .fill(input.ratingPrompt);
+  await form.getByLabel(tr.administration.templates.form.questionType).first()
+    .selectOption("RATING_1_TO_10");
   await form.getByRole("button", {
     name: tr.administration.templates.form.addQuestion
   }).click();
@@ -488,15 +620,56 @@ async function assertResponsiveLayout(
   testInfo: TestInfo,
   name: string
 ): Promise<void> {
+  await page.setViewportSize({ height: 900, width: 1024 });
+  await assertCurrentPageLayout(page, `${name} intermediate`);
   await page.setViewportSize({ height: 844, width: 390 });
-  await expect.poll(async () => page.evaluate(() =>
-    document.documentElement.scrollWidth
-      <= document.documentElement.clientWidth
-  )).toBe(true);
+  await assertCurrentPageLayout(page, `${name} mobile`);
   await page.screenshot({
     fullPage: true,
     path: testInfo.outputPath(`${name}-mobile.png`)
   });
+}
+
+async function assertCurrentPageLayout(page: Page, name: string): Promise<void> {
+  await expect.poll(async () => page.evaluate(() =>
+    document.documentElement.scrollWidth
+      <= document.documentElement.clientWidth
+  ), { message: `${name} has horizontal page overflow.` }).toBe(true);
+
+  const clippedControls = await page.locator(
+    "a, button, input, select, textarea"
+  ).evaluateAll((elements) => {
+    const viewportWidth = document.documentElement.clientWidth;
+
+    return elements.flatMap((element) => {
+      const box = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+      const isVisible = box.width > 0
+        && box.height > 0
+        && style.display !== "none"
+        && style.visibility !== "hidden";
+
+      if (
+        !isVisible
+        || (box.left >= -1 && box.right <= viewportWidth + 1)
+      ) {
+        return [];
+      }
+
+      return [{
+        label: element.getAttribute("aria-label")
+          ?? element.textContent?.trim().slice(0, 80)
+          ?? element.tagName,
+        left: Math.round(box.left),
+        right: Math.round(box.right),
+        tag: element.tagName,
+        viewportWidth
+      }];
+    });
+  });
+
+  expect(clippedControls, `${name} has clipped interactive controls.`)
+    .toEqual([]);
 }
 
 function collectPageErrors(page: Page): void {

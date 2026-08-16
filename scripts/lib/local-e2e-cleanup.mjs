@@ -1,7 +1,9 @@
 import { Client as PostgresClient } from "pg";
 
-const organizationSlugPattern = /^yanki-e2e-([a-z0-9]+-[a-f0-9]{6})$/u;
-const userEmailPattern = /^e2e-(?:admin|employee|leader|reviewer)-([a-z0-9]+-[a-f0-9]{6})@example\.test$/u;
+const organizationSlugPattern =
+  /^yanki-e2e(-customer)?-([a-z0-9]+-[a-f0-9]{6})$/u;
+const userEmailPattern =
+  /^e2e-(?:admin|customer-admin|employee|leader|reviewer)-([a-z0-9]+-[a-f0-9]{6})@example\.test$/u;
 
 export async function cleanupLocalE2EFixtures(databaseUrl) {
   const connectionString = assertLocalE2EDatabaseUrl(databaseUrl);
@@ -83,12 +85,16 @@ export function assertLocalE2EDatabaseUrl(value) {
 
 export function parseLocalE2EOrganization({ id, name, slug }) {
   const match = organizationSlugPattern.exec(slug ?? "");
-  const runId = match?.[1];
+  const isCustomer = match?.[1] === "-customer";
+  const runId = match?.[2];
+  const expectedName = isCustomer
+    ? `Yanki E2E Customer ${runId}`
+    : `Yanki E2E ${runId}`;
 
   if (
     typeof id !== "string"
     || !runId
-    || name !== `Yanki E2E ${runId}`
+    || name !== expectedName
   ) {
     throw new Error(
       `Refusing to clean an unrecognized local organization: ${slug ?? "unknown"}.`

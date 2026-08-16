@@ -229,7 +229,7 @@ export function EvaluationReportsPanel({
             ) : null}
           </label>
           <button
-            className="min-h-11 rounded-md bg-pine px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-400 xl:mt-7"
+            className="min-h-11 rounded-md bg-pine px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-400 lg:mt-7"
             disabled={!selectedTarget || isLoadingReport}
             onClick={() => void loadReport(selectedTarget)}
             type="button"

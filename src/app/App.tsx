@@ -3,6 +3,7 @@ import { AdministrationPage } from "../features/administration/AdministrationPag
 import type { EvaluationTemplateService } from "../features/administration/evaluationTemplateService";
 import type { HierarchyAdministrationService } from "../features/administration/hierarchyAdministrationService";
 import type { ProjectCycleService } from "../features/administration/projectCycleService";
+import type { PlatformTenantService } from "../features/administration/platformTenantService";
 import type { SecurityOperationsService } from "../features/administration/securityOperationsService";
 import type { UserAdministrationService } from "../features/administration/userAdministrationService";
 import { AuthGate } from "../features/authentication/AuthGate";
@@ -27,6 +28,7 @@ type AppProps = {
   readonly evaluationTemplateService?: EvaluationTemplateService;
   readonly hierarchyAdministrationService?: HierarchyAdministrationService;
   readonly profileService?: ProfileService;
+  readonly platformTenantService?: PlatformTenantService;
   readonly projectCycleService?: ProjectCycleService;
   readonly securityOperationsService?: SecurityOperationsService;
   readonly userAdministrationService?: UserAdministrationService;
@@ -48,12 +50,18 @@ export function App({
   evaluationTemplateService,
   hierarchyAdministrationService,
   profileService,
+  platformTenantService,
   projectCycleService,
   securityOperationsService,
   userAdministrationService,
   workspaceContextService
 }: AppProps) {
   const route = useHashRoute();
+
+  useEffect(() => {
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [route]);
 
   if (route === "marketing") {
     return <MarketingPage />;
@@ -81,6 +89,7 @@ export function App({
                         hierarchyAdministrationService={hierarchyAdministrationService}
                         isSigningOut={isSigningOut}
                         onSignOut={onSignOut}
+                        platformTenantService={platformTenantService}
                         profileDisplayName={profile.display_name}
                         projectCycleService={projectCycleService}
                         securityOperationsService={securityOperationsService}

@@ -118,6 +118,7 @@ async function assertNoWcagViolations(
   testInfo: TestInfo,
   name: string
 ): Promise<void> {
+  await assertNoLayoutOverflow(page, name);
   const result = await new AxeBuilder({ page })
     .withTags(wcagTags)
     .analyze();
@@ -130,4 +131,36 @@ async function assertNoWcagViolations(
   }
 
   expect(result.violations).toEqual([]);
+}
+
+async function assertNoLayoutOverflow(page: Page, name: string): Promise<void> {
+  await expect.poll(async () => page.evaluate(() =>
+    document.documentElement.scrollWidth
+      <= document.documentElement.clientWidth
+  ), { message: `${name} has horizontal page overflow.` }).toBe(true);
+
+  const clippedControls = await page.locator(
+    "a, button, input, select, textarea"
+  ).evaluateAll((elements) => {
+    const viewportWidth = document.documentElement.clientWidth;
+
+    return elements.filter((element) => {
+      const box = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+
+      return box.width > 0
+        && box.height > 0
+        && style.display !== "none"
+        && style.visibility !== "hidden"
+        && (box.left < -1 || box.right > viewportWidth + 1);
+    }).map((element) => ({
+      label: element.getAttribute("aria-label")
+        ?? element.textContent?.trim().slice(0, 80)
+        ?? element.tagName,
+      tag: element.tagName
+    }));
+  });
+
+  expect(clippedControls, `${name} has clipped interactive controls.`)
+    .toEqual([]);
 }

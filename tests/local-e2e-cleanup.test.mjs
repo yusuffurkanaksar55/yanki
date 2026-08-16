@@ -30,6 +30,11 @@ describe("local E2E cleanup safety", () => {
       name: `Yanki E2E ${runId}`,
       slug: `yanki-e2e-${runId}`
     })).toBe(runId);
+    expect(parseLocalE2EOrganization({
+      id: "00000000-0000-0000-0000-000000000002",
+      name: `Yanki E2E Customer ${runId}`,
+      slug: `yanki-e2e-customer-${runId}`
+    })).toBe(runId);
   });
 
   it("rejects organization names that do not match the run identifier", () => {
@@ -43,6 +48,10 @@ describe("local E2E cleanup safety", () => {
   it("accepts only synthetic users from the same run", () => {
     expect(() => assertLocalE2EUserEmail(
       `e2e-employee-${runId}@example.test`,
+      runId
+    )).not.toThrow();
+    expect(() => assertLocalE2EUserEmail(
+      `e2e-customer-admin-${runId}@example.test`,
       runId
     )).not.toThrow();
     expect(() => assertLocalE2EUserEmail(

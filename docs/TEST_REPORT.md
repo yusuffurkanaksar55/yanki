@@ -1,5 +1,54 @@
 # Test Report
 
+## 2026-08-16 - Responsive UI And Platform Tenant Acceptance
+
+### Environment
+
+- Windows 11, Node.js 24, React 19, Vite 8, Vitest, Playwright Chromium, Docker Desktop, Supabase CLI 2.109.1, local synthetic Supabase, Edge Functions, and Mailpit.
+
+### Commands executed
+
+- Focused administration, service, route, cleanup, and trusted-boundary Vitest suites
+- `npm run lint`
+- `npm run typecheck`
+- `npm run supabase:test:local`
+- `npm run e2e:local`
+- `npm run supabase:push:dry-run`
+- Linked migration push/list, linked schema lint, and Edge Function deployment
+- `npm run check`
+
+### Passed
+
+- Platform customer component/service tests covered Turkish slug normalization, first-administrator payloads, content-free parsing, pending-invitation renewal, and platform-only module visibility.
+- All 210 pgTAP assertions across ten suites passed. The new suite proves exact platform authorization, organization-admin denial, authenticated browser execute denial, idempotent tenant creation, onboarding-only listing, and content-free actor audit events.
+- All three Playwright tests passed against real local Auth, PostgreSQL, Edge Functions, and Mailpit. The lifecycle created a customer tenant, checked every administration module at 1440/1024/390 pixels, completed a 1-to-10 mobile evaluation, displayed its detailed report, enforced access denials, and removed two tenants plus five users.
+- Public/auth WCAG checks and keyboard operation remained clean. No tested page produced horizontal document overflow or a clipped visible interactive control.
+- `npm run check` passed lint, typecheck, all 58 Vitest files and 261 tests, the production build, and bounded-memory verification.
+- Linked schema lint returned no errors, local and remote migration histories contain `20260816170000`, and the new Edge Function deployed successfully.
+
+### Failed And Corrected
+
+- The first multi-tenant lifecycle renamed the newest customer because the old test assumed only one organization; strict cleanup refused the changed fixture. The test now selects the intended organization explicitly, recognizes the customer fixture separately, and retained fail-closed cleanup.
+- An exact organization selector initially matched both the organization dropdown and organization-name input, and invitation setup initially inherited the newest customer. Role-based exact selectors and explicit organization selection corrected both assumptions.
+- Supabase CLI telemetry could not write through the workspace sandbox; the unchanged pgTAP command passed under its existing scoped approval.
+- The linked migration completed but its optional pg-delta catalog cache emitted the known missing-certificate warning. Exact migration history and linked schema lint confirmed the database change.
+
+### Security checks
+
+- The browser contains no service-role key or fingerprint and calls only the authenticated Edge Function.
+- Exact active platform scope is checked in both Edge and PostgreSQL; organization administrators cannot list or create tenants.
+- Tenant onboarding summaries and audit metadata contain no evaluation content, ciphertext, invitation token, raw action link, password, or service-role credential.
+
+### Skipped
+
+- No existing linked organization administrator was silently elevated to platform scope; first-platform-operator provisioning remains a separate trusted operation.
+- Real SMTP, public DNS/TLS, AWS staging, and live customer onboarding were not used.
+
+### Remaining risks
+
+- Production invitation behavior still depends on approved Supabase Auth Site URL, redirect allow-list, SMTP, and password-policy configuration.
+- The production build retains the known roughly 628 kB JavaScript chunk warning.
+
 ## 2026-08-16 - Administration And Retention Acceptance
 
 ### Environment
@@ -188,45 +237,3 @@
 
 - The production build passes with a roughly 610 kB JavaScript chunk warning; route-level code splitting remains planned.
 - Production approval still requires the critical staging, data-residency, secret custody, monitoring, backup/recovery, SMTP, and capacity evidence recorded in the readiness assessment.
-
-## 2026-08-10 - Detailed Person Report Regression
-
-### Environment
-
-- Windows 11, Node.js 24, React 19, Vite 8, Vitest, Playwright Chromium, Docker Desktop, and local Supabase/Functions/Mailpit.
-
-### Commands executed
-
-- Focused `EvaluationReportsPanel` Vitest suite
-- `npm run check`
-- `npm run e2e:local`
-- Desktop 1440x1000 and mobile 390x844 report screenshot inspection
-
-### Passed
-
-- Full application checks passed 53 Vitest files and 238 tests, lint, typecheck, production build, and bounded-memory verification.
-- All three Playwright tests passed, including invitation, immutable template, assignment, encrypted submission, automatic person-report loading, detailed summary visibility, identity-separated comments, administrator/self denial, WCAG, keyboard, mobile overflow, and cleanup.
-- The empty-report component test opened a clearly marked six-question synthetic example without issuing another backend request.
-- Desktop and mobile report captures showed readable metrics, insights, percentage distributions, comments, and no horizontal overflow.
-
-### Failed And Corrected
-
-- The first lint run found one unused aggregation parameter; the redundant parameter was removed and the full quality gate passed.
-- The first sandboxed E2E attempt hit the known Supabase telemetry write boundary, and the approved retry found the local database container stopped. A data-preserving full Supabase stop/start restored the stack; unchanged E2E retries passed twice.
-- Screenshot review found desktop filter labels vertically offset by the cycle context line. The grid now aligns labels at the top and places the action button on the input row.
-
-### Security checks
-
-- Verified no evaluator-level field, answer slice, or cross-question linkage was added to the report contract.
-- Verified the example is frontend-only, visibly marked as synthetic, and does not replace actual empty/report authorization states.
-- Existing active system-administrator and evaluated-person report requests remained denied in the critical lifecycle.
-
-### Skipped
-
-- No production employee data, approved SMTP mailbox, public TLS/DNS staging environment, or customer server was used.
-- Production-container E2E was not rerun because the reporting change is frontend-only and the same production-container boundary passed in the immediately preceding report regression.
-
-### Remaining risks
-
-- One or a few real responses can still permit contextual inference; the report retains the warning.
-- The production build passes with a 609.46 kB JavaScript chunk warning; route-level code splitting remains planned.

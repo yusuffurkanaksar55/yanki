@@ -187,6 +187,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Aggregate anonymous abuse monitoring Edge Function: `supabase/functions/security-abuse-monitoring/index.ts`
 - Evaluation retention administration Edge Function: `supabase/functions/evaluation-retention-administration/index.ts`
 - User onboarding Edge Function: `supabase/functions/user-onboarding/index.ts`
+- Platform tenant administration Edge Function: `supabase/functions/platform-tenant-administration/index.ts`
 - Organization administration Edge Function: `supabase/functions/organization-administration/index.ts`
 - Initial migration: `supabase/migrations/20260719132911_initial_security_foundation.sql`
 - Profile/invitation migration: `supabase/migrations/20260719171413_user_profile_invitation_foundation.sql`
@@ -203,11 +204,13 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Anonymous endpoint abuse-control migration: `supabase/migrations/20260807170000_anonymous_endpoint_abuse_protection.sql`
 - Evaluation content retention migration: `supabase/migrations/20260808120000_evaluation_content_retention.sql`
 - Production tenant bootstrap migration: `supabase/migrations/20260809120000_production_tenant_bootstrap.sql`
+- Platform tenant administration migration: `supabase/migrations/20260816170000_platform_tenant_administration.sql`
 - Database authorization tests: `supabase/tests/database/employee_assignment_access.test.sql`
 - Anonymous submission database tests: `supabase/tests/database/anonymous_encrypted_submission.test.sql`
 - Reporting authorization database tests: `supabase/tests/database/thresholded_evaluation_reporting.test.sql`
 - Encryption key lifecycle database tests: `supabase/tests/database/encryption_key_lifecycle.test.sql`
 - Production tenant bootstrap database tests: `supabase/tests/database/production_tenant_bootstrap.test.sql`
+- Platform tenant administration database tests: `supabase/tests/database/platform_tenant_administration.test.sql`
 - Invitation acceptance migration: `supabase/migrations/20260720232000_user_invitation_acceptance_flow.sql`
 - Invitation acceptance revalidation migration: `supabase/migrations/20260720234500_invitation_acceptance_context_revalidation.sql`
 - Organization administration migration: `supabase/migrations/20260722210000_hierarchy_administration_foundation.sql`
@@ -248,3 +251,5 @@ The assignment planning control uses the same Edge Function boundary. It generat
 The project date control also uses `admin-project-cycles`. The Edge Function performs an early scope check, and service-role-only `admin_update_project_dates()` rechecks platform/matching-organization system-administrator scope or exact assigned-project-manager authority inside the transaction. Project completion and evaluation close dates are updated together; closed or archived cycles are rejected.
 
 The user invitation panel calls `user-onboarding`. System administrators can list scoped organization/unit options, send Supabase Auth invitations, and revoke pending invitations. Invited users accept only through an authenticated, email-verified session. The Edge Function invokes service-role-only `accept_user_invitation()` so profile, role, unit membership, optional manager relationship, invitation state, and audit metadata change atomically. No raw custom invitation token is returned to the browser.
+
+The platform-only customer panel calls `platform-tenant-administration`. An exact active platform system administrator can list content-free onboarding summaries, create an organization and its first administrator through the existing idempotent bootstrap, and renew a pending or expired first invitation. PostgreSQL repeats exact platform scope before every operation, browser roles have no direct execute grant, and no evaluation table is read. The CLI path remains the installation boundary for the first platform operator and dedicated deployments.

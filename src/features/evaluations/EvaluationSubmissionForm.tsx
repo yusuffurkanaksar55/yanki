@@ -265,14 +265,15 @@ function QuestionControl({
     return (
       <div
         aria-labelledby={labelId}
-        className="grid max-w-xl gap-2"
+        className={`grid max-w-xl gap-2 ${
+          maximum === 10 ? "grid-cols-5 sm:grid-cols-10" : "grid-cols-5"
+        }`}
         role="group"
-        style={{ gridTemplateColumns: `repeat(${maximum}, minmax(2.5rem, 1fr))` }}
       >
         {Array.from({ length: maximum }, (_, index) => index + 1).map((rating) => (
           <button
             aria-pressed={value === rating}
-            className={`h-11 rounded-md border text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 ${
+            className={`h-11 min-w-0 rounded-md border text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-pine focus:ring-offset-2 ${
               value === rating
                 ? "border-pine bg-pine text-white"
                 : "border-slate-300 bg-white text-slate-800 hover:bg-slate-50"

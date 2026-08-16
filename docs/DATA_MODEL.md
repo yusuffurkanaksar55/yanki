@@ -89,6 +89,10 @@ Implemented foundation functions:
 - `get_tenant_bootstrap_operation()`
 - `bootstrap_organization_tenant()`
 - `renew_tenant_bootstrap_invitation()`
+- `require_active_platform_system_admin()`
+- `list_platform_organization_tenants()`
+- `platform_bootstrap_organization_tenant()`
+- `platform_renew_tenant_bootstrap_invitation()`
 - `upsert_evaluation_encryption_recovery_canaries()`
 
 ## Identity Domain
@@ -104,6 +108,8 @@ API privileges for the identity domain are versioned explicitly. `authenticated`
 `tenant_bootstrap_operations` stores one content-free idempotency record per successful trusted bootstrap: request UUID, SHA-256 input fingerprint, resulting organization/unit/Auth-user/invitation identifiers, and completion time. It stores no password, service-role key, SMTP secret, invitation token, action link, or evaluation content. RLS is enabled and direct privileges are revoked from browser roles and `service_role`.
 
 `bootstrap_organization_tenant()` serializes provisioning, validates normalized input and the exact Auth user email/server-controlled request marker, rejects preconfigured identities and duplicate tenant slugs, and atomically creates the organization, initial unit, invited administrator profile, organization-scoped system-admin invitation, default retention policy, operation record, and content-free audit event. `get_tenant_bootstrap_operation()` supports exact idempotent status checks. `renew_tenant_bootstrap_invitation()` can extend only an unaccepted and unrevoked initial invitation for the same request/fingerprint. All three functions are service-role-only.
+
+The service-role-only platform wrappers require an active exact platform system administrator before listing onboarding metadata, invoking the same bootstrap, or renewing the initial invitation. `list_platform_organization_tenants()` returns organization identity/status and first-administrator invitation state only. It does not read submission, report, credential, ciphertext, or evaluation tables. Platform creation and renewal add content-free actor audit events without administrator email or display name in `safe_metadata`.
 
 `organizations` stores configurable company roots. `admin_update_organization_name()` changes only the normalized display name for an active tenant after repeating platform or exact-organization system-administrator authorization; the stable slug is unchanged and the audit metadata contains no name or evaluation data.
 

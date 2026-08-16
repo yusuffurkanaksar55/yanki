@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-08-16
+
+### Added
+
+- Added a platform-only customer onboarding UI that creates an organization, initial unit, default retention policy, and first organization-administrator invitation through the existing idempotent bootstrap boundary.
+- Added service-role-only platform authorization wrappers, the `platform-tenant-administration` Edge Function, typed frontend service, Turkish operational states, invitation renewal, and content-free actor auditing.
+- Added database, component, service, security-boundary, and real local Supabase/Edge Function browser coverage for customer onboarding.
+- Added 1440, 1024, and 390-pixel page-overflow and clipped-control checks across every administration module plus public, authentication, assignment, evaluation-dialog, dashboard, and report surfaces.
+- Added ADR-0036 for the shared-SaaS platform onboarding boundary.
+
+### Fixed
+
+- Unified protected page widths, made the mobile administration module menu fully visible, normalized administration panel spacing, aligned report actions, reset scroll on hash-route changes, and made 1-to-10 rating controls responsive on mobile.
+- Updated multi-tenant E2E fixtures to select organizations explicitly and safely clean both the primary and platform-created synthetic tenants.
+
 ## 2026-08-12
 
 ### Added

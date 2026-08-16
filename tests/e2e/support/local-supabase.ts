@@ -80,6 +80,12 @@ export async function provisionE2EFixture(): Promise<E2EFixture> {
       unitId,
       createdAuthUserIds
     });
+    await database.query(
+      `insert into public.user_role_assignments
+         (user_id, role_code, scope_type, scope_id)
+       values ($1, 'SYSTEM_ADMIN', 'PLATFORM', null)`,
+      [admin.userId]
+    );
     const reviewer = await createAccount({
       client,
       database,

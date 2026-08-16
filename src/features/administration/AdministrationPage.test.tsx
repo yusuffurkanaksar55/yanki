@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { tr } from "../../locales/tr/messages";
 import type { ProjectCycleService } from "./projectCycleService";
+import type { PlatformTenantService } from "./platformTenantService";
 import type { UserAdministrationService } from "./userAdministrationService";
 import type { WorkspaceContext } from "../workspace/workspaceContextService";
 import { AdministrationPage } from "./AdministrationPage";
@@ -79,6 +80,26 @@ describe("AdministrationPage", () => {
     expect(
       screen.queryByRole("tab", { name: tr.administration.modules.security })
     ).not.toBeInTheDocument();
+  });
+
+  it("shows customer onboarding only to exact platform administrators", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <AdministrationPage
+        platformTenantService={createPlatformTenantServiceStub()}
+        projectCycleService={createProjectCycleServiceStub()}
+        workspaceContext={createSystemAdminWorkspaceContext()}
+      />
+    );
+
+    await user.click(screen.getByRole("tab", {
+      name: tr.administration.modules.tenants
+    }));
+
+    expect(await screen.findByRole("region", {
+      name: tr.administration.tenants.sectionLabel
+    })).toBeInTheDocument();
   });
 
   it("blocks users without an administration role", () => {
@@ -169,5 +190,13 @@ function createUserAdministrationServiceStub(): UserAdministrationService {
       units: []
     })),
     revokeInvitation: vi.fn()
+  };
+}
+
+function createPlatformTenantServiceStub(): PlatformTenantService {
+  return {
+    createTenant: vi.fn(),
+    listTenants: vi.fn(async () => []),
+    reissueInitialInvitation: vi.fn()
   };
 }

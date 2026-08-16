@@ -272,6 +272,23 @@ describe("App", () => {
       screen.getAllByRole("link", { name: tr.marketing.navigation.signIn }).length
     ).toBeGreaterThan(0);
   });
+
+  it("resets the document scroll position after a route change", async () => {
+    render(<App authService={createAuthServiceStub(null)} />);
+    document.documentElement.scrollTop = 240;
+    document.body.scrollTop = 240;
+
+    act(() => {
+      window.location.hash = "#login";
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+
+    await screen.findByRole("heading", { name: tr.auth.pageTitle });
+    await waitFor(() => {
+      expect(document.documentElement.scrollTop).toBe(0);
+      expect(document.body.scrollTop).toBe(0);
+    });
+  });
 });
 
 function createAuthServiceStub(session: Session | null): AuthService {

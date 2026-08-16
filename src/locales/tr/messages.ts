@@ -427,12 +427,74 @@ export const tr = {
       "Kullanıcıları, organizasyon yapısını ve değerlendirme süreçlerini tek yerden yönet.",
     moduleNavigationLabel: "Yönetim modülleri",
     modules: {
+      tenants: "Müşteriler",
       projects: "Projeler",
       users: "Kullanıcılar",
       hierarchy: "Organizasyon",
       templates: "Şablonlar",
       security: "Güvenlik",
       retention: "Veri saklama"
+    },
+    tenants: {
+      sectionLabel: "Müşteri açılışı yönetimi",
+      eyebrow: "Platform operasyonu",
+      title: "Müşteri açılışı",
+      description:
+        "Yeni organizasyonu ve ilk yöneticisinin güvenli davetini tek işlemde oluştur.",
+      loading: "Müşteriler yükleniyor.",
+      actions: {
+        refresh: "Müşterileri yenile",
+        retry: "Tekrar dene"
+      },
+      metrics: {
+        total: "Toplam müşteri",
+        active: "Aktif organizasyon",
+        pending: "Bekleyen ilk davet"
+      },
+      form: {
+        title: "Yeni müşteri",
+        description:
+          "Şirket kaydını, ilk yönetim birimini ve firma yöneticisinin hesabını hazırla.",
+        organizationName: "Şirket adı",
+        organizationSlug: "Sabit şirket kodu",
+        organizationSlugHint:
+          "Bağlantılarda ve sistem kayıtlarında kullanılır; şirket adı sonradan değişse de sabit kalır.",
+        administratorName: "İlk yönetici adı",
+        administratorEmail: "İlk yönetici e-postası",
+        initialUnitName: "İlk birim",
+        invitationExpiry: "Davet süresi (gün)",
+        defaultUnitName: "Yönetim",
+        submit: "Müşteriyi oluştur",
+        submitting: "Oluşturuluyor"
+      },
+      list: {
+        sectionLabel: "Müşteri listesi",
+        title: "Mevcut müşteriler",
+        empty: "Henüz müşteri organizasyonu oluşturulmadı.",
+        unknownAdministrator: "İlk yönetici bilgisi bulunmuyor",
+        invitationExpires: "Davet süresi: {date}",
+        externalBootstrap: "Bu organizasyon harici kurulumla oluşturuldu.",
+        reissue: "Daveti 7 gün uzat",
+        reissuing: "Davet yenileniyor"
+      },
+      status: {
+        PENDING: "Davet bekleniyor",
+        ACCEPTED: "Aktif",
+        EXPIRED: "Davet süresi doldu",
+        REVOKED: "Davet iptal edildi",
+        external: "Harici kurulum"
+      },
+      feedback: {
+        created: "Müşteri oluşturuldu ve ilk yönetici daveti gönderildi.",
+        reissued: "İlk yönetici daveti 7 gün uzatıldı ve yeniden gönderildi.",
+        listFailed: "Müşteri listesi yüklenemedi.",
+        PLATFORM_TENANT_SESSION_REQUIRED:
+          "Oturum doğrulanamadı. Lütfen tekrar giriş yap.",
+        PLATFORM_TENANT_LIST_FAILED: "Müşteri listesi yüklenemedi.",
+        PLATFORM_TENANT_CREATE_FAILED: "Müşteri oluşturulamadı.",
+        PLATFORM_TENANT_REISSUE_FAILED: "İlk yönetici daveti yenilenemedi.",
+        genericError: "Beklenmeyen bir müşteri açılışı hatası oluştu."
+      }
     },
     roles: {
       sectionLabel: "Yönetim rolleri",

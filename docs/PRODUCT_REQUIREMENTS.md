@@ -57,10 +57,12 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 - Retention administration and audit output must not reveal submission counts, subjects, evaluator identities, or evaluation content.
 - Deletion from the live database must not be represented as immediate erasure from retained backups; backup expiry is an independent infrastructure control.
 - Shared SaaS and dedicated installations must create a tenant and its first administrator through the same reviewed server-only bootstrap boundary.
+- An exact platform administrator may open shared-SaaS customers through an authenticated administration UI; organization administrators must not see the module or list other customers.
 - A repeated bootstrap request must be idempotent and must not adopt or elevate an unrelated existing Auth identity.
 - The first administrator receives no organization membership or role until the exact email-verified invitation is accepted.
 - Invitation and password-recovery sessions must require a strong user-defined password before the application workspace opens.
 - Bootstrap and recovery output must not contain passwords, service-role keys, invitation tokens, or raw action links.
+- Primary public, authentication, dashboard, assignment, report, and administration views must avoid horizontal overflow and clipped interactive controls at supported desktop, intermediate, and mobile widths.
 
 ## Roles
 

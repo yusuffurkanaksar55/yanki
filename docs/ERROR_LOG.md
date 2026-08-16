@@ -1,5 +1,69 @@
 # Error Log
 
+## ERR-20260816-080 - Linked migration cache warning recurred after successful apply
+
+### Context
+
+The platform tenant-administration migration was pushed to the linked synthetic development project after a clean dry-run.
+
+### Symptoms
+
+The migration command reported successful application, then the optional pg-delta catalog cache could not read its generated target CA certificate.
+
+### Root cause
+
+The local CLI's post-apply catalog cache environment did not contain the temporary certificate path. PostgreSQL did not report a migration failure.
+
+### Correct solution
+
+Verify the exact local/remote migration pair with linked migration history, run linked schema lint, and deploy the dependent Edge Function only after both checks pass. All three validations succeeded.
+
+### Prevention
+
+Upgrade and retest the Supabase CLI before production rollout. Until then, treat this post-apply warning as unresolved tooling behavior and always require migration-history plus schema-lint evidence.
+
+### Related files
+
+- `supabase/migrations/20260816170000_platform_tenant_administration.sql`
+
+### Related tests
+
+- `npx supabase migration list --linked`
+- `npm run supabase:lint:linked`
+
+## ERR-20260816-079 - Browser lifecycle retained single-tenant assumptions after customer creation
+
+### Context
+
+The critical lifecycle was extended to create a second organization through the platform customer-onboarding UI before exercising organization-scoped administration.
+
+### Symptoms
+
+The first run renamed the newly created customer instead of the original fixture and strict cleanup refused the unexpected name. A later run also found an ambiguous organization label and no expected manager option because invitation administration defaulted to the newest customer.
+
+### Root cause
+
+The existing test relied on first-option defaults and a partial label that were valid only while one organization existed. The product correctly returned both authorized tenants to the platform operator.
+
+### Correct solution
+
+Select the intended organization id explicitly in hierarchy and invitation workflows, use an exact combobox role selector, recognize the separate `yanki-e2e-customer-<run-id>` fixture convention, and retain strict name/email checks before cleanup. Restore and remove the one interrupted synthetic fixture by exact id.
+
+### Prevention
+
+Every platform-operator E2E action that mutates tenant-scoped configuration must select its organization explicitly. Cleanup may support additional synthetic tenant kinds only through exact run-correlated names, slugs, and email patterns.
+
+### Related files
+
+- `tests/e2e/critical-lifecycle.e2e.ts`
+- `scripts/lib/local-e2e-cleanup.mjs`
+- `tests/local-e2e-cleanup.test.mjs`
+
+### Related tests
+
+- `npm run e2e:local`
+- `npx vitest run tests/local-e2e-cleanup.test.mjs`
+
 ## ERR-20260816-078 - Report search removal left an unused reset helper
 
 ### Context
@@ -249,77 +313,6 @@ Orchestration scripts should call stable executable entry points directly instea
 ### Related tests
 
 - `npm run docker:acceptance`
-
-## ERR-20260812-070 - Tenant administrators could read platform-wide security diagnostics
-
-### Context
-
-The administration security module exposed encryption-key health and anonymous-endpoint abuse summaries. Both summaries describe the entire deployment rather than one customer organization.
-
-### Symptoms
-
-Any active `SYSTEM_ADMIN` assignment passed the UI and Edge Function checks, including an `ORGANIZATION`-scoped customer administrator. The abuse-summary database function repeated only the role-code check and therefore did not close the scope gap.
-
-### Root cause
-
-The initial implementation treated the role code as sufficient and did not distinguish platform operations from tenant configuration. Existing scope semantics already represented the distinction but were not applied to these two global endpoints.
-
-### Correct solution
-
-Require an exact active `SYSTEM_ADMIN` assignment with `scope_type = 'PLATFORM'` and null scope id in the UI, both Edge Functions, and the abuse-summary database function. Keep organization administrators' existing tenant configuration modules unchanged.
-
-### Prevention
-
-Every deployment-global operation must state whether it is platform-only or tenant-filtered, enforce the decision outside the UI, and include both platform-positive and organization-admin-negative regression tests.
-
-### Related files
-
-- `supabase/migrations/20260812120000_platform_security_operations_scope.sql`
-- `supabase/functions/encryption-key-health/index.ts`
-- `supabase/functions/security-abuse-monitoring/index.ts`
-- `src/features/administration/AdministrationPage.tsx`
-- `docs/decisions/ADR-0033-separate-platform-operations-from-tenant-administration.md`
-
-### Related tests
-
-- `supabase/tests/database/anonymous_encrypted_submission.test.sql`
-- `tests/encryption-key-health-boundary.test.mjs`
-- `tests/anonymous-abuse-protection-boundary.test.mjs`
-- `src/features/administration/AdministrationPage.test.tsx`
-
-## ERR-20260810-069 - Combined report target obscured who comments were about
-
-### Context
-
-Authorized reviewers selected one combined person-and-cycle value before opening a report.
-
-### Symptoms
-
-The evaluated person was technically present in the selector and report header, but reviewers could not naturally search for a person such as Ahmet or retain that context while reading comment cards farther down the page.
-
-### Root cause
-
-The interface modeled the backend's composite cycle-plus-subject key directly instead of presenting the user's person-first reporting task. Comment groups used a generic identity-separated label and did not repeat their subject.
-
-### Correct solution
-
-Add client-side ad/e-mail search over the already authorized target set, select the evaluated person first, then list only that person's cycles. Repeat the evaluated person's name in the report summary and every written-comment group.
-
-### Prevention
-
-Keep backend composite identifiers inside service/UI state. User-facing report controls and acceptance tests must express the business sequence: person, cycle, report, subject-labelled result.
-
-### Related files
-
-- `src/features/reporting/EvaluationReportsPanel.tsx`
-- `src/locales/tr/messages.ts`
-- `tests/e2e/critical-lifecycle.e2e.ts`
-
-### Related tests
-
-- `src/features/reporting/EvaluationReportsPanel.test.tsx`
-- `npm run e2e:local`
-- `npm run e2e:container:local`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

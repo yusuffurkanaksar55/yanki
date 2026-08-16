@@ -117,7 +117,7 @@ export function EvaluationRetentionManagementPanel({
   return (
     <section
       aria-label={tr.administration.retention.sectionLabel}
-      className="mt-8 border-y border-slate-200 bg-white px-5 py-6"
+      className="surface-panel mt-8 px-5 py-6 sm:px-6"
     >
       <div>
         <p className="text-sm font-semibold text-coral">

@@ -1338,6 +1338,38 @@ export type Database = {
         }
         Returns: Json
       }
+      list_platform_organization_tenants: {
+        Args: { actor_user_id: string }
+        Returns: Json
+      }
+      platform_bootstrap_organization_tenant: {
+        Args: {
+          actor_user_id: string
+          administrator_display_name: string
+          administrator_email: string
+          bootstrap_administrator_user_id: string
+          bootstrap_request_id: string
+          expected_request_fingerprint: string
+          initial_unit_name: string
+          initial_unit_slug: string
+          invitation_expires_in_days?: number
+          organization_name: string
+          organization_slug: string
+        }
+        Returns: Json
+      }
+      platform_renew_tenant_bootstrap_invitation: {
+        Args: {
+          actor_user_id: string
+          bootstrap_request_id: string
+          invitation_expires_in_days?: number
+        }
+        Returns: Json
+      }
+      require_active_platform_system_admin: {
+        Args: { actor_user_id: string }
+        Returns: undefined
+      }
       can_review_evaluation_subject: {
         Args: {
           actor_user_id: string

@@ -74,7 +74,7 @@ export function SecurityOperationsPanel({
   return (
     <section
       aria-label={tr.administration.securityOperations.sectionLabel}
-      className="mt-8 border-y border-slate-200 bg-white px-5 py-6"
+      className="surface-panel mt-8 px-5 py-6 sm:px-6"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>

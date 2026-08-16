@@ -191,6 +191,8 @@ npm run tenant:bootstrap:recover
 
 The recovery command refuses accepted, revoked, unknown, or fingerprint-mismatched requests. It renews the internal invitation and asks Supabase Auth to send password-recovery mail without generating a raw link. Alert and investigate `TENANT_BOOTSTRAP_COMPENSATION_FAILED`; it means the database step failed and the newly created Auth identity could not be removed automatically. If a process crash leaves `TENANT_BOOTSTRAP_ADMIN_EMAIL_ALREADY_EXISTS`, verify through restricted Auth administration that the identity has no profile, membership, role, or completed bootstrap record before deleting it. Never adopt or mark an unexplained existing identity.
 
+For ongoing shared-SaaS sales onboarding, an already provisioned exact `SYSTEM_ADMIN / PLATFORM` operator may use **Yönetim → Müşteriler**. The form creates the organization, stable slug, initial unit, and first organization-administrator invitation through `platform-tenant-administration`, which reuses the bootstrap above. The list exposes onboarding state only and can resend an incomplete invitation for seven days. Organization administrators cannot see or call this module. The UI does not bootstrap its own platform operator and does not replace the CLI for dedicated customer installations. Before use, configure the production Supabase Auth Site URL, exact redirect allow-list, approved SMTP, and password policy; the function intentionally relies on that trusted Auth configuration and never returns an action link.
+
 ## Evaluation Content Retention Operations
 
 - Configure policies only through the authenticated administration UI or reviewed trusted boundary. The default is 730 days with automatic purge disabled; the supported range is 30 to 3650 days.

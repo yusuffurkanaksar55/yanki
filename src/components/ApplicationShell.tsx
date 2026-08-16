@@ -145,7 +145,7 @@ function NavigationLink({
       href={item.href}
     >
       <Icon aria-hidden="true" size={18} strokeWidth={1.8} />
-      <span className={compact ? "max-w-full truncate" : undefined}>
+      <span className={compact ? "max-w-full text-center leading-4" : undefined}>
         {item.label}
       </span>
     </a>
