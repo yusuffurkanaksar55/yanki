@@ -1,5 +1,37 @@
 # Error Log
 
+## ERR-20260816-074 - First focused npx test wrapper did not return a final result
+
+### Context
+
+The newly added staging-infrastructure and existing deployment-foundation Vitest suites were first launched through the `npx vitest` wrapper on Windows.
+
+### Symptoms
+
+The command printed the Vitest start banner but reached the 30-second execution window without test results or a reusable session id. No Node process remained afterward.
+
+### Root cause
+
+No deterministic test or product failure was reproduced. The evidence is limited to wrapper/process startup behavior in this execution environment; the unchanged suites completed normally through the repository-local Vitest entry point.
+
+### Correct solution
+
+Invoke the already installed local entry point directly with one worker for the focused diagnostic, then run the ordinary complete project test command as the authoritative result.
+
+### Prevention
+
+Use direct repository-local Node entry points for narrow diagnostics when an `npx` wrapper fails before producing a test result. Do not weaken tests or extend assertions for a wrapper-only event.
+
+### Related files
+
+- `tests/staging-infrastructure.test.mjs`
+- `tests/deployment-foundation.test.mjs`
+
+### Related tests
+
+- `node node_modules/vitest/vitest.mjs run tests/staging-infrastructure.test.mjs tests/deployment-foundation.test.mjs --maxWorkers=1 --reporter=verbose`
+- `npm test`
+
 ## ERR-20260812-073 - One full-suite profile assertion timed out after Docker acceptance
 
 ### Context
@@ -291,39 +323,6 @@ Treat this exact user-profile telemetry error as an execution-boundary issue, ke
 ### Related tests
 
 - `npm run e2e:local`
-
-## ERR-20260810-064 - Synthetic tenant cleanup was blocked by published-template deletion guards
-
-### Context
-
-The first real E2E run with automatic database cleanup tried to remove a completed fixture containing a published evaluation-template version.
-
-### Symptoms
-
-All three Playwright tests passed, but cleanup rolled back with `PUBLISHED_TEMPLATE_VERSION_IMMUTABLE` while cascading organization deletion into template versions/questions.
-
-### Root cause
-
-Template immutability triggers correctly reject published version and question deletion, including cascades. Normal dependency-ordered tenant deletion therefore cannot remove this local synthetic fixture.
-
-### Correct solution
-
-After loopback URL, exact `yanki-e2e-*` organization, and matching `example.test` user validation, transactionally disable only the two template deletion guards, delete the fixture in dependency order, restore both guards, and commit. Any error rolls back both data and trigger state.
-
-### Prevention
-
-Keep the cleanup helper local-only and fail closed on every identity mismatch. Test both trigger disable/enable declarations and the complete E2E cleanup against a fixture with a published template.
-
-### Related files
-
-- `scripts/lib/local-e2e-cleanup.mjs`
-- `scripts/run-local-e2e.mjs`
-- `tests/local-e2e-cleanup.test.mjs`
-
-### Related tests
-
-- `npm run e2e:local`
-- `npm run e2e:container:local`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

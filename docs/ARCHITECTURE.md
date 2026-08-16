@@ -22,6 +22,8 @@ The target system is a single-page web application with a trusted backend bounda
 
 Both topologies use the same migrations, Edge Functions, and tenant authorization. Dedicated infrastructure is additional isolation and never disables organization scope checks. The official Supabase self-host Compose project remains an external dependency pinned by commit and reviewed-file hashes in `deploy/staging/supabase.lock.json`; this repository owns the application image, Compose overlay, and application-specific database/function artifacts. See `docs/DEPLOYMENT.md`, ADR-0016, and ADR-0034.
 
+The first production-like staging host is defined in `deploy/staging/aws` as an account-neutral OpenTofu root stack. It consumes a reviewed existing VPC, public subnet, exact zone, pinned Ubuntu AMI, instance type, KMS key, and domain rather than creating an unreviewed network. The host exposes only TCP/443 and optional TCP/80, uses Systems Manager Session Manager instead of SSH, requires IMDSv2, encrypts its root volume, and receives no application secret through OpenTofu or cloud-init. Infrastructure `apply` is deliberately outside automated quality commands and requires encrypted remote state plus review of a saved plan. See ADR-0035.
+
 ## Runtime Configuration
 
 `/app-config.js` is loaded before the Vite bundle. A container entrypoint writes only the public Supabase URL and anon or publishable key. Local Vite development falls back to `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. A partial runtime configuration is rejected to prevent accidental mixing between customer and build-time environments.

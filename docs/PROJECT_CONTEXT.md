@@ -41,6 +41,7 @@ The repository contains a React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest,
 - Supabase schema: initial default-deny security, profile/invitation onboarding, organization hierarchy, atomic hierarchy administration, workspace context RPC, project, evaluation-cycle, and evaluation-assignment migrations applied.
 - Edge Functions: `evaluation-submission-credentials` prepares one-time eligibility credentials for authenticated evaluators; `anonymous-evaluation-submissions` applies privacy-preserving quotas before context lookup, validates, encrypts, and atomically redeems identity-free submissions; `security-abuse-monitoring` returns deployment-global aggregate counters only to active platform-scoped system administrators.
 - Production architecture: the shared-SaaS AWS/self-hosted Supabase target, environment separation, data-residency caveats, and prioritized production gates are recorded in `docs/PRODUCTION_READINESS_ASSESSMENT.md`.
+- Staging infrastructure: a reviewed OpenTofu root stack now defines one AWS EC2 acceptance host in an existing VPC/subnet, with SSM-only administration, public web ports only, IMDSv2, KMS-encrypted storage, termination protection, checksum-pinned local tooling, and secret-free cloud-init. No AWS resource has been created yet.
 - Quality checks: lint, typecheck, Vitest, React Testing Library, Playwright, automated WCAG analysis, keyboard acceptance, production-container gateway acceptance, production build, local schema lint, and Docker-backed pgTAP authorization tests are implemented.
 
 ## Important Business Rules
@@ -85,12 +86,13 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 - Additive key rotation, content-free key health, custody-manifest validation, encrypted recovery canaries, scheduled off-site backup tooling, exact-snapshot database-plus-key recovery automation, anonymous endpoint quotas, same-origin gateway limits with direct-bypass enforcement, transition-based alert delivery, aggregate abuse monitoring, tenant retention automation, and production tenant bootstrap are implemented. Real production custody/off-site provider configuration, gateway-token activation/direct-denial, signed production-like recovery acceptance, real alert-receiver/capacity acceptance, and infrastructure availability monitoring remain incomplete.
 - Invitation delivery and acceptance pass locally through Supabase Auth and Mailpit, but they have not been smoke-tested with an approved mailbox and production SMTP configuration.
 - Microsoft Entra ID is not implemented. The current anonymous credential model provides reviewed application-level unlinkability, not blind-signature cryptographic anonymity.
-- Docker delivery, signed digest-pinned release automation, production tenant bootstrap, scheduled encrypted off-site backup tooling, exact-snapshot restore-test foundations, and the critical production-container application workflow acceptance exist. The first real version-tag workflow, real remote-provider/systemd acceptance, and production-like staging acceptance are not complete.
+- Docker delivery, signed digest-pinned release automation, production tenant bootstrap, scheduled encrypted off-site backup tooling, exact-snapshot restore-test foundations, the critical production-container application workflow acceptance, and the account-neutral AWS staging-host definition exist. The reviewed AWS plan/apply, first real version-tag workflow, real remote-provider/systemd acceptance, and production-like staging acceptance are not complete.
 - Docker Desktop is available and the local Supabase stack is verified; local migration reset, database lint, and pgTAP authorization tests pass.
 - Synthetic test users were created by running `npm run fixture:demo`. Authenticated administration, project-manager visibility, employee denial, project membership, and assignment-generation smoke checks have been verified. The fixture command still requires a local `SUPABASE_SERVICE_ROLE_KEY` environment value and must not run in the browser.
 
 ## Recent Major Changes
 
+- 2026-08-16: Added a validated, account-neutral OpenTofu AWS staging-host foundation with SSM-only administration, encrypted storage, pinned tooling, secret-free bootstrap, and an explicitly reviewed plan/apply boundary.
 - 2026-08-10: Added automatic latest-cycle loading, a clearly marked synthetic empty-state example, and detailed person-report summaries, insights, percentages, and question-level analysis.
 - 2026-08-10: Added evaluated-person search and separate person/cycle report filters, with explicit subject labels in every written-comment group.
 - 2026-08-10: Added corporate typography and public product detail, a readable workspace hierarchy, and authorized identity-separated comments with independent question-level shuffling.
@@ -111,6 +113,6 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Current Development Priorities
 
-1. Provision a production-like staging environment and run the container workflow through real TLS/DNS, required gateway enforcement, isolated Supabase, and synthetic roles before creating a product release tag.
+1. Supply the reviewed staging AWS account/VPC/subnet/zone/AMI/KMS/domain values, review and apply the generated OpenTofu plan, then run the container workflow through real TLS/DNS, required gateway enforcement, isolated Supabase, and synthetic roles before creating a product release tag.
 2. Exercise the first version-tag release, then configure real production custody/off-site providers, alert receiver, capacity thresholds, and infrastructure monitoring; complete environment-signed recovery and customer acceptance checks.
 3. Configure email delivery when a provider is approved, complete approved-mailbox invitation verification, add route-level code splitting, and separately review any future disclosure-resistant raw-text theme design.

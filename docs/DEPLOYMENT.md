@@ -31,6 +31,7 @@ The reviewed AWS EC2/self-hosted Supabase target, Istanbul Local Zone caveats, e
 | Cosign 3.0.6 | Verify the release manifest and exact OCI image digest against the trusted workflow identity |
 | GHCR access or approved OCI registry path | Pull the exact digest; private packages require a customer-specific read-only credential outside deployment files |
 | Git | Obtain reviewed application and Supabase deployment sources |
+| OpenTofu 1.12.1 | Validate and provision the reviewed AWS staging host from committed infrastructure code |
 | OpenSSL and `jq` | Generate and inspect self-hosted secrets using the official Supabase tooling |
 | Supabase CLI | Apply versioned migrations and validate database state |
 | Nginx, Caddy, or customer load balancer | TLS termination, public routing, and certificate renewal |
@@ -56,6 +57,21 @@ The repository contains:
 - `scripts/verify-release-installation.mjs`: standalone signature, integrity, image-label, Nginx, runtime-config, and health acceptance.
 
 Vite variables are normally replaced at build time. This application loads `/app-config.js` before the bundle, so one reviewed image can run against different managed or self-hosted Supabase installations without rebuilding. Only the public Supabase URL and anon or publishable key are written to this file. Service-role, database, SMTP, JWT, and encryption secrets must never enter the frontend container.
+
+## AWS Staging Host Foundation
+
+`deploy/staging/aws` defines the first production-like acceptance host without embedding an AWS account, credentials, application secrets, or customer data. It creates one EC2 instance and Elastic IPv4 address in a reviewed existing network, a KMS-encrypted gp3 root volume, a web-only security group, and an SSM instance profile. No SSH key or TCP/22 rule is created. The cloud-init payload installs Docker/Compose and performs content-free memory, disk, service, and tool checks only.
+
+Install the checksum-pinned local Windows x64 OpenTofu tool under ignored `.tools/`, then run account-free format, provider-lock, and configuration validation:
+
+```bash
+npm run staging:infra:tool:install
+npm run staging:infra:check
+```
+
+The validator never runs `plan` or `apply`. Before cloud creation, operators must approve the staging AWS account, parent region, exact zone or Local Zone, existing VPC/public subnet, exact Ubuntu LTS AMI, supported instance type with at least 8 GiB memory, customer-managed EBS KMS key, encrypted remote-state bucket/KMS key, staging domain, cost owner, and short-lived operator identities. Copy the ignored input examples only on the restricted operator workstation, save the generated plan outside Git, obtain second-person review, and apply only that exact plan. Full commands and acceptance boundaries are in `deploy/staging/aws/README.md`; the decision is ADR-0035.
+
+Host creation alone is not staging approval. DNS/TLS, the pinned Supabase stack, the signed Yanki image, independent non-production secrets, private internal ports, SMTP, monitoring, capacity, backup, and isolated recovery acceptance must still pass before a release tag or live employee data.
 
 ## Local Browser Acceptance
 

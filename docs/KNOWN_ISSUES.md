@@ -170,7 +170,7 @@ Medium
 
 ### Description
 
-The repository now contains a portable frontend image, signed digest-pinned GHCR release workflow, no-build customer Compose package, standalone container acceptance, a commit-and-hash-pinned official Supabase staging definition, self-host deployment runbook, tenant-integrity migration, encrypted evaluation workflows, production tenant bootstrap, pinned encrypted off-site backup scheduling, environment-scoped restore automation, and a critical production-container browser workflow with required gateway enforcement. The resource-efficient local Docker acceptance passes without duplicating the Supabase image set. The full pinned stack has not yet passed on a properly sized staging host, the hosted workflow has not been exercised with a real version tag, air-gapped/customer-registry transfer is not approved, and real provider/systemd acceptance is not complete.
+The repository now contains a portable frontend image, signed digest-pinned GHCR release workflow, no-build customer Compose package, standalone container acceptance, a commit-and-hash-pinned official Supabase staging definition, a validated account-neutral OpenTofu AWS staging-host definition, self-host deployment runbook, tenant-integrity migration, encrypted evaluation workflows, production tenant bootstrap, pinned encrypted off-site backup scheduling, environment-scoped restore automation, and a critical production-container browser workflow with required gateway enforcement. The resource-efficient local Docker acceptance passes without duplicating the Supabase image set. No reviewed AWS plan has been applied, the full pinned stack has not yet passed on that host, the hosted workflow has not been exercised with a real version tag, air-gapped/customer-registry transfer is not approved, and real provider/systemd acceptance is not complete.
 
 ### Impact
 
@@ -182,11 +182,12 @@ None for production. Use managed development and synthetic fixture environments 
 
 ### Planned resolution
 
-Provision a production-like staging environment and repeat the authenticated synthetic workflow through real TLS/DNS and isolated Supabase. Then create the first reviewed version tag, verify GHCR/signature/release permissions end to end, run the implemented timers against approved customer providers, complete signed production-like restore drills, and finish the operator acceptance checklist.
+Supply reviewed AWS environment inputs, produce and review the saved OpenTofu plan, provision the staging host, and repeat the authenticated synthetic workflow through real TLS/DNS and isolated Supabase. Then create the first reviewed version tag, verify GHCR/signature/release permissions end to end, run the implemented timers against approved customer providers, complete signed production-like restore drills, and finish the operator acceptance checklist.
 
 ### Related tests
 
 - `tests/deployment-foundation.test.mjs`
+- `tests/staging-infrastructure.test.mjs`
 - `tests/container-release.test.mjs`
 - `tests/tenant-isolation.test.mjs`
 - `tests/production-tenant-bootstrap.test.mjs`

@@ -1,0 +1,66 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+packages:
+  - ca-certificates
+  - curl
+  - docker-compose-v2
+  - docker.io
+  - jq
+  - unattended-upgrades
+  - unzip
+
+write_files:
+  - path: /etc/sysctl.d/99-yanki-staging.conf
+    owner: root:root
+    permissions: "0644"
+    content: |
+      fs.protected_fifos = 2
+      fs.protected_hardlinks = 1
+      fs.protected_regular = 2
+      fs.protected_symlinks = 1
+      kernel.kptr_restrict = 2
+      kernel.unprivileged_bpf_disabled = 1
+      net.ipv4.conf.all.accept_redirects = 0
+      net.ipv4.conf.all.send_redirects = 0
+      net.ipv4.conf.default.accept_redirects = 0
+      net.ipv4.conf.default.send_redirects = 0
+      net.ipv4.tcp_syncookies = 1
+  - path: /usr/local/sbin/yanki-staging-host-preflight
+    owner: root:root
+    permissions: "0750"
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      minimum_disk_gib=${minimum_free_disk_gib}
+      minimum_memory_gib=${minimum_memory_gib}
+      memory_gib=$(awk '/MemTotal/ { printf "%d", $2 / 1024 / 1024 }' /proc/meminfo)
+      disk_free_gib=$(df --output=avail -BG /srv/yanki | tail -1 | tr -dc '0-9')
+      docker_major=$(docker version --format '{{.Server.Version}}' | cut -d. -f1)
+      compose_major=$(docker compose version --short | cut -d. -f1)
+
+      test "$memory_gib" -ge "$minimum_memory_gib"
+      test "$disk_free_gib" -ge "$minimum_disk_gib"
+      test "$docker_major" -ge 27
+      test "$compose_major" -ge 2
+      systemctl is-active --quiet docker
+      systemctl is-active --quiet unattended-upgrades
+
+      checked_at=$(date --utc +%Y-%m-%dT%H:%M:%SZ)
+      printf '{"checkedAt":"%s","diskFreeGiB":%d,"memoryGiB":%d,"ready":true}\n' \
+        "$checked_at" "$disk_free_gib" "$memory_gib" \
+        > /var/lib/yanki/staging-host-ready.json
+      chmod 0600 /var/lib/yanki/staging-host-ready.json
+
+runcmd:
+  - [install, -d, -m, "0700", -o, root, -g, root, /etc/yanki]
+  - [install, -d, -m, "0750", -o, root, -g, root, /srv/yanki]
+  - [install, -d, -m, "0700", -o, root, -g, root, /var/lib/yanki]
+  - [sysctl, --system]
+  - [systemctl, enable, --now, docker]
+  - [systemctl, enable, --now, unattended-upgrades]
+  - [bash, -lc, "systemctl enable --now amazon-ssm-agent || systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service"]
+  - [/usr/local/sbin/yanki-staging-host-preflight]
+
+final_message: "Yanki staging host foundation completed."

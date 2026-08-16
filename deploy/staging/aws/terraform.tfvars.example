@@ -1,0 +1,22 @@
+aws_region         = "eu-central-1"
+availability_zone  = "replace-with-reviewed-zone-or-local-zone"
+vpc_id             = "vpc-replace"
+subnet_id          = "subnet-replace"
+ami_id             = "ami-replace"
+instance_type      = "replace-with-zone-supported-8-gib-or-larger-type"
+ebs_kms_key_arn    = "arn:aws:kms:eu-central-1:123456789012:key/replace-with-key-id"
+domain_name        = "staging.example.com"
+network_border_group = null
+
+root_volume_size_gib = 100
+minimum_free_disk_gib = 30
+minimum_memory_gib    = 8
+protect_from_termination = true
+enable_http_acme         = true
+
+web_ipv4_cidrs = ["0.0.0.0/0"]
+
+additional_tags = {
+  CostCenter = "replace"
+  Owner      = "replace"
+}

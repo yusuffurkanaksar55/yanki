@@ -96,12 +96,14 @@ Use an exact reviewed Supabase self-hosting commit or release and record it in t
 
 The repository now pins the official Supabase Docker source in `deploy/staging/supabase.lock.json`, verifies critical upstream hashes, and provides both configuration-only and full clean-stack acceptance commands. The resource-efficient local Docker gate passed Compose validation, 186 pgTAP assertions, the production-container browser lifecycle, same-origin gateway denial, accessibility, responsive overflow, and streamed restore on 2026-08-12. This is useful development evidence but does not close the production-like staging requirement below; the full pinned stack must still pass on an isolated, properly sized staging host with real environment controls.
 
+The account-neutral host layer is now reproducible in `deploy/staging/aws`: OpenTofu is checksum-pinned, the AWS provider is locked, the host uses SSM instead of inbound SSH, only public web ingress is defined, IMDSv2 and KMS-encrypted storage are required, and cloud-init contains no application secret. Local format/provider/configuration validation passed on 2026-08-16. No AWS account plan or resource apply has occurred, so this closes only the infrastructure-definition substep, not the production-like staging gate.
+
 ## Priority Plan
 
 ### Critical Before Production
 
 - Keep platform-global operational diagnostics restricted to exact `PLATFORM` administrators at UI, Edge Function, and database layers. Implemented by this assessment.
-- Deploy a production-like staging stack from a pinned self-hosted Supabase version and the signed Yanki image; run migration, authorization, browser, gateway, and recovery acceptance there.
+- Review and apply the committed staging-host OpenTofu plan in the dedicated AWS staging account, then deploy the pinned self-hosted Supabase version and signed Yanki image; run migration, authorization, browser, gateway, and recovery acceptance there.
 - Terminate TLS with an approved certificate, keep PostgreSQL and internal Supabase ports private, restrict operator access, and prove direct sensitive-endpoint denial.
 - Store production service-role, JWT, database, SMTP, gateway, webhook, backup, and encryption secrets outside images, source, browser configuration, and ordinary logs.
 - Complete independent encryption-key custody, encrypted remote backup, isolated restore, RPO/RTO, and alert-delivery acceptance with named owners.

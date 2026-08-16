@@ -1,5 +1,48 @@
 # Test Report
 
+## 2026-08-16 - AWS Staging Infrastructure Definition Acceptance
+
+### Environment
+
+- Windows 11, Node.js 24, OpenTofu 1.12.1, locked AWS provider 6.60.0, existing repository dependencies, and no AWS credentials or cloud resources.
+
+### Commands executed
+
+- `npm run staging:infra:tool:install`
+- `npm run staging:infra:check`
+- Focused staging-infrastructure and deployment-foundation Vitest suites through the local Vitest entry point with one worker
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run build`
+
+### Passed
+
+- The local OpenTofu executable matched both the pinned version and derived executable SHA-256; the installer retains the official archive SHA-256 pin.
+- OpenTofu format, locked-provider initialization with no backend, and configuration validation passed.
+- The infrastructure regression proved required files and locks, SSM administration, absence of SSH/RDP ingress, public web ports only, KMS-encrypted storage, IMDSv2, monitoring, termination protection, minimum host capacity, encrypted remote-state guidance, secret-free user data, and absence of automated plan/apply behavior.
+- Focused tests passed 2 files and 11 tests. The full suite passed 55 files and 249 tests; lint, typecheck, and the production build passed.
+
+### Failed And Corrected
+
+- The first focused `npx vitest` wrapper call reached the 30-second command window without returning a final result and left no process. The unchanged suites passed in 3.9 seconds when invoked through the local Vitest entry point with one worker; no application or infrastructure defect was reproduced.
+
+### Security checks
+
+- No AWS credential, application secret, database password, JWT value, SMTP credential, gateway token, backup credential, or evaluation key is present in OpenTofu inputs or cloud-init.
+- The EC2 security group contains no TCP/22, TCP/3389, database, Studio, or internal Supabase ingress rule.
+- Validation did not initialize a state backend, contact an AWS account, run a plan, apply resources, or create cloud cost.
+
+### Skipped
+
+- AWS account authentication, remote-state initialization, saved plan, second-person plan review, and resource apply were intentionally not performed because reviewed environment identifiers and operator approval are not available.
+- DNS/TLS, full pinned-stack runtime, SMTP, monitoring, capacity, remote backup, and isolated recovery acceptance remain assigned to the resulting staging environment.
+
+### Remaining risks
+
+- A valid infrastructure definition does not prove AWS service availability in the selected zone, routing, KMS/IAM permissions, cloud-init completion, public TLS, or runtime capacity.
+- The production build retains the known roughly 610 kB JavaScript chunk warning.
+
 ## 2026-08-12 - Docker And Pinned Self-Hosted Configuration Acceptance
 
 ### Environment
@@ -176,47 +219,3 @@
 
 - Large organizations may eventually benefit from a server-paginated accessible combobox; the current client-side search is appropriate for the already authorized target set.
 - The production build passes with a roughly 598 kB JavaScript chunk warning.
-
-## 2026-08-10 - Corporate UI And Qualitative Reporting Regression
-
-### Environment
-
-- Windows 11, Node.js 24, React 19, Vite 8, Vitest, Playwright Chromium, Docker Desktop, local Supabase/PostgreSQL/Functions/Mailpit, linked synthetic Supabase, and the Codex in-app browser.
-
-### Commands executed
-
-- `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build`
-- `npm run e2e:local`
-- `npm run e2e:container:local`
-- `npm run supabase:test:local`, `npm run supabase:lint:local`, `npm run supabase:lint:linked`, `npm run supabase:push:dry-run`, and `npm run deployment:config`
-- Manual 1440x1000 and 390x844 public/dashboard browser review with overflow measurements
-
-### Passed
-
-- All 53 Vitest files and 237 tests passed; lint, typecheck, and the production build passed.
-- Vite and production Nginx modes each passed three Playwright tests covering invitation, onboarding, immutable templates, project assignments, encrypted submission, immediate aggregate reporting, and identity-separated written comments.
-- Authorized reviewer comments rendered while active system-administrator and evaluated-person report requests remained `403`.
-- Container mode denied direct sensitive-endpoint bypass and passed automated WCAG, keyboard navigation, responsive overflow, and synthetic cleanup checks.
-- All 185 pgTAP cases passed, local/linked schema lint returned no findings, deployment Compose validation passed, and the linked migration dry-run reported the remote database current.
-- Manual review found no horizontal overflow in desktop/mobile public and authenticated hierarchy layouts; removed marketing and logo phrases were absent.
-
-### Failed And Corrected
-
-- The first unit run found that the existing dashboard test expected the profile name/email only once. The visual hierarchy intentionally adds a second semantic occurrence, so the assertion now verifies both contexts.
-- The first local E2E attempt found the PostgreSQL container stopped with exit `137`; manually starting only the database left the API unavailable. A data-preserving full Supabase stop/start restored the complete stack and both E2E modes then passed.
-- The first sandboxed Compose validation could not spawn Docker and the first linked lint call timed out. Unchanged retries in the approved Docker/network boundary passed.
-
-### Security checks
-
-- Verified text comments remain encrypted in persistence and appear only after the existing trusted report authorization boundary.
-- Verified the frontend contract contains no evaluator, assignment, submission, ciphertext, timestamp, stable sequence, or cross-question grouping fields.
-- Verified report discovery remains participation-independent and administrator/self-access denials remain active.
-
-### Skipped
-
-- No production employee data, approved production mailbox, customer server, or public TLS/DNS staging environment was used.
-
-### Remaining risks
-
-- One or a few comments may still permit contextual or writing-style inference; the UI and ADR state this limitation explicitly.
-- The production build passes with a roughly 596 kB JavaScript chunk warning; route-level code splitting remains planned.

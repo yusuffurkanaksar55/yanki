@@ -1,5 +1,43 @@
 # Development Log
 
+## 2026-08-16 - Reviewed AWS Staging Host Foundation
+
+### Objective
+
+Complete the next account-independent production-readiness step by defining a reproducible, reviewable AWS host for the full production-like staging acceptance without creating cloud resources or storing credentials.
+
+### Changes
+
+- Added an OpenTofu root stack for one EC2 staging host in a reviewed existing VPC/subnet, with a stable Elastic IPv4 address, public web ports only, SSM-only administration, IMDSv2, detailed monitoring, termination protection, and a customer-KMS-encrypted gp3 root volume.
+- Added secret-free Ubuntu cloud-init that installs Docker/Compose, enables unattended updates, applies conservative host sysctls, checks minimum memory/disk/tool/service state, and writes content-free readiness evidence.
+- Pinned OpenTofu `1.12.1`, the official Windows archive checksum, the extracted binary checksum, and AWS provider `6.60.0`; added account-free format/provider-lock/configuration validation.
+- Added ignored operator examples for encrypted S3 remote state and environment inputs, an explicit saved-plan/two-person-review procedure, static infrastructure regression tests, and ADR-0035.
+- Updated architecture, deployment, readiness, context, and known-issue documents to distinguish a validated infrastructure definition from an applied and accepted staging environment.
+
+### Database changes
+
+None.
+
+### Security impact
+
+Positive. No SSH/RDP ingress or key pair is created; application/database/Auth/SMTP/gateway/backup/evaluation secrets remain outside OpenTofu, user data, browser configuration, and Git. Infrastructure creation is not automated and requires short-lived AWS identity, encrypted remote state, a saved plan, and explicit review.
+
+### Tests performed
+
+- `npm run staging:infra:tool:install` verified the pinned local OpenTofu executable.
+- `npm run staging:infra:check` passed format, read-only provider-lock initialization, and configuration validation without backend initialization, plan, apply, AWS credentials, or resource creation.
+- Focused infrastructure/deployment regression passed 2 files and 11 tests.
+- `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` passed; Vitest reported 55 files and 249 tests. The existing roughly 610 kB production JavaScript chunk warning remains.
+
+### Result
+
+The repository can now generate a deterministic AWS staging-host plan once reviewed account values are available. No AWS resource, DNS record, certificate, secret, customer data, or cloud cost was created by this change.
+
+### Remaining work
+
+- Provide and review the dedicated staging account, region/zone, VPC/subnet, AMI, instance type, KMS, state backend, domain, cost owner, and operator identities; review and apply the exact saved plan.
+- Deploy DNS/TLS, the pinned Supabase set and signed Yanki image, then run the full migration/browser/gateway/SMTP/monitoring/capacity/backup/recovery acceptance with synthetic data.
+
 ## 2026-08-12 - Resource-Aware Docker And Self-Hosted Staging Acceptance
 
 ### Objective
@@ -153,43 +191,3 @@ An authorized reviewer can now search for Ahmet, select Ahmet, see only Ahmet's 
 - Replace technical smoke-fixture names with curated customer-demo people, projects, and cycles.
 - Add route-level code splitting for the known production JavaScript chunk warning.
 - Complete production-like staging, SMTP, monitoring, recovery, and signed-release gates.
-
-## 2026-08-10 - Corporate Product UI, Visual Hierarchy, And Identity-Separated Comments
-
-### Objective
-
-Make the public and authenticated interfaces more corporate and readable, replace the flat workspace context dump with a clear hierarchy, and expose written feedback to authorized reviewers without weakening the established content and identity boundaries.
-
-### Changes
-
-- Replaced the Inter-first stack with Aptos/Segoe UI corporate system typography and removed the descriptive logo subtitle from public, authentication, password, profile, and application-shell branding.
-- Expanded the public site into a six-stage evaluation lifecycle, role/access operating model, security boundary overview, and detailed SaaS/dedicated installation comparison.
-- Replaced the three-column workspace dump with an organization-to-unit-to-manager-to-person reporting path and grouped repeated roles by role/scope with assignment counts.
-- Changed text report aggregation from withheld counts to independently shuffled question-level comment arrays, then rendered escaped comments with explicit sparse-context inference guidance.
-- Added ADR-0032 and updated the product, architecture, security, authorization, data-model, and project-context contracts.
-
-### Database changes
-
-None. Existing server-side report authorization and identity-free encrypted batch functions are unchanged.
-
-### Security impact
-
-Qualitative content now reaches an authorized reviewer after trusted decryption. Comments remain encrypted at rest and are returned without evaluator, assignment, submission, timestamp, stable sequence, or cross-question linkage metadata. Active system-administrator denial, self-access denial, tenant scope, role scope, and team-leader manager checks remain mandatory. Sparse-group and writing-style inference risk is stated in the UI and ADR.
-
-### Tests performed
-
-- `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` passed; 53 Vitest files and 237 tests completed.
-- `npm run e2e:local` and `npm run e2e:container:local` each passed all three Playwright tests, including visible comments for the authorized reviewer and `403` denials for the administrator and evaluated person.
-- Production-container acceptance also passed direct sensitive-endpoint bypass denial, WCAG, keyboard, mobile overflow, and synthetic cleanup checks.
-- All 185 local pgTAP cases, local and linked schema lint, deployment Compose validation, and linked migration dry-run passed; the remote database is current.
-- Manual in-app browser review covered the public page and authenticated hierarchy at 1440x1000 and 390x844 with no horizontal overflow.
-
-### Result
-
-Yankı now presents a more complete corporate product story, shows a readable personal reporting path instead of repeated role rows, and gives authorized leaders the qualitative feedback needed to interpret aggregate results.
-
-### Remaining work
-
-- Complete production-like staging through real TLS/DNS, approved SMTP, monitoring, recovery, and signed release gates.
-- Add route-level code splitting for the known production JavaScript chunk warning.
-- Curate customer-facing demo tenants and content before external demonstrations.

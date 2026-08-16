@@ -17,6 +17,8 @@
     "docker:acceptance": "node scripts/run-docker-acceptance.mjs",
     "staging:self-hosted:config": "node scripts/run-self-hosted-staging-acceptance.mjs --config-only",
     "staging:self-hosted:acceptance": "node scripts/run-self-hosted-staging-acceptance.mjs",
+    "staging:infra:tool:install": "node scripts/install-opentofu-local-tool.mjs",
+    "staging:infra:check": "node scripts/validate-staging-infrastructure.mjs",
     "memory:trim": "node scripts/trim-project-memory.mjs",
     "memory:check": "node scripts/trim-project-memory.mjs --check",
     "deployment:config": "node scripts/validate-compose-config.mjs",
