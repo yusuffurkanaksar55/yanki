@@ -1,5 +1,44 @@
 # Development Log
 
+## 2026-08-16 - Clearer Administration And Operational Retention
+
+### Objective
+
+Remove unnecessary report filtering, make organization and template configuration understandable from the UI, correct administration layout drift, and prove that evaluation-retention settings have an executable production path.
+
+### Changes
+
+- Removed the redundant person-search input from reporting while preserving the authorized evaluated-person selector and automatic detailed-report loading.
+- Added a dedicated company-information section where organization administrators can rename an active organization without changing its stable slug.
+- Replaced comma/newline-based template choices with numbered option rows, explicit add/remove controls, and minimum-option guidance.
+- Standardized administration module-tab dimensions and corrected hierarchy/retention panel borders, spacing, and responsive stacking.
+- Added a hardened daily systemd service/timer and operator environment example for automatic evaluation-retention execution.
+
+### Database changes
+
+Migration `20260816130000_organization_name_administration.sql` adds a service-role-only organization-name update function with active-tenant, active-system-administrator, length, normalization, and content-free audit enforcement.
+
+### Security impact
+
+Positive. Organization renames are authorized outside the UI, retain the immutable tenant slug, and write no organization name to the audit metadata. Retention execution continues through the existing service-role boundary; neither the browser nor the timer definition contains a service-role credential.
+
+### Tests performed
+
+- Focused component/static coverage passed 7 files and 25 tests; the complete Vitest suite passed 55 files and 251 tests.
+- Local schema lint passed and all 194 pgTAP assertions across nine database suites passed, including expiry, legal-hold, authorization, and organization-rename cases.
+- The complete local Playwright lifecycle passed all three tests, including desktop/mobile administration geometry, row-based template choices, secure rename, reports, access denials, accessibility, keyboard use, and synthetic cleanup.
+- The linked migration was applied and confirmed in migration history; the organization-administration Edge Function was deployed.
+
+### Result
+
+The administration workflow now explains where organization names and template choices are managed, the reported layout defects are corrected across desktop and mobile, and production operators have an explicit daily retention runner. The local development site remains available for review.
+
+### Remaining work
+
+- Install and enable the included systemd timer on each production or dedicated customer host; saving the policy in the UI intentionally does not create host-level scheduling.
+- Complete the existing production-like staging, DNS/TLS, SMTP, monitoring, capacity, backup, and recovery acceptance gates before live employee data.
+- Add route-level code splitting for the known production JavaScript chunk warning.
+
 ## 2026-08-16 - Reviewed AWS Staging Host Foundation
 
 ### Objective
@@ -151,43 +190,5 @@ Selecting a person now opens their latest available report directly. If no evalu
 ### Remaining work
 
 - Replace technical local E2E labels with a persistent curated customer-demo tenant when operator credentials are available.
-- Add route-level code splitting for the known production JavaScript chunk warning.
-- Complete production-like staging, SMTP, monitoring, recovery, and signed-release gates.
-
-## 2026-08-10 - Person-First Report Filtering And Comment Context
-
-### Objective
-
-Make it immediately clear who a written comment is about and let authorized reviewers narrow reports by person before choosing an evaluation cycle.
-
-### Changes
-
-- Replaced the combined person/cycle report selector with an ad-or-email search field, an evaluated-person selector, and a dependent evaluation-cycle selector.
-- Kept the cycle selector disabled until a person is selected and reset stale reports whenever the search, person, or cycle changes.
-- Added an explicit evaluated-person label above the report subject and repeated `{subject} için yazılan yorumlar` in every text-question result.
-- Added focused component and critical Playwright coverage for the person-first selection flow.
-
-### Database changes
-
-None. Existing report targets already identify the evaluated subject and remain filtered by the trusted authorization boundary.
-
-### Security impact
-
-Neutral. The evaluated person is required report context and was already returned in authorized target/report responses. Evaluator identity remains hidden; administrator denial, self-access denial, tenant scope, reviewer role scope, and manager relationship checks are unchanged.
-
-### Tests performed
-
-- Full `npm run check`: 53 Vitest files and 238 tests, lint, typecheck, production build, and bounded-memory verification passed.
-- `npm run e2e:local`: all three Playwright tests passed through Vite.
-- `npm run e2e:container:local`: all three Playwright tests passed through production Nginx, including direct sensitive-endpoint denial.
-- Manual in-app browser review verified name/email search, dependent cycle selection, explicit comment subject context, and no horizontal overflow at 1440x1000 and 390x844.
-
-### Result
-
-An authorized reviewer can now search for Ahmet, select Ahmet, see only Ahmet's available evaluation cycles, and read comment groups that explicitly state they were written about Ahmet.
-
-### Remaining work
-
-- Replace technical smoke-fixture names with curated customer-demo people, projects, and cycles.
 - Add route-level code splitting for the known production JavaScript chunk warning.
 - Complete production-like staging, SMTP, monitoring, recovery, and signed-release gates.

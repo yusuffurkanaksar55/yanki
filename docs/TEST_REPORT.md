@@ -1,5 +1,55 @@
 # Test Report
 
+## 2026-08-16 - Administration And Retention Acceptance
+
+### Environment
+
+- Windows 11, Node.js 24, React 19, Vite 8, Vitest, Playwright Chromium, Docker Desktop, Supabase CLI 2.109.1, local synthetic Supabase, and the linked synthetic development project.
+
+### Commands executed
+
+- Focused administration/reporting/static Vitest suites
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run supabase:lint:local`
+- `npm run supabase:lint:linked`
+- `npm run supabase:test:local`
+- `npm run e2e:local`
+- `npm run supabase:push:dry-run`
+- Linked migration push/list and organization-administration Edge Function deployment
+- `npm run check`
+
+### Passed
+
+- Focused coverage passed 7 files and 25 tests; the complete suite passed 55 files and 251 tests.
+- Local and linked database lint returned no schema errors, and all 194 pgTAP assertions across nine suites passed.
+- Retention tests proved expired evaluation content is removed, in-window content is retained, disabled automation performs no deletion, legal holds prevent deletion, and browser/authenticated roles cannot execute the retention function.
+- All three Playwright tests passed organization rename, equal administration-tab geometry, aligned hierarchy content, row-based choice editing, encrypted submission, detailed reports, access denials, WCAG checks, keyboard operation, desktop/mobile overflow checks, and strict fixture cleanup.
+- The new migration is present in both local and linked histories, and the updated Edge Function deployed successfully.
+
+### Failed And Corrected
+
+- The first E2E cleanup rejected the intentionally renamed synthetic organization because its exact fail-safe fixture name had changed. The test now restores the original synthetic name before cleanup, and the leftover fixture was removed.
+- Lint detected one obsolete report-reset helper after search removal. The unused helper was removed and lint passed unchanged afterward.
+- Supabase CLI telemetry could not write to the sandboxed user profile; the same approved commands passed outside that write restriction.
+
+### Security checks
+
+- Organization renames require an active tenant-scoped system administrator at the Edge Function and database boundaries; the stable slug is preserved and the audit event contains no submitted name.
+- Choice editing changes only immutable template-draft structure and does not alter anonymous evaluator separation.
+- The retention timer loads credentials from an operator-owned environment file and includes no secret in source control or browser configuration.
+
+### Skipped
+
+- The systemd timer was not installed on the Windows development workstation; its unit contract is statically verified and is intended for Linux production/dedicated hosts.
+- No live employee content, production SMTP provider, public DNS/TLS environment, or customer server was used.
+
+### Remaining risks
+
+- Automatic retention is not active on a deployment until an operator installs and enables the included timer with valid server-only credentials.
+- The production build retains the known roughly 610 kB JavaScript chunk warning.
+
 ## 2026-08-16 - AWS Staging Infrastructure Definition Acceptance
 
 ### Environment
@@ -180,42 +230,3 @@
 
 - One or a few real responses can still permit contextual inference; the report retains the warning.
 - The production build passes with a 609.46 kB JavaScript chunk warning; route-level code splitting remains planned.
-
-## 2026-08-10 - Person-First Report Selection Regression
-
-### Environment
-
-- Windows 11, Node.js 24, React 19, Vite 8, Vitest, Playwright Chromium, Docker Desktop, local Supabase/Functions/Mailpit, linked synthetic Supabase, and the Codex in-app browser.
-
-### Commands executed
-
-- Focused report-panel Vitest suite
-- `npm run check`
-- `npm run e2e:local`
-- `npm run e2e:container:local`
-- Manual 1440x1000 and 390x844 report-filter browser review
-
-### Passed
-
-- Full application checks passed 53 Vitest files and 238 tests, lint, typecheck, production build, and bounded-memory verification.
-- Vite and production-container modes each passed all three Playwright tests, including person selection, dependent cycle selection, encrypted submission, visible identity-separated comments, administrator/self denial, WCAG, keyboard, mobile overflow, and cleanup.
-- Manual linked-data review filtered the person list to one team leader, listed only that person's cycles, and rendered the subject in the report header plus both comment-group headings.
-- Desktop and mobile report views had no horizontal overflow.
-
-### Failed And Corrected
-
-- None.
-
-### Security checks
-
-- The UI exposes only the evaluated person already present in the authorized report target; no evaluator identity or new backend field was added.
-- Existing system-administrator, self-access, scope, and manager-relationship boundaries remained covered by the critical lifecycle.
-
-### Skipped
-
-- No production employee data, customer server, approved SMTP mailbox, or public TLS/DNS staging environment was used.
-
-### Remaining risks
-
-- Large organizations may eventually benefit from a server-paginated accessible combobox; the current client-side search is appropriate for the already authorized target set.
-- The production build passes with a roughly 598 kB JavaScript chunk warning.

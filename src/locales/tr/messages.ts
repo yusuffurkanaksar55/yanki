@@ -237,9 +237,6 @@ export const tr = {
       "Yetki kapsamındaki aktif ve tamamlanmış süreçler, ilk değerlendirmeden itibaren toplu sonuç olarak güncellenir.",
     aggregateOnly: "Kimliksiz toplu sonuç",
     loadingTargets: "Erişilebilir raporlar yükleniyor...",
-    subjectSearchLabel: "Kişi ara",
-    subjectSearchPlaceholder: "Ad veya e-posta yazın",
-    subjectSearchEmpty: "Aramanızla eşleşen kişi bulunamadı.",
     subjectLabel: "Değerlendirilen kişi",
     subjectPlaceholder: "Kişi seçin",
     cycleLabel: "Değerlendirme süreci",
@@ -564,6 +561,14 @@ export const tr = {
       loading: "Organizasyon yapısı yükleniyor.",
       empty: "Yönetilebilecek aktif bir organizasyon bulunamadı.",
       organization: "Organizasyon",
+      organizationSettings: {
+        title: "Şirket bilgisi",
+        description:
+          "Yönetmek istediğiniz organizasyonu seçin. Görünen şirket adını burada değiştirebilirsiniz; sistemde kullanılan sabit organizasyon kodu değişmez.",
+        name: "Organizasyon adı",
+        save: "Adı güncelle",
+        saving: "Güncelleniyor"
+      },
       units: {
         title: "Birimler",
         selectedUnit: "Düzenlenecek birim",
@@ -605,6 +610,7 @@ export const tr = {
         ending: "Sonlandırılıyor"
       },
       feedback: {
+        organizationNameSaved: "Organizasyon adı güncellendi.",
         unitSaved: "Birim kaydedildi.",
         contextSaved: "Üyelik ve yönetici bilgisi güncellendi.",
         roleAssigned: "Rol atandı.",
@@ -613,6 +619,8 @@ export const tr = {
           "Oturum doğrulanamadı. Lütfen tekrar giriş yap.",
         HIERARCHY_ADMINISTRATION_LIST_FAILED:
           "Rol ve hiyerarşi bilgileri okunamadı.",
+        HIERARCHY_ORGANIZATION_NAME_UPDATE_FAILED:
+          "Organizasyon adı güncellenemedi.",
         HIERARCHY_UNIT_SAVE_FAILED: "Birim kaydedilemedi.",
         HIERARCHY_CONTEXT_SAVE_FAILED:
           "Üyelik ve yönetici bilgisi güncellenemedi.",
@@ -642,7 +650,12 @@ export const tr = {
         questionType: "Soru türü",
         required: "Yanıt zorunlu",
         options: "Seçenekler",
-        optionsHint: "Her satıra bir seçenek yazın.",
+        optionsHint:
+          "Her seçeneği ayrı alana yazın. Virgül veya satır ayırıcı kullanmanız gerekmez; en az iki seçenek ekleyin.",
+        optionLabel: "Seçenek {number}",
+        optionPlaceholder: "Seçenek metnini yazın",
+        addOption: "Seçenek ekle",
+        removeOption: "{number}. seçeneği kaldır",
         save: "Taslağı kaydet",
         saving: "Kaydediliyor",
         cancel: "Yeni şablona dön"

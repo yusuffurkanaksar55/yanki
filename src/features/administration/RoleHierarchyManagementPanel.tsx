@@ -92,6 +92,7 @@ export function RoleHierarchyManagementPanel({
 }) {
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
   const [organizationId, setOrganizationId] = useState("");
+  const [organizationName, setOrganizationName] = useState("");
   const [unitForm, setUnitForm] = useState<UnitFormState>(emptyUnitForm);
   const [contextForm, setContextForm] = useState<ContextFormState>(
     emptyContextForm
@@ -120,8 +121,10 @@ export function RoleHierarchyManagementPanel({
           return;
         }
 
-        const firstOrganizationId = data.organizations[0]?.id ?? "";
+        const firstOrganization = data.organizations[0];
+        const firstOrganizationId = firstOrganization?.id ?? "";
         setOrganizationId(firstOrganizationId);
+        setOrganizationName(firstOrganization?.name ?? "");
         initializeMemberForms(data, firstOrganizationId, setContextForm, setRoleForm);
         setLoadState({ data, status: "ready" });
       } catch (error) {
@@ -156,6 +159,11 @@ export function RoleHierarchyManagementPanel({
       member.organizationId === organizationId
     )
     : [], [loadState, organizationId]);
+  const selectedOrganization = loadState.status === "ready"
+    ? loadState.data.organizations.find((organization) =>
+      organization.id === organizationId
+    )
+    : undefined;
   const selectedRoleMember = organizationMembers.find((member) =>
     member.userId === roleForm.userId
   );
@@ -172,6 +180,11 @@ export function RoleHierarchyManagementPanel({
     }
 
     setOrganizationId(nextOrganizationId);
+    setOrganizationName(
+      loadState.data.organizations.find((organization) =>
+        organization.id === nextOrganizationId
+      )?.name ?? ""
+    );
     setUnitForm(emptyUnitForm);
     setFeedback(null);
     initializeMemberForms(
@@ -238,6 +251,30 @@ export function RoleHierarchyManagementPanel({
       setLoadState({ data, status: "ready" });
       setUnitForm(emptyUnitForm);
       setFeedback(tr.administration.hierarchy.feedback.unitSaved);
+    } catch (error) {
+      setFeedback(toFeedbackMessage(error));
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function handleOrganizationSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPendingAction("organization");
+    setFeedback(null);
+
+    try {
+      const data = await service.updateOrganizationName(
+        organizationId,
+        organizationName.trim()
+      );
+      const updatedOrganization = data.organizations.find((organization) =>
+        organization.id === organizationId
+      );
+
+      setLoadState({ data, status: "ready" });
+      setOrganizationName(updatedOrganization?.name ?? organizationName.trim());
+      setFeedback(tr.administration.hierarchy.feedback.organizationNameSaved);
     } catch (error) {
       setFeedback(toFeedbackMessage(error));
     } finally {
@@ -346,18 +383,49 @@ export function RoleHierarchyManagementPanel({
 
       {loadState.status === "ready" && loadState.data.organizations.length > 0 ? (
         <>
-          <div className="mt-5 max-w-md">
-            <SelectField
-              label={tr.administration.hierarchy.organization}
-              onChange={selectOrganization}
-              value={organizationId}
+          <div className="mt-5 border-y border-slate-200 bg-slate-50 px-4 py-5 sm:px-5">
+            <h3 className="text-base font-semibold text-slate-900">
+              {tr.administration.hierarchy.organizationSettings.title}
+            </h3>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
+              {tr.administration.hierarchy.organizationSettings.description}
+            </p>
+            <form
+              className="mt-4 grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-[minmax(15rem,0.8fr)_minmax(17rem,1fr)_auto] xl:items-end"
+              onSubmit={handleOrganizationSubmit}
             >
-              {loadState.data.organizations.map((organization) => (
-                <option key={organization.id} value={organization.id}>
-                  {organization.name}
-                </option>
-              ))}
-            </SelectField>
+              <SelectField
+                label={tr.administration.hierarchy.organization}
+                onChange={selectOrganization}
+                value={organizationId}
+              >
+                {loadState.data.organizations.map((organization) => (
+                  <option key={organization.id} value={organization.id}>
+                    {organization.name}
+                  </option>
+                ))}
+              </SelectField>
+              <TextField
+                label={tr.administration.hierarchy.organizationSettings.name}
+                maxLength={120}
+                onChange={setOrganizationName}
+                required
+                value={organizationName}
+              />
+              <div className="md:col-span-2 xl:col-span-1">
+                <SubmitButton
+                  disabled={
+                    pendingAction !== null
+                    || organizationName.trim().length < 2
+                    || organizationName.trim() === selectedOrganization?.name
+                  }
+                >
+                  {pendingAction === "organization"
+                    ? tr.administration.hierarchy.organizationSettings.saving
+                    : tr.administration.hierarchy.organizationSettings.save}
+                </SubmitButton>
+              </div>
+            </form>
           </div>
 
           {feedback ? (
@@ -369,9 +437,9 @@ export function RoleHierarchyManagementPanel({
             </p>
           ) : null}
 
-          <div className="mt-6 grid gap-8 xl:grid-cols-3">
+          <div className="mt-6 grid gap-y-8 xl:grid-cols-3 xl:divide-x xl:divide-slate-200">
             <form
-              className="grid content-start gap-4 border-t border-slate-200 pt-5 xl:border-l xl:border-t-0 xl:pl-6 xl:pt-0"
+              className="grid min-w-0 content-start gap-4 border-t border-slate-200 pt-5 xl:border-t-0 xl:pr-6 xl:pt-0"
               onSubmit={handleUnitSubmit}
             >
               <h3 className="text-base font-semibold">
@@ -471,7 +539,7 @@ export function RoleHierarchyManagementPanel({
             </form>
 
             <form
-              className="grid content-start gap-4 border-t border-slate-200 pt-5 xl:border-l xl:border-t-0 xl:pl-6 xl:pt-0"
+              className="grid min-w-0 content-start gap-4 border-t border-slate-200 pt-5 xl:border-t-0 xl:px-6 xl:pt-0"
               onSubmit={handleContextSubmit}
             >
               <h3 className="text-base font-semibold">
@@ -550,7 +618,7 @@ export function RoleHierarchyManagementPanel({
             </form>
 
             <form
-              className="grid content-start gap-4 border-t border-slate-200 pt-5 xl:border-l xl:border-t-0 xl:pl-6 xl:pt-0"
+              className="grid min-w-0 content-start gap-4 border-t border-slate-200 pt-5 xl:border-t-0 xl:pl-6 xl:pt-0"
               onSubmit={handleRoleSubmit}
             >
               <h3 className="text-base font-semibold">
@@ -713,12 +781,14 @@ function formatRole(
 function TextField({
   disabled = false,
   label,
+  maxLength,
   onChange,
   required = false,
   value
 }: {
   readonly disabled?: boolean;
   readonly label: string;
+  readonly maxLength?: number;
   readonly onChange: (value: string) => void;
   readonly required?: boolean;
   readonly value: string;
@@ -729,6 +799,7 @@ function TextField({
       <input
         className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-normal shadow-sm focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20 disabled:bg-slate-100 disabled:text-slate-500"
         disabled={disabled}
+        maxLength={maxLength}
         onChange={(event) => onChange(event.currentTarget.value)}
         required={required}
         type="text"

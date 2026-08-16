@@ -56,6 +56,36 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
     })).toBeVisible();
 
     await adminPage.getByRole("tab", {
+      name: tr.administration.modules.hierarchy
+    }).click();
+    const hierarchyPanel = adminPage.getByRole("region", {
+      name: tr.administration.hierarchy.sectionLabel
+    });
+    const organizationNameInput = hierarchyPanel.getByLabel(
+      tr.administration.hierarchy.organizationSettings.name
+    );
+    await organizationNameInput.fill(`Yanki E2E Updated ${fixture.runId}`);
+    await hierarchyPanel.getByRole("button", {
+      name: tr.administration.hierarchy.organizationSettings.save
+    }).click();
+    await expect(hierarchyPanel.getByText(
+      tr.administration.hierarchy.feedback.organizationNameSaved
+    )).toBeVisible();
+    await organizationNameInput.fill(`Yanki E2E ${fixture.runId}`);
+    await hierarchyPanel.getByRole("button", {
+      name: tr.administration.hierarchy.organizationSettings.save
+    }).click();
+    await expect(organizationNameInput).toHaveValue(`Yanki E2E ${fixture.runId}`);
+    await assertAdministrationGeometry(adminPage, hierarchyPanel);
+    await adminPage.screenshot({
+      fullPage: true,
+      path: testInfo.outputPath("admin-hierarchy-desktop.png")
+    });
+    await assertResponsiveLayout(adminPage, testInfo, "admin-hierarchy");
+    await adminPage.setViewportSize({ height: 1000, width: 1440 });
+    console.log("[e2e] Organization name and administration geometry verified.");
+
+    await adminPage.getByRole("tab", {
       name: tr.administration.modules.users
     }).click();
     await expect(adminPage.getByRole("heading", {
@@ -130,7 +160,7 @@ test("invitation, evaluation, immediate reporting, and access boundaries", async
       ratingPrompt,
       templateName,
       textPrompt
-    });
+    }, testInfo);
     console.log("[e2e] Template published.");
     await createProjectAndAssignments(adminPage, {
       cycleName,
@@ -276,13 +306,41 @@ async function signIn(page: Page, credentials: E2ECredentials): Promise<void> {
     .toBeVisible();
 }
 
+async function assertAdministrationGeometry(
+  page: Page,
+  hierarchyPanel: ReturnType<Page["getByRole"]>
+): Promise<void> {
+  const moduleBoxes = await page.getByRole("tab").evaluateAll((tabs) =>
+    tabs.map((tab) => {
+      const box = tab.getBoundingClientRect();
+      return { height: box.height, width: box.width };
+    })
+  );
+  const roundedWidths = new Set(moduleBoxes.map((box) => Math.round(box.width)));
+  const roundedHeights = new Set(moduleBoxes.map((box) => Math.round(box.height)));
+
+  expect(roundedWidths.size).toBe(1);
+  expect(roundedHeights.size).toBe(1);
+
+  const panelBox = await hierarchyPanel.boundingBox();
+  const firstColumnBox = await hierarchyPanel.getByRole("heading", {
+    name: tr.administration.hierarchy.units.title
+  }).boundingBox();
+
+  expect(panelBox).not.toBeNull();
+  expect(firstColumnBox).not.toBeNull();
+  expect(Math.abs((firstColumnBox?.x ?? 0) - (panelBox?.x ?? 0)))
+    .toBeLessThanOrEqual(1);
+}
+
 async function createAndPublishTemplate(
   page: Page,
   input: {
     readonly ratingPrompt: string;
     readonly templateName: string;
     readonly textPrompt: string;
-  }
+  },
+  testInfo: TestInfo
 ): Promise<void> {
   await page.getByRole("tab", {
     name: tr.administration.modules.templates
@@ -303,9 +361,22 @@ async function createAndPublishTemplate(
   }).click();
   await form.getByLabel(`${tr.administration.templates.form.prompt} 2`)
     .fill(input.textPrompt);
-  await form.getByLabel(tr.administration.templates.form.questionType)
-    .nth(1)
-    .selectOption("LONG_TEXT");
+  const secondQuestionType = form
+    .getByLabel(tr.administration.templates.form.questionType)
+    .nth(1);
+  await secondQuestionType.selectOption("SINGLE_SELECT");
+  await form.getByLabel("Seçenek 1").fill("Geliştirilmeli");
+  await form.getByLabel("Seçenek 2").fill("İyi");
+  await form.getByRole("button", {
+    name: tr.administration.templates.form.addOption
+  }).click();
+  await form.getByLabel("Seçenek 3").fill("Çok iyi");
+  await page.screenshot({
+    fullPage: true,
+    path: testInfo.outputPath("template-option-editor-desktop.png")
+  });
+  await secondQuestionType.selectOption("LONG_TEXT");
+  await expect(form.getByLabel("Seçenek 1")).toHaveCount(0);
   await form.getByRole("button", {
     name: tr.administration.templates.form.save
   }).click();

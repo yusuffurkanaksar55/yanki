@@ -90,6 +90,51 @@ describe("EvaluationTemplateManagementPanel", () => {
       screen.getByText(tr.administration.templates.feedback.published)
     ).toBeInTheDocument();
   });
+
+  it("builds selection questions with explicit option rows", async () => {
+    const user = userEvent.setup();
+    const service = createService([]);
+
+    render(
+      <EvaluationTemplateManagementPanel
+        service={service}
+        workspaceContext={createWorkspaceContext()}
+      />
+    );
+
+    await screen.findByText(tr.administration.templates.empty);
+    await user.type(
+      screen.getByLabelText(tr.administration.templates.form.name),
+      "Takım Nabzı"
+    );
+    await user.type(
+      screen.getByLabelText(`${tr.administration.templates.form.prompt} 1`),
+      "İş birliği seviyesini seçin."
+    );
+    await user.selectOptions(
+      screen.getByLabelText(tr.administration.templates.form.questionType),
+      "SINGLE_SELECT"
+    );
+
+    await user.type(screen.getByLabelText("Seçenek 1"), "Geliştirilmeli");
+    await user.type(screen.getByLabelText("Seçenek 2"), "İyi");
+    await user.click(screen.getByRole("button", {
+      name: tr.administration.templates.form.addOption
+    }));
+    await user.type(screen.getByLabelText("Seçenek 3"), "Çok iyi");
+    await user.click(screen.getByRole("button", {
+      name: tr.administration.templates.form.save
+    }));
+
+    expect(service.saveDraft).toHaveBeenCalledWith(
+      expect.objectContaining({
+        questions: [expect.objectContaining({
+          options: ["Geliştirilmeli", "İyi", "Çok iyi"],
+          questionType: "SINGLE_SELECT"
+        })]
+      })
+    );
+  }, 10_000);
 });
 
 function createService(

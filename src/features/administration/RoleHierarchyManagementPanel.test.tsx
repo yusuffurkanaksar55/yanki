@@ -25,6 +25,20 @@ describe("RoleHierarchyManagementPanel", () => {
       tr.administration.hierarchy.organization
     )).toHaveValue("organization-id");
 
+    const organizationNameInput = screen.getByLabelText(
+      tr.administration.hierarchy.organizationSettings.name
+    );
+    await user.clear(organizationNameInput);
+    await user.type(organizationNameInput, "Yeni Şirket Adı");
+    await user.click(screen.getByRole("button", {
+      name: tr.administration.hierarchy.organizationSettings.save
+    }));
+
+    expect(service.updateOrganizationName).toHaveBeenCalledWith(
+      "organization-id",
+      "Yeni Şirket Adı"
+    );
+
     await user.type(
       screen.getByLabelText(tr.administration.hierarchy.units.name),
       "Ürün Geliştirme"
@@ -207,7 +221,11 @@ function createServiceStub(): HierarchyAdministrationService {
     endRole: vi.fn(async () => hierarchyData),
     list: vi.fn(async () => hierarchyData),
     saveUnit: vi.fn(async () => hierarchyData),
-    setUserContext: vi.fn(async () => hierarchyData)
+    setUserContext: vi.fn(async () => hierarchyData),
+    updateOrganizationName: vi.fn(async (_organizationId, name) => ({
+      ...hierarchyData,
+      organizations: [{ id: "organization-id", name }]
+    }))
   };
 }
 

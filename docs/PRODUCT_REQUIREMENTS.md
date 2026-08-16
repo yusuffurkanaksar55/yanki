@@ -6,7 +6,7 @@ The platform supports secure, anonymous, company-internal evaluations for employ
 
 ## Confirmed Requirements
 
-- Administrators define organizational hierarchy.
+- Administrators define organizational hierarchy and can update the visible organization name without changing its stable tenant slug.
 - Employees may have a team leader or manager.
 - Authenticated employees can view only evaluation assignments addressed to them and their availability windows.
 - Teams may have different evaluation questions.

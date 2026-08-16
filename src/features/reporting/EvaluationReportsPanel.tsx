@@ -39,7 +39,6 @@ export function EvaluationReportsPanel({
   const [targetState, setTargetState] = useState<TargetState>({
     status: "loading"
   });
-  const [subjectSearch, setSubjectSearch] = useState("");
   const [selectedSubjectUserId, setSelectedSubjectUserId] = useState("");
   const [selectedKey, setSelectedKey] = useState("");
   const [report, setReport] = useState<EvaluationReport | null>(null);
@@ -78,21 +77,12 @@ export function EvaluationReportsPanel({
 
   const targets = targetState.status === "ready" ? targetState.targets : [];
   const subjects = getReportSubjects(targets);
-  const visibleSubjects = filterReportSubjects(subjects, subjectSearch);
   const subjectTargets = targets.filter(
     (target) => target.subjectUserId === selectedSubjectUserId
   );
   const selectedTarget = subjectTargets.find(
     (target) => toTargetKey(target) === selectedKey
   );
-
-  function resetReportSelection() {
-    reportRequestIdRef.current += 1;
-    setSelectedKey("");
-    setReport(null);
-    setIsExampleReport(false);
-    setReportError(false);
-  }
 
   async function loadReport(target: EvaluationReportTarget | undefined) {
     if (!target) {
@@ -177,21 +167,7 @@ export function EvaluationReportsPanel({
       ) : null}
 
       {targetState.status === "ready" && targetState.targets.length > 0 ? (
-        <div className="surface-panel mt-4 grid gap-4 p-4 sm:p-5 xl:grid-cols-[minmax(12rem,0.7fr)_minmax(13rem,0.9fr)_minmax(15rem,1.2fr)_auto] xl:items-start">
-          <label className="grid gap-2 text-sm font-semibold text-slate-800">
-            {tr.reports.subjectSearchLabel}
-            <input
-              className="app-input text-sm font-normal"
-              onChange={(event) => {
-                setSubjectSearch(event.target.value);
-                setSelectedSubjectUserId("");
-                resetReportSelection();
-              }}
-              placeholder={tr.reports.subjectSearchPlaceholder}
-              type="search"
-              value={subjectSearch}
-            />
-          </label>
+        <div className="surface-panel mt-4 grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(14rem,0.9fr)_minmax(17rem,1.2fr)_auto] lg:items-start">
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
             {tr.reports.subjectLabel}
             <select
@@ -213,17 +189,12 @@ export function EvaluationReportsPanel({
               value={selectedSubjectUserId}
             >
               <option value="">{tr.reports.subjectPlaceholder}</option>
-              {visibleSubjects.map((subject) => (
+              {subjects.map((subject) => (
                 <option key={subject.subjectUserId} value={subject.subjectUserId}>
                   {formatSubjectOption(subject)}
                 </option>
               ))}
             </select>
-            {subjectSearch.trim().length > 0 && visibleSubjects.length === 0 ? (
-              <span className="font-normal leading-5 text-slate-500">
-                {tr.reports.subjectSearchEmpty}
-              </span>
-            ) : null}
           </label>
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
             {tr.reports.cycleLabel}
@@ -900,22 +871,6 @@ function getReportSubjects(
   return Array.from(subjects.values()).sort((left, right) =>
     formatSubjectOption(left).localeCompare(formatSubjectOption(right), "tr")
   );
-}
-
-function filterReportSubjects(
-  subjects: readonly ReportSubject[],
-  search: string
-): readonly ReportSubject[] {
-  const normalizedSearch = search.trim().toLocaleLowerCase("tr-TR");
-
-  if (!normalizedSearch) {
-    return subjects;
-  }
-
-  return subjects.filter((subject) => (
-    (subject.subjectDisplayName ?? "").toLocaleLowerCase("tr-TR").includes(normalizedSearch)
-    || subject.subjectEmail.toLocaleLowerCase("tr-TR").includes(normalizedSearch)
-  ));
 }
 
 function formatSubjectOption(subject: ReportSubject): string {

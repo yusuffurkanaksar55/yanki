@@ -158,7 +158,7 @@ export function AdministrationPage({
                   <button
                     aria-controls={`administration-panel-${module.id}`}
                     aria-selected={isActive}
-                    className={`flex min-h-11 shrink-0 items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-semibold transition focus-ring xl:w-full ${
+                    className={`flex h-11 w-44 shrink-0 items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-semibold transition focus-ring xl:w-full ${
                       isActive
                         ? "bg-emerald-50 text-pine"
                         : "text-slate-600 hover:bg-white hover:text-slate-950"
@@ -169,8 +169,13 @@ export function AdministrationPage({
                     role="tab"
                     type="button"
                   >
-                    <Icon aria-hidden="true" size={18} strokeWidth={1.8} />
-                    <span>{module.label}</span>
+                    <Icon
+                      aria-hidden="true"
+                      className="shrink-0"
+                      size={18}
+                      strokeWidth={1.8}
+                    />
+                    <span className="min-w-0 leading-5">{module.label}</span>
                   </button>
                 );
               })}

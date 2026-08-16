@@ -92,11 +92,16 @@ export type HierarchyAdministrationService = {
   readonly setUserContext: (
     draft: UserHierarchyContextDraft
   ) => Promise<HierarchyAdministrationData>;
+  readonly updateOrganizationName: (
+    organizationId: string,
+    name: string
+  ) => Promise<HierarchyAdministrationData>;
 };
 
 export type HierarchyAdministrationErrorCode =
   | "HIERARCHY_ADMINISTRATION_SESSION_REQUIRED"
   | "HIERARCHY_ADMINISTRATION_LIST_FAILED"
+  | "HIERARCHY_ORGANIZATION_NAME_UPDATE_FAILED"
   | "HIERARCHY_UNIT_SAVE_FAILED"
   | "HIERARCHY_CONTEXT_SAVE_FAILED"
   | "HIERARCHY_ROLE_ASSIGN_FAILED"
@@ -120,7 +125,9 @@ export const browserHierarchyAdministrationService: HierarchyAdministrationServi
     getDefaultService().endRole(organizationId, roleAssignmentId),
   list: () => getDefaultService().list(),
   saveUnit: (draft) => getDefaultService().saveUnit(draft),
-  setUserContext: (draft) => getDefaultService().setUserContext(draft)
+  setUserContext: (draft) => getDefaultService().setUserContext(draft),
+  updateOrganizationName: (organizationId, name) =>
+    getDefaultService().updateOrganizationName(organizationId, name)
 };
 
 export function createSupabaseHierarchyAdministrationService(
@@ -154,6 +161,14 @@ export function createSupabaseHierarchyAdministrationService(
       client,
       { action: "set_user_hierarchy_context", payload: draft },
       "HIERARCHY_CONTEXT_SAVE_FAILED"
+    ),
+    updateOrganizationName: (organizationId, name) => invokeForData(
+      client,
+      {
+        action: "update_organization_name",
+        payload: { name, organizationId }
+      },
+      "HIERARCHY_ORGANIZATION_NAME_UPDATE_FAILED"
     )
   };
 }

@@ -1,5 +1,128 @@
 # Error Log
 
+## ERR-20260816-078 - Report search removal left an unused reset helper
+
+### Context
+
+The redundant person-search field and its related state were removed from the reporting panel.
+
+### Symptoms
+
+ESLint rejected the panel because the old `resetReportSelection` helper was no longer referenced.
+
+### Root cause
+
+The helper previously served the search-change handler; all remaining report-selection handlers already perform their own explicit state reset.
+
+### Correct solution
+
+Remove the obsolete helper and retain the existing explicit reset behavior in person and cycle selection handlers.
+
+### Prevention
+
+Run lint immediately after deleting a UI interaction and its state so now-unreachable helpers are found before the full quality gate.
+
+### Related files
+
+- `src/features/reporting/EvaluationReportsPanel.tsx`
+
+### Related tests
+
+- `npm run lint`
+- `npm run check`
+
+## ERR-20260816-077 - Supabase CLI telemetry write was blocked by the workspace sandbox
+
+### Context
+
+Local and linked Supabase validation commands were run from the restricted workspace environment.
+
+### Symptoms
+
+The CLI stopped while trying to create telemetry state under the user profile, outside the writable repository roots.
+
+### Root cause
+
+The command required a non-product write to the Supabase CLI telemetry directory; the database, migration, and application paths were not failing.
+
+### Correct solution
+
+Repeat the unchanged reviewed Supabase CLI command with the existing scoped execution approval. Local lint, pgTAP, linked migration push, migration history, and function deployment then completed normally.
+
+### Prevention
+
+Treat user-profile telemetry writes as a tooling boundary and keep escalation scoped to exact Supabase commands. Do not broaden repository or credential permissions.
+
+### Related files
+
+- `supabase/config.toml`
+
+### Related tests
+
+- `npm run supabase:lint:local`
+- `npm run supabase:test:local`
+- `npx supabase db push --linked --include-all --yes`
+
+## ERR-20260816-076 - Linked migration push reported a pg-delta cache certificate warning
+
+### Context
+
+The organization-name migration was applied to the linked synthetic development project.
+
+### Symptoms
+
+After applying the migration successfully, the CLI warned that a pg-delta catalog cache certificate file was unavailable.
+
+### Root cause
+
+The optional local pg-delta catalog cache could not read its generated target certificate. The migration command exited successfully and did not report a PostgreSQL migration failure.
+
+### Correct solution
+
+Confirm the exact migration in linked migration history. Both local and remote histories contain `20260816130000`, and the dependent Edge Function deployed successfully.
+
+### Prevention
+
+Always verify linked migration history after a successful push that emits a post-apply cache warning, and update the Supabase CLI before production rollout if the warning persists.
+
+### Related files
+
+- `supabase/migrations/20260816130000_organization_name_administration.sql`
+
+### Related tests
+
+- `npx supabase migration list --linked`
+
+## ERR-20260816-075 - E2E cleanup rejected an intentionally renamed synthetic tenant
+
+### Context
+
+The critical lifecycle changed its synthetic organization name to test the new administration workflow.
+
+### Symptoms
+
+The product workflow passed, but strict cleanup refused to remove the fixture because its name no longer exactly matched the recognized `Yanki E2E <run-id>` format.
+
+### Root cause
+
+The cleanup fail-safe correctly protects any organization whose identity changes from the exact synthetic fixture convention.
+
+### Correct solution
+
+Restore the exact original synthetic name through the tested UI before cleanup. Restore the one pre-fix local fixture by exact id/name and rerun the lifecycle; cleanup then removed all synthetic tenant and user data.
+
+### Prevention
+
+Tests that exercise mutable fixture identity must restore the exact synthetic convention before invoking destructive cleanup. Keep the cleanup predicate strict.
+
+### Related files
+
+- `tests/e2e/critical-lifecycle.e2e.ts`
+
+### Related tests
+
+- `npm run e2e:local`
+
 ## ERR-20260816-074 - First focused npx test wrapper did not return a final result
 
 ### Context
@@ -197,132 +320,6 @@ Keep backend composite identifiers inside service/UI state. User-facing report c
 - `src/features/reporting/EvaluationReportsPanel.test.tsx`
 - `npm run e2e:local`
 - `npm run e2e:container:local`
-
-## ERR-20260810-068 - Partial local Supabase restart left the API unavailable
-
-### Context
-
-The local PostgreSQL container had exited with code `137` before the qualitative-report E2E run.
-
-### Symptoms
-
-Starting only `supabase_db_anonim_degerlendirme` made PostgreSQL healthy, but `supabase status` returned only `DB_URL`; the E2E harness then failed because `API_URL` was missing.
-
-### Root cause
-
-The database was restarted independently while Kong, Auth, REST, Functions, and the other local Supabase services remained stopped. The CLI correctly detected a partially running stack but did not reconstruct it during the first status call.
-
-### Correct solution
-
-Run a data-preserving `npx supabase stop` followed by `npx supabase start` so the saved local volume is reused and the full dependency set is recreated. Then rerun the unchanged E2E command.
-
-### Prevention
-
-After exit `137`, inspect the database health and Docker pressure, then prefer one data-preserving full-stack restart over manually starting a single service. Do not reset or delete local volumes unless corruption is independently proven.
-
-### Related files
-
-- `scripts/run-local-e2e.mjs`
-
-### Related tests
-
-- `npm run e2e:local`
-- `npm run e2e:container:local`
-
-## ERR-20260810-067 - Dashboard test assumed profile identity appeared once
-
-### Context
-
-The personal organization hierarchy began showing the signed-in person's display name and email in addition to the persistent account summary.
-
-### Symptoms
-
-The first full Vitest run failed because `getByText()` found two valid occurrences of the same profile name and email.
-
-### Root cause
-
-The old test encoded a uniqueness assumption that was no longer true after the hierarchy became a complete organization-to-person path.
-
-### Correct solution
-
-Assert both semantic occurrences with `getAllByText()` while retaining the hierarchy heading and membership assertions.
-
-### Prevention
-
-When identity data is intentionally repeated in separate accessible regions, scope queries to a region or assert the expected count rather than relying on global uniqueness.
-
-### Related files
-
-- `src/app/App.test.tsx`
-- `src/features/dashboard/DashboardPage.tsx`
-
-### Related tests
-
-- `npm test`
-
-## ERR-20260810-066 - Assignment and report hashes fell through to the public site
-
-### Context
-
-Authenticated users selected the assignment or report item from the application navigation.
-
-### Symptoms
-
-Both `#assignments` and `#reports` displayed the public Yankı product page instead of the requested protected workspace view. The old dashboard also stacked every assignment and report target into one long page, making existing aggregate results difficult to find.
-
-### Root cause
-
-The application navigation emitted both hashes, but the root hash parser recognized only `#dashboard`, `#administration`, and `#login`. Every unknown hash intentionally resolved to the marketing route.
-
-### Correct solution
-
-Add explicit protected routes for assignments and reports, pass the active view into the authenticated dashboard shell, render each workflow as a dedicated page, and add route regression tests. Keep the public fallback for genuinely unknown marketing hashes.
-
-### Prevention
-
-Every application navigation destination must have an App-level route test that asserts the protected heading, active navigation state, and absence of marketing fallback behavior. The critical Playwright lifecycle must enter assignment and report workflows through their real hashes.
-
-### Related files
-
-- `src/app/App.tsx`
-- `src/features/dashboard/DashboardPage.tsx`
-- `tests/e2e/critical-lifecycle.e2e.ts`
-
-### Related tests
-
-- `src/app/App.test.tsx`
-- `npm run e2e:local`
-- `npm run e2e:container:local`
-
-## ERR-20260810-065 - Supabase CLI telemetry write was blocked by the workspace sandbox
-
-### Context
-
-The first post-cleanup `npm run e2e:local` invocation started Supabase CLI from the restricted workspace execution boundary.
-
-### Symptoms
-
-`supabase status` stopped before tests with `EPERM` while creating a temporary telemetry file under the user's `.supabase` directory outside the writable workspace.
-
-### Root cause
-
-The CLI writes its own telemetry state in the user profile even though the requested status operation is read-only for the project. The repository sandbox intentionally cannot write there.
-
-### Correct solution
-
-Rerun the unchanged repository command in the approved local Supabase execution boundary. Do not broaden application filesystem permissions or redirect telemetry into source.
-
-### Prevention
-
-Treat this exact user-profile telemetry error as an execution-boundary issue, keep E2E service URLs loopback-only, and request the narrow `npm run e2e:local` approval when required.
-
-### Related files
-
-- `scripts/run-local-e2e.mjs`
-
-### Related tests
-
-- `npm run e2e:local`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

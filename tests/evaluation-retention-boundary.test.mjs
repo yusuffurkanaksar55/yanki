@@ -10,6 +10,13 @@ const functionSource = read(
   "supabase/functions/evaluation-retention-administration/index.ts"
 );
 const operatorSource = read("scripts/run-evaluation-retention.mjs");
+const serviceSource = read(
+  "deploy/retention/yanki-evaluation-retention.service"
+);
+const timerSource = read(
+  "deploy/retention/yanki-evaluation-retention.timer"
+);
+const environmentExample = read("deploy/retention/operator.env.example");
 
 describe("evaluation content retention boundary", () => {
   it("repeats active system-admin and tenant-scope checks in Edge and PostgreSQL", () => {
@@ -55,6 +62,21 @@ describe("evaluation content retention boundary", () => {
     expect(operatorSource).toMatch(/RUN_DUE_EVALUATION_RETENTION/u);
     expect(operatorSource).toMatch(/SUPABASE_SERVICE_ROLE_KEY/u);
     expect(operatorSource).not.toMatch(/VITE_SUPABASE_SERVICE_ROLE_KEY/u);
+  });
+
+  it("provides a hardened persistent daily production scheduler", () => {
+    expect(serviceSource).toMatch(/User=yanki-retention/u);
+    expect(serviceSource).toMatch(/EnvironmentFile=\/etc\/yanki\/retention\.env/u);
+    expect(serviceSource).toMatch(/NoNewPrivileges=true/u);
+    expect(serviceSource).toMatch(/ProtectSystem=strict/u);
+    expect(serviceSource).toMatch(/npm run retention:run/u);
+    expect(timerSource).toMatch(/OnCalendar=\*-\*-\* 02:15:00/u);
+    expect(timerSource).toMatch(/Persistent=true/u);
+    expect(timerSource).toMatch(/RandomizedDelaySec=15m/u);
+    expect(environmentExample).toMatch(
+      /EVALUATION_RETENTION_EXECUTION_CONFIRM=RUN_DUE_EVALUATION_RETENTION/u
+    );
+    expect(environmentExample).not.toMatch(/VITE_/u);
   });
 });
 

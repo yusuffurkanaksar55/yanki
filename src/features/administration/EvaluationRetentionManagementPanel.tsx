@@ -231,7 +231,7 @@ export function EvaluationRetentionManagementPanel({
             </label>
           </div>
 
-          <div className="border-l-2 border-slate-200 px-4 py-1">
+          <div className="border-t border-slate-200 pt-5 lg:border-l lg:border-t-0 lg:py-1 lg:pl-6">
             <h3 className="text-base font-semibold text-slate-900">
               {tr.administration.retention.status.title}
             </h3>

@@ -1,0 +1,24 @@
+[Unit]
+Description=Yanki encrypted evaluation content retention
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=yanki-retention
+Group=yanki-retention
+WorkingDirectory=/opt/yanki/current
+EnvironmentFile=/etc/yanki/retention.env
+Environment=NPM_CONFIG_CACHE=/var/cache/yanki-retention/npm
+Environment=NPM_CONFIG_UPDATE_NOTIFIER=false
+UMask=0077
+CacheDirectory=yanki-retention/npm
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ExecStart=/usr/bin/npm run retention:run
+
+[Install]
+WantedBy=multi-user.target

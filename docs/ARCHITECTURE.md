@@ -113,7 +113,7 @@ Encryption key rotation is additive. Trusted Functions merge the legacy JSON key
 
 `organization_evaluation_retention_policies` stores tenant configuration only: retention days, automatic-purge state, legal hold, policy version, and content-free run metadata. The browser has no direct table access. `evaluation-retention-administration` authenticates an active system administrator, limits organizations by platform or exact tenant scope, and delegates updates to a service-role-only function that repeats authorization.
 
-Destructive execution is not exposed to the browser. A portable operator command calls `execute_due_evaluation_content_retention()` with the server-only service role. The database serializes runs, skips disabled and legally held policies, and deletes only expired `encrypted_evaluation_submissions` rows. It returns the number of organization policies processed, never submission/deletion counts or content. Live deletion does not erase existing backups; backup retention and key custody remain separate infrastructure controls.
+Destructive execution is not exposed to the browser. A portable operator command calls `execute_due_evaluation_content_retention()` with the server-only service role. The database serializes runs, skips disabled and legally held policies, and deletes only expired `encrypted_evaluation_submissions` rows. It returns the number of organization policies processed, never submission/deletion counts or content. `deploy/retention` supplies a hardened dedicated-user systemd service and persistent daily timer; activating that scheduler remains an environment operation. Live deletion does not erase existing backups; backup retention and key custody remain separate infrastructure controls.
 
 The backup/restore acceptance command streams a compressed dump directly from the local Supabase database container into a guarded `_restore_acceptance` database. It records only stream size/hash and boolean checks, writes no dump file to host storage, verifies migrations plus content/retention/recovery-canary privilege boundaries, and removes the temporary database in a `finally` path.
 
@@ -211,6 +211,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Invitation acceptance migration: `supabase/migrations/20260720232000_user_invitation_acceptance_flow.sql`
 - Invitation acceptance revalidation migration: `supabase/migrations/20260720234500_invitation_acceptance_context_revalidation.sql`
 - Organization administration migration: `supabase/migrations/20260722210000_hierarchy_administration_foundation.sql`
+- Organization-name administration migration: `supabase/migrations/20260816130000_organization_name_administration.sql`
 - Hierarchy context hardening migration: `supabase/migrations/20260722223000_hierarchy_context_integrity_hardening.sql`
 - Setup notes: `docs/SUPABASE_SETUP.md`
 - Demo fixture notes: `docs/TEST_FIXTURES.md`

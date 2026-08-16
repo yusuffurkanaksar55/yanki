@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { tr } from "../../locales/tr/messages";
 import type { WorkspaceContext } from "../workspace/workspaceContextService";
 import {
@@ -354,6 +355,7 @@ function QuestionEditor({
   readonly question: QuestionFormState;
 }) {
   const hasOptions = optionQuestionTypes.includes(question.questionType);
+  const optionRows = hasOptions ? toOptionRows(question.optionsText) : [];
 
   return (
     <fieldset className="py-5">
@@ -406,24 +408,91 @@ function QuestionEditor({
         </label>
       </div>
       {hasOptions ? (
-        <label className="mt-4 block text-sm font-semibold text-slate-800">
-          {tr.administration.templates.form.options}
-          <textarea
-            aria-describedby={`question-options-hint-${question.localId}`}
-            className="mt-2 min-h-24 w-full resize-y rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-normal text-slate-900 shadow-sm focus:border-pine focus:outline-none focus:ring-2 focus:ring-pine/20"
-            onChange={(event) => {
-              onChange({ ...question, optionsText: event.currentTarget.value });
-            }}
-            required
-            value={question.optionsText}
-          />
-          <span
-            className="mt-1 block text-xs font-normal text-slate-500"
+        <div className="mt-4 border-y border-slate-200 bg-slate-50 px-3 py-4 sm:px-4">
+          <p className="text-sm font-semibold text-slate-800">
+            {tr.administration.templates.form.options}
+          </p>
+          <p
+            className="mt-1 text-xs font-normal leading-5 text-slate-500"
             id={`question-options-hint-${question.localId}`}
           >
             {tr.administration.templates.form.optionsHint}
-          </span>
-        </label>
+          </p>
+          <div className="mt-3 grid gap-2">
+            {optionRows.map((option, optionIndex) => {
+              const optionNumber = optionIndex + 1;
+              const optionLabel = tr.administration.templates.form.optionLabel
+                .replace("{number}", String(optionNumber));
+              const removeLabel = tr.administration.templates.form.removeOption
+                .replace("{number}", String(optionNumber));
+
+              return (
+                <div
+                  className="grid min-w-0 grid-cols-[2rem_minmax(0,1fr)_2.5rem] items-center gap-2"
+                  key={`${question.localId}-option-${optionIndex}`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="flex h-10 items-center justify-center rounded-md bg-white text-xs font-bold text-slate-500 ring-1 ring-slate-200"
+                  >
+                    {optionNumber}
+                  </span>
+                  <label className="min-w-0">
+                    <span className="sr-only">{optionLabel}</span>
+                    <input
+                      aria-describedby={`question-options-hint-${question.localId}`}
+                      aria-label={optionLabel}
+                      className="app-input min-w-0 text-sm font-normal"
+                      maxLength={200}
+                      onChange={(event) => {
+                        const nextOptions = [...optionRows];
+                        nextOptions[optionIndex] = event.currentTarget.value;
+                        onChange({
+                          ...question,
+                          optionsText: nextOptions.join("\n")
+                        });
+                      }}
+                      placeholder={tr.administration.templates.form.optionPlaceholder}
+                      required
+                      type="text"
+                      value={option}
+                    />
+                  </label>
+                  <button
+                    aria-label={removeLabel}
+                    className="icon-button border-slate-200 bg-white text-red-700 hover:border-red-200 hover:bg-red-50 hover:text-red-900"
+                    disabled={optionRows.length <= 2}
+                    onClick={() => {
+                      onChange({
+                        ...question,
+                        optionsText: optionRows
+                          .filter((_, rowIndex) => rowIndex !== optionIndex)
+                          .join("\n")
+                      });
+                    }}
+                    title={removeLabel}
+                    type="button"
+                  >
+                    <Trash2 aria-hidden="true" size={17} strokeWidth={1.8} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+          <button
+            className="mt-3 inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-pine hover:text-pine focus-ring"
+            onClick={() => {
+              onChange({
+                ...question,
+                optionsText: [...optionRows, ""].join("\n")
+              });
+            }}
+            type="button"
+          >
+            <Plus aria-hidden="true" size={17} strokeWidth={1.8} />
+            {tr.administration.templates.form.addOption}
+          </button>
+        </div>
       ) : null}
       <button
         className="mt-3 text-sm font-semibold text-red-700 transition hover:text-red-900 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2"
@@ -651,6 +720,16 @@ function createQuestionFormState(): QuestionFormState {
     prompt: "",
     questionType: "RATING_1_TO_5"
   };
+}
+
+function toOptionRows(optionsText: string): string[] {
+  const rows = optionsText.split("\n");
+
+  while (rows.length < 2) {
+    rows.push("");
+  }
+
+  return rows;
 }
 
 function toFormState(

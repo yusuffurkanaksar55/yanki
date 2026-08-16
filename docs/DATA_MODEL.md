@@ -68,6 +68,7 @@ Implemented foundation functions:
 - `get_my_evaluation_assignments()`
 - `accept_user_invitation()`
 - `require_active_system_admin()`
+- `admin_update_organization_name()`
 - `admin_upsert_organization_unit()`
 - `admin_set_user_hierarchy_context()`
 - `admin_assign_user_role()`
@@ -104,7 +105,7 @@ API privileges for the identity domain are versioned explicitly. `authenticated`
 
 `bootstrap_organization_tenant()` serializes provisioning, validates normalized input and the exact Auth user email/server-controlled request marker, rejects preconfigured identities and duplicate tenant slugs, and atomically creates the organization, initial unit, invited administrator profile, organization-scoped system-admin invitation, default retention policy, operation record, and content-free audit event. `get_tenant_bootstrap_operation()` supports exact idempotent status checks. `renew_tenant_bootstrap_invitation()` can extend only an unaccepted and unrevoked initial invitation for the same request/fingerprint. All three functions are service-role-only.
 
-`organizations` stores configurable company roots.
+`organizations` stores configurable company roots. `admin_update_organization_name()` changes only the normalized display name for an active tenant after repeating platform or exact-organization system-administrator authorization; the stable slug is unchanged and the audit metadata contains no name or evaluation data.
 
 `organization_units` stores departments, units, teams, and custom hierarchy nodes under an organization.
 
@@ -112,7 +113,7 @@ API privileges for the identity domain are versioned explicitly. `authenticated`
 
 `manager_assignments` stores direct manager, functional manager, and executive sponsor relationships.
 
-The service-role-only organization-administration functions mutate units, primary memberships, direct-manager relationships, and manageable scoped roles atomically. They emit safe identity-domain audit metadata and do not access evaluation content.
+The service-role-only organization-administration functions mutate the organization display name, units, primary memberships, direct-manager relationships, and manageable scoped roles atomically. They emit safe identity-domain audit metadata and do not access evaluation content.
 
 `projects` stores identity-domain project metadata, including project manager, status, and optional start/completion dates.
 

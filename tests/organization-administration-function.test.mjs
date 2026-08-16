@@ -13,6 +13,10 @@ const integrityMigrationSource = await readFile(
   "supabase/migrations/20260722223000_hierarchy_context_integrity_hardening.sql",
   "utf8"
 );
+const organizationNameMigrationSource = await readFile(
+  "supabase/migrations/20260816130000_organization_name_administration.sql",
+  "utf8"
+);
 const serviceSource = await readFile(
   "src/features/administration/hierarchyAdministrationService.ts",
   "utf8"
@@ -33,11 +37,18 @@ describe("organization administration trusted boundary", () => {
     expect(functionSource).toMatch(/"admin_set_user_hierarchy_context"/);
     expect(functionSource).toMatch(/\.rpc\("admin_assign_user_role"/);
     expect(functionSource).toMatch(/\.rpc\("admin_end_user_role"/);
+    expect(functionSource).toMatch(/\.rpc\("admin_update_organization_name"/);
     expect(migrationSource).toMatch(
       /revoke all on function public\.admin_upsert_organization_unit[\s\S]*from public, anon, authenticated/
     );
     expect(migrationSource).toMatch(
       /grant execute on function public\.admin_end_user_role\(uuid, uuid, uuid\)[\s\S]*to service_role/
+    );
+    expect(organizationNameMigrationSource).toMatch(
+      /revoke all on function public\.admin_update_organization_name[\s\S]*from public, anon, authenticated/
+    );
+    expect(organizationNameMigrationSource).toMatch(
+      /grant execute on function public\.admin_update_organization_name[\s\S]*to service_role/
     );
     expect(serviceSource).toMatch(
       /functions\.invoke\(\s*"organization-administration"/
@@ -64,6 +75,9 @@ describe("organization administration trusted boundary", () => {
       /add column\s+(score|comment|lesson|ciphertext|encrypted_payload|submission_content)\b/i
     );
     expect(integrityMigrationSource).not.toMatch(
+      /add column\s+(score|comment|lesson|ciphertext|encrypted_payload|submission_content)\b/i
+    );
+    expect(organizationNameMigrationSource).not.toMatch(
       /add column\s+(score|comment|lesson|ciphertext|encrypted_payload|submission_content)\b/i
     );
     expect(functionSource).not.toMatch(

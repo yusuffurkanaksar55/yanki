@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Yanki evaluation content retention daily
+
+[Timer]
+OnCalendar=*-*-* 02:15:00
+Persistent=true
+RandomizedDelaySec=15m
+Unit=yanki-evaluation-retention.service
+
+[Install]
+WantedBy=timers.target

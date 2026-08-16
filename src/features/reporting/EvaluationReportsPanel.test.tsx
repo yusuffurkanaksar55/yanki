@@ -66,7 +66,7 @@ describe("EvaluationReportsPanel", () => {
     expect(service.getReport).toHaveBeenCalledTimes(1);
   });
 
-  it("filters report targets by evaluated person before cycle selection", async () => {
+  it("lists every evaluated person directly before cycle selection", async () => {
     const ahmetTarget = createTarget({
       evaluationCycleId: "ahmet-cycle-id",
       evaluationCycleName: "Proje Sonu Değerlendirmesi",
@@ -83,12 +83,8 @@ describe("EvaluationReportsPanel", () => {
     render(<EvaluationReportsPanel service={service} />);
 
     await screen.findByRole("option", { name: /Takım Lideri/ });
-    await user.type(
-      screen.getByLabelText(tr.reports.subjectSearchLabel),
-      "Ahmet"
-    );
-
-    expect(screen.queryByRole("option", { name: /Takım Lideri/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /Ahmet Yılmaz/ })).toBeInTheDocument();
+    expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
     await user.selectOptions(
       screen.getByLabelText(tr.reports.subjectLabel),
       "ahmet-id"

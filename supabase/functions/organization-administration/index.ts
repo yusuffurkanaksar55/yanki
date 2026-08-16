@@ -106,7 +106,14 @@ Deno.serve(async (request) => {
       return jsonResponse({ error: "ADMINISTRATION_SCOPE_DENIED" }, 403);
     }
 
-    if (body.action === "save_organization_unit") {
+    if (body.action === "update_organization_name") {
+      await updateOrganizationName(
+        serviceClient,
+        userData.user.id,
+        organizationId,
+        readOrganizationName(payload.name)
+      );
+    } else if (body.action === "save_organization_unit") {
       await saveOrganizationUnit(
         serviceClient,
         userData.user.id,
@@ -415,6 +422,23 @@ async function saveOrganizationUnit(
   }
 }
 
+async function updateOrganizationName(
+  serviceClient: ReturnType<typeof createClient>,
+  actorUserId: string,
+  organizationId: string,
+  name: string
+) {
+  const { error } = await serviceClient.rpc("admin_update_organization_name", {
+    actor_user_id: actorUserId,
+    managed_organization_id: organizationId,
+    organization_name: name
+  });
+
+  if (error) {
+    throwDatabaseError(error.message);
+  }
+}
+
 async function setUserHierarchyContext(
   serviceClient: ReturnType<typeof createClient>,
   actorUserId: string,
@@ -517,6 +541,16 @@ function parseUnitRequest(
   };
 }
 
+function readOrganizationName(value: unknown): string {
+  const name = readString(value).trim();
+
+  if (name.length < 2 || name.length > 120) {
+    throw new RequestValidationError("ORGANIZATION_NAME_INVALID");
+  }
+
+  return name;
+}
+
 function parseHierarchyContextRequest(
   value: Record<string, unknown>,
   organizationId: string
@@ -586,6 +620,7 @@ function throwDatabaseError(message: string): never {
   const knownCodes = [
     "ADMINISTRATION_SCOPE_DENIED",
     "ORGANIZATION_NOT_ACTIVE",
+    "ORGANIZATION_NAME_INVALID",
     "UNIT_NAME_INVALID",
     "UNIT_TYPE_INVALID",
     "UNIT_STATUS_INVALID",

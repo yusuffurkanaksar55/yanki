@@ -1276,6 +1276,14 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_update_organization_name: {
+        Args: {
+          actor_user_id: string
+          managed_organization_id: string
+          organization_name: string
+        }
+        Returns: Json
+      }
       admin_update_project_dates: {
         Args: {
           actor_user_id: string

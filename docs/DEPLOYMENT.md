@@ -195,8 +195,9 @@ The recovery command refuses accepted, revoked, unknown, or fingerprint-mismatch
 
 - Configure policies only through the authenticated administration UI or reviewed trusted boundary. The default is 730 days with automatic purge disabled; the supported range is 30 to 3650 days.
 - Legal hold always prevents operator cleanup for the tenant, even when automatic purge is enabled.
-- Copy `.env.operator.example` to ignored `.env.operator.local`, replace placeholders through the approved secret channel, and run `npm run retention:run` only in a trusted server/runner. Never place these values in frontend runtime configuration.
-- Schedule the command at least daily in SaaS operations or the customer-controlled cron/Task Scheduler. Alert on command failure, not on deleted-row counts.
+- For a manual trusted run, copy `.env.operator.example` to ignored `.env.operator.local`, replace placeholders through the approved secret channel, and run `npm run retention:run`. Never place these values in frontend runtime configuration.
+- For Linux production scheduling, create the locked `yanki-retention` service account, copy `deploy/retention/operator.env.example` to `/etc/yanki/retention.env` with root ownership and mode `0600`, then install `yanki-evaluation-retention.service` and `.timer` under `/etc/systemd/system`. Run `systemctl daemon-reload` and `systemctl enable --now yanki-evaluation-retention.timer`; verify the next trigger with `systemctl list-timers yanki-evaluation-retention.timer` and test the service with synthetic expired ciphertext before live use.
+- The provided timer runs daily at 02:15 host time, catches up after downtime, and adds up to 15 minutes of randomized delay. Customer-controlled cron/Task Scheduler may reproduce the same daily command and secret boundary. Alert on service failure, not on deleted-row counts.
 - The operator response contains the execution date and number of organization policies processed only. It does not contain submission/deletion counts or content.
 - A live-database purge does not remove retained backups. Document backup expiry separately and retain historical encryption keys until every applicable backup window has ended.
 
