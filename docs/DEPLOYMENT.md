@@ -73,6 +73,27 @@ The validator never runs `plan` or `apply`. Before cloud creation, operators mus
 
 Host creation alone is not staging approval. DNS/TLS, the pinned Supabase stack, the signed Yanki image, independent non-production secrets, private internal ports, SMTP, monitoring, capacity, backup, and isolated recovery acceptance must still pass before a release tag or live employee data.
 
+## AWS Development HTTPS Ingress
+
+`deploy/aws-development` connects the production frontend container to the canonical AWS self-hosted development stack through one public HTTPS origin. Caddy terminates TLS and forwards application traffic to Nginx; Nginx serves the SPA and proxies `/supabase` to the internal Supabase gateway. Browser configuration contains only the same-origin `/supabase` URL and public anon key. The service-role key, database credentials, evaluation keys, and sensitive gateway token remain server-only.
+
+The deployment override replaces public Supabase API, PostgreSQL, and transaction-pooler bindings with loopback-only bindings. Only TCP 80 and 443 are published by the web proxy. Functions require the same random sensitive-route token that Nginx injects for anonymous credential and submission requests, so direct calls to those Functions fail closed.
+
+The current AWS development hostname, `18-194-171-29.sslip.io`, is a temporary synthetic-development endpoint. It is not an approved production domain or customer-facing identity. Replace it with reviewed DNS, certificate, WAF/load-balancer, monitoring, and production secret custody before live employee data.
+
+From a clean repository checkout on the AWS host, run:
+
+```bash
+sudo env \
+  AWS_DEVELOPMENT_WEB_CONFIRM=CONFIGURE_AWS_DEVELOPMENT_WEB \
+  YANKI_PUBLIC_HOST=18-194-171-29.sslip.io \
+  YANKI_APP_SOURCE_DIR=/home/ubuntu/yanki-app \
+  YANKI_SUPABASE_DIR=/home/ubuntu/yanki-supabase \
+  sh deploy/aws-development/configure.sh
+```
+
+The script refuses to continue unless `yanki-backup.service` succeeds. It takes a mode-`0600` pre-change environment snapshot, generates or reuses the server-only gateway token without printing it, updates the self-hosted public/Auth URLs, validates the merged Compose model, builds the checked-out frontend revision, starts the proxy path, and waits for HTTPS health. It performs no migration or application-data mutation. Detailed preconditions and acceptance commands are in `deploy/aws-development/README.md`.
+
 ## Local Browser Acceptance
 
 Keep Docker Desktop and the local Supabase stack running, install Chromium once with `npm run e2e:install`, then execute:

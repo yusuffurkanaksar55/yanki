@@ -1,0 +1,15 @@
+{
+  admin off
+  persist_config off
+}
+
+{$YANKI_PUBLIC_HOST} {
+  encode zstd gzip
+
+  header {
+    -Server
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  }
+
+  reverse_proxy yanki-web:8080
+}

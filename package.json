@@ -56,6 +56,8 @@
     "smoke:project-dates": "node scripts/smoke-project-date-administration.mjs",
     "smoke:self-hosted:edge": "node --env-file-if-exists=.env.local --env-file-if-exists=.env.operator.local scripts/verify-self-hosted-edge-functions-acceptance.mjs",
     "smoke:self-hosted:submission": "node --env-file-if-exists=.env.local --env-file-if-exists=.env.operator.local scripts/verify-self-hosted-anonymous-submission-acceptance.mjs",
+    "smoke:aws-development:web": "node --env-file-if-exists=.env.local --env-file-if-exists=.env.operator.local scripts/verify-aws-development-web-acceptance.mjs",
+    "e2e:aws-development:web": "playwright test tests/e2e/public-accessibility.e2e.ts",
     "supabase:migrations": "npx supabase migration list",
     "supabase:lint:linked": "npx supabase db lint --linked",
     "supabase:lint:local": "npx supabase db lint --local",
