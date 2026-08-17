@@ -26,6 +26,8 @@ The first production-like staging host is defined in `deploy/staging/aws` as an 
 
 The existing canonical AWS development host uses `deploy/aws-development` as an environment-specific Compose overlay. Caddy is the only public listener, Nginx serves the SPA and same-origin `/supabase` gateway, and the Supabase API/PostgreSQL/pooler host bindings are loopback-only. Internal and public TLS/browser/direct-denial acceptance passed on 2026-08-18 after the separately managed Security Group allowed only TCP 80/443. This development host does not replace the isolated OpenTofu staging design or production approval.
 
+Environment promotion is one-way: repository feature work -> canonical AWS DEV -> isolated STAGING -> controlled PRODUCTION. The same migrations and release artifacts move forward; production does not receive ad hoc SQL or interactive feature development. Breaking schema work uses an expand/deploy/migrate/contract transition where practical. See ADR-0037.
+
 ## Runtime Configuration
 
 `/app-config.js` is loaded before the Vite bundle. A container entrypoint writes only the public Supabase URL and anon or publishable key. Local Vite development falls back to `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. A partial runtime configuration is rejected to prevent accidental mixing between customer and build-time environments.

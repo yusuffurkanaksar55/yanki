@@ -82,7 +82,7 @@ Before contracts claim that customer data stays in Turkiye, record and approve t
 
 | Environment | Data | Supabase | Secrets | Access |
 | --- | --- | --- | --- | --- |
-| Development | Synthetic only | Managed development project or local Docker | Developer-local values | Developers |
+| Development | Synthetic only; migrated records preserved | Canonical AWS self-hosted stack | AWS development-only server secrets | Developers through public HTTPS and trusted operator tunnel |
 | Staging | Synthetic production-like fixtures | Isolated self-hosted stack | Independent non-production keys | Restricted team and CI |
 | Production | Approved customer data | Isolated production self-hosted stack | Production secret manager/KMS and independently escrowed evaluation keys | Named operators only |
 
@@ -99,6 +99,8 @@ The repository now pins the official Supabase Docker source in `deploy/staging/s
 The account-neutral host layer is now reproducible in `deploy/staging/aws`: OpenTofu is checksum-pinned, the AWS provider is locked, the host uses SSM instead of inbound SSH, only public web ingress is defined, IMDSv2 and KMS-encrypted storage are required, and cloud-init contains no application secret. Local format/provider/configuration validation passed on 2026-08-16. No AWS account plan or resource apply has occurred, so this closes only the infrastructure-definition substep, not the production-like staging gate.
 
 The existing AWS development host gained a backup-first production Nginx/Caddy web layer on 2026-08-18. Same-origin Auth, required gateway-token forwarding, direct sensitive-route denial, request-body limits, loopback-only internal ports, valid public TLS, security headers, Chromium accessibility/responsive checks, container health, and data preservation passed internal and external acceptance. The separately managed Security Group exposes only TCP 80/443 for the web path. This synthetic development evidence does not close the isolated production-like staging or production gate.
+
+Environment promotion follows ADR-0037: routine feature work and forward migrations are completed and tested in canonical AWS DEV, the exact repository artifacts are rehearsed in isolated STAGING, and only accepted artifacts are deployed to PRODUCTION after backup and controlled approval. Production secrets stay outside the normal Codex workspace, and breaking schema evolution uses an expand/deploy/migrate/contract sequence when practical.
 
 ## Priority Plan
 

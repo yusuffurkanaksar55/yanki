@@ -8,6 +8,7 @@ All notable changes to this project are documented in this file.
 
 - Added the AWS development production-frontend package with digest-pinned Caddy TLS termination, same-origin Supabase routing, guarded backup-first configuration, and repeatable public acceptance commands.
 - Added deployment regression coverage and a restrictive Content Security Policy for the production Nginx runtime.
+- Added ADR-0037 and permanent repository operating rules for canonical AWS DEV, protected migrated data, forward-only migrations, routine development autonomy, gated environment promotion, and production stop conditions.
 
 ### Changed
 

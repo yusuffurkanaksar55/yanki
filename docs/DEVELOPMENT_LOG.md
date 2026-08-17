@@ -1,5 +1,41 @@
 # Development Log
 
+## 2026-08-18 - Canonical AWS Development And Gated Promotion Policy
+
+### Objective
+
+Make the accepted AWS self-hosted environment and the DEV-to-STAGING-to-PRODUCTION delivery model the permanent operating contract for future repository work.
+
+### Changes
+
+- Expanded `AGENTS.md` with the accepted HTTPS/network/security baseline, synthetic-only data rule, protected migrated-data inventory, active development key identifier boundary, exact migration baseline, routine DEV autonomy, test strategy, stop conditions, and required completion report.
+- Corrected the development environment model so canonical AWS self-hosted Supabase replaces the obsolete managed/local-backend option while preserving the trusted loopback operator tunnel.
+- Added ADR-0037 for forward migrations, repository/AWS synchronization, exact artifact promotion, production secret isolation, non-interactive production development, and expand/deploy/migrate/contract schema evolution.
+- Updated architecture, deployment, readiness, project priorities, changelog, and project-memory regression coverage to enforce the policy as current truth.
+
+### Database changes
+
+None. No migration, SQL, Edge Function, frontend runtime, AWS configuration, or data mutation was required.
+
+### Security impact
+
+Positive. The policy permanently forbids public internal ports, Supabase Cloud fallback, legacy-ciphertext intervention, destructive migrated-data testing, production secrets in the development workspace, and interactive production feature development while retaining routine autonomy inside synthetic DEV.
+
+### Tests performed
+
+- Focused project-memory acceptance passed 1 file and 6 tests.
+- `npm run check` passed lint, typecheck, 60 files/276 tests, production build, and bounded-memory verification.
+- The canonical AWS DEV HTTPS health endpoint passed; public TCP 8000/5432/6543 remained closed.
+
+### Result
+
+Future work now follows one durable contract: routine end-to-end development in canonical AWS DEV, real test barriers, GitHub source-of-truth, isolated staging rehearsal, and controlled production promotion.
+
+### Remaining work
+
+- Provision and accept the isolated OpenTofu staging environment before the first production release.
+- Complete production DNS, independent secret custody, SMTP, monitoring, capacity, backup/recovery, and controlled CI/CD evidence before live employee data.
+
 ## 2026-08-18 - AWS Development Web Ingress And Gateway Activation
 
 ### Objective
@@ -161,43 +197,4 @@ The main frontend surfaces now share stable responsive constraints and are prote
 
 - Provision or designate the first exact platform operator through the reviewed trusted process before using the new linked-project UI; do not elevate an organization administrator implicitly.
 - Complete approved production SMTP, domain/TLS, AWS staging, monitoring, capacity, backup, and recovery acceptance before onboarding a real customer.
-- Add route-level code splitting for the known production JavaScript chunk warning.
-
-## 2026-08-16 - Clearer Administration And Operational Retention
-
-### Objective
-
-Remove unnecessary report filtering, make organization and template configuration understandable from the UI, correct administration layout drift, and prove that evaluation-retention settings have an executable production path.
-
-### Changes
-
-- Removed the redundant person-search input from reporting while preserving the authorized evaluated-person selector and automatic detailed-report loading.
-- Added a dedicated company-information section where organization administrators can rename an active organization without changing its stable slug.
-- Replaced comma/newline-based template choices with numbered option rows, explicit add/remove controls, and minimum-option guidance.
-- Standardized administration module-tab dimensions and corrected hierarchy/retention panel borders, spacing, and responsive stacking.
-- Added a hardened daily systemd service/timer and operator environment example for automatic evaluation-retention execution.
-
-### Database changes
-
-Migration `20260816130000_organization_name_administration.sql` adds a service-role-only organization-name update function with active-tenant, active-system-administrator, length, normalization, and content-free audit enforcement.
-
-### Security impact
-
-Positive. Organization renames are authorized outside the UI, retain the immutable tenant slug, and write no organization name to the audit metadata. Retention execution continues through the existing service-role boundary; neither the browser nor the timer definition contains a service-role credential.
-
-### Tests performed
-
-- Focused component/static coverage passed 7 files and 25 tests; the complete Vitest suite passed 55 files and 251 tests.
-- Local schema lint passed and all 194 pgTAP assertions across nine database suites passed, including expiry, legal-hold, authorization, and organization-rename cases.
-- The complete local Playwright lifecycle passed all three tests, including desktop/mobile administration geometry, row-based template choices, secure rename, reports, access denials, accessibility, keyboard use, and synthetic cleanup.
-- The linked migration was applied and confirmed in migration history; the organization-administration Edge Function was deployed.
-
-### Result
-
-The administration workflow now explains where organization names and template choices are managed, the reported layout defects are corrected across desktop and mobile, and production operators have an explicit daily retention runner. The local development site remains available for review.
-
-### Remaining work
-
-- Install and enable the included systemd timer on each production or dedicated customer host; saving the policy in the UI intentionally does not create host-level scheduling.
-- Complete the existing production-like staging, DNS/TLS, SMTP, monitoring, capacity, backup, and recovery acceptance gates before live employee data.
 - Add route-level code splitting for the known production JavaScript chunk warning.

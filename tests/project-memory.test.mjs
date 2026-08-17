@@ -40,7 +40,8 @@ const requiredFiles = [
   "docs/decisions/ADR-0015-use-atomic-delegated-project-date-administration.md",
   "docs/decisions/ADR-0016-support-shared-and-dedicated-deployments.md",
   "docs/decisions/ADR-0017-enforce-organization-tenant-integrity.md",
-  "docs/decisions/ADR-0030-use-immediate-identity-separated-aggregate-reporting.md"
+  "docs/decisions/ADR-0030-use-immediate-identity-separated-aggregate-reporting.md",
+  "docs/decisions/ADR-0037-use-canonical-aws-development-and-gated-environment-promotion.md"
 ];
 
 function readProjectFile(relativePath) {
@@ -85,5 +86,19 @@ describe("project memory foundation", () => {
 
     expect(deploymentGuide).toMatch(/Customer-Managed Dedicated Installation/);
     expect(tenantDecision).toMatch(/canonical tenant identifier/);
+  });
+
+  it("documents canonical AWS development and gated production promotion", () => {
+    const operatingGuide = readProjectFile("AGENTS.md");
+    const promotionDecision = readProjectFile(
+      "docs/decisions/ADR-0037-use-canonical-aws-development-and-gated-environment-promotion.md"
+    );
+
+    expect(operatingGuide).toMatch(/https:\/\/18-194-171-29\.sslip\.io/);
+    expect(operatingGuide).toMatch(/Public ingress is limited to TCP\/80 and TCP\/443/);
+    expect(operatingGuide).toMatch(/Do not replay the first 29 migrations/);
+    expect(operatingGuide).toMatch(/20 legacy encrypted submissions/);
+    expect(promotionDecision).toMatch(/DEV -> STAGING -> PRODUCTION/);
+    expect(promotionDecision).toMatch(/avoid interactive production development/);
   });
 });

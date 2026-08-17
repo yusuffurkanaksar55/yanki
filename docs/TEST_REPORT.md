@@ -1,5 +1,43 @@
 # Test Report
 
+## 2026-08-18 - Canonical Development Policy Acceptance
+
+### Environment
+
+- Windows 11 operator workspace, Node.js 24, repository documentation/tests, and the externally accepted AWS self-hosted DEV HTTPS perimeter.
+
+### Commands executed
+
+- `npm test -- tests/project-memory.test.mjs`
+- `npm run check`
+- External AWS DEV `/healthz` request
+- External TCP probes for 8000, 5432, and 6543
+- `npm run memory:trim`
+- `npm run memory:check`
+
+### Passed
+
+- Project-memory regression passed all 6 assertions, including the required ADR-0037, canonical HTTPS origin, public 80/443 limit, no baseline replay, protected legacy ciphertext, and non-interactive production rule.
+- Full quality acceptance passed lint, typecheck, 60 Vitest files/276 tests, production build, and bounded-memory verification.
+- Canonical AWS DEV returned healthy over verified HTTPS.
+- Public TCP 8000/5432/6543 remained closed.
+- Documentation consistently identifies AWS self-hosted DEV, repository migrations, and Edge Function source as authoritative while keeping the former Cloud project inactive.
+
+### Failed And Corrected
+
+- None.
+
+### Security checks
+
+- No secret value was read, printed, changed, or committed.
+- No database, migrated record, legacy ciphertext, migration history, Edge Function, frontend runtime, backup, Security Group, or AWS service was changed.
+- The policy explicitly preserves sensitive-gateway enforcement and forbids public internal ports plus former Supabase Cloud fallback.
+
+### Remaining risks
+
+- The accepted environment remains synthetic DEV, not production approval.
+- Isolated staging, production secrets, SMTP, monitoring, capacity, and production recovery/release evidence remain required.
+
 ## 2026-08-18 - AWS Development Web And Internal Gateway Acceptance
 
 ### Environment
@@ -192,53 +230,3 @@
 
 - Production invitation behavior still depends on approved Supabase Auth Site URL, redirect allow-list, SMTP, and password-policy configuration.
 - The production build retains the known roughly 628 kB JavaScript chunk warning.
-
-## 2026-08-16 - Administration And Retention Acceptance
-
-### Environment
-
-- Windows 11, Node.js 24, React 19, Vite 8, Vitest, Playwright Chromium, Docker Desktop, Supabase CLI 2.109.1, local synthetic Supabase, and the linked synthetic development project.
-
-### Commands executed
-
-- Focused administration/reporting/static Vitest suites
-- `npm run lint`
-- `npm run typecheck`
-- `npm test`
-- `npm run supabase:lint:local`
-- `npm run supabase:lint:linked`
-- `npm run supabase:test:local`
-- `npm run e2e:local`
-- `npm run supabase:push:dry-run`
-- Linked migration push/list and organization-administration Edge Function deployment
-- `npm run check`
-
-### Passed
-
-- Focused coverage passed 7 files and 25 tests; the complete suite passed 55 files and 251 tests.
-- Local and linked database lint returned no schema errors, and all 194 pgTAP assertions across nine suites passed.
-- Retention tests proved expired evaluation content is removed, in-window content is retained, disabled automation performs no deletion, legal holds prevent deletion, and browser/authenticated roles cannot execute the retention function.
-- All three Playwright tests passed organization rename, equal administration-tab geometry, aligned hierarchy content, row-based choice editing, encrypted submission, detailed reports, access denials, WCAG checks, keyboard operation, desktop/mobile overflow checks, and strict fixture cleanup.
-- The new migration is present in both local and linked histories, and the updated Edge Function deployed successfully.
-
-### Failed And Corrected
-
-- The first E2E cleanup rejected the intentionally renamed synthetic organization because its exact fail-safe fixture name had changed. The test now restores the original synthetic name before cleanup, and the leftover fixture was removed.
-- Lint detected one obsolete report-reset helper after search removal. The unused helper was removed and lint passed unchanged afterward.
-- Supabase CLI telemetry could not write to the sandboxed user profile; the same approved commands passed outside that write restriction.
-
-### Security checks
-
-- Organization renames require an active tenant-scoped system administrator at the Edge Function and database boundaries; the stable slug is preserved and the audit event contains no submitted name.
-- Choice editing changes only immutable template-draft structure and does not alter anonymous evaluator separation.
-- The retention timer loads credentials from an operator-owned environment file and includes no secret in source control or browser configuration.
-
-### Skipped
-
-- The systemd timer was not installed on the Windows development workstation; its unit contract is statically verified and is intended for Linux production/dedicated hosts.
-- No live employee content, production SMTP provider, public DNS/TLS environment, or customer server was used.
-
-### Remaining risks
-
-- Automatic retention is not active on a deployment until an operator installs and enables the included timer with valid server-only credentials.
-- The production build retains the known roughly 610 kB JavaScript chunk warning.

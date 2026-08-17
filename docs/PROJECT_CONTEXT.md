@@ -118,6 +118,7 @@ Own-assignment read authorization derives the actor from `auth.uid()`. Submissio
 
 ## Current Development Priorities
 
-1. Supply the reviewed staging AWS account/VPC/subnet/zone/AMI/KMS/domain values, review and apply the generated OpenTofu plan, then run the container workflow through real TLS/DNS, required gateway enforcement, isolated Supabase, and synthetic roles before creating a product release tag.
-2. Exercise the first version-tag release, then configure real production custody/off-site providers, alert receiver, capacity thresholds, and infrastructure monitoring; complete environment-signed recovery and customer acceptance checks.
-3. Configure email delivery when a provider is approved, complete approved-mailbox invitation verification, add route-level code splitting, and separately review any future disclosure-resistant raw-text theme design.
+1. Continue new product features through canonical AWS DEV using forward migrations, real self-hosted integration tests, intentional commits, and GitHub push; never weaken the accepted network/data/encryption baseline.
+2. Supply the reviewed staging AWS account/VPC/subnet/zone/AMI/KMS/domain values, review and apply the generated OpenTofu plan, then run the exact repository artifacts through real TLS/DNS, required gateway enforcement, isolated Supabase, and synthetic roles before creating a product release tag.
+3. Exercise the first version-tag release, then configure real production custody/off-site providers, alert receiver, capacity thresholds, and infrastructure monitoring; complete environment-signed recovery and customer acceptance checks.
+4. Configure email delivery when a provider is approved, complete approved-mailbox invitation verification, add route-level code splitting, and separately review any future disclosure-resistant raw-text theme design.

@@ -96,6 +96,12 @@ The script refuses to continue unless `yanki-backup.service` succeeds. It takes 
 
 The temporary development origin passed external TLS, security-header, same-origin Auth/gateway, direct-denial, request-size, closed-internal-port, WCAG, keyboard, and responsive-overflow acceptance on 2026-08-18. This evidence covers synthetic development only and does not approve the temporary hostname, development keys, single host, or current operational controls for live employee data.
 
+## Environment Promotion
+
+Routine product work is implemented on a feature branch, deployed to canonical AWS DEV, tested against the real self-hosted integration boundary, committed, and pushed. A release candidate then moves unchanged to isolated STAGING for production-like acceptance. PRODUCTION receives only the same reviewed image, migration files, and Edge Function sources after successful staging, verified backup, and controlled deployment approval.
+
+Do not use separate ad hoc DEV and PROD SQL. New persistent changes require forward timestamped migrations. Prefer expand -> deploy -> migrate -> contract for breaking live-schema changes. Production secrets remain outside the ordinary development workspace, and direct interactive production SQL is not a normal development path. See ADR-0037.
+
 ## Local Browser Acceptance
 
 Keep Docker Desktop and the local Supabase stack running, install Chromium once with `npm run e2e:install`, then execute:
