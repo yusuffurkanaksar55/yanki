@@ -1,5 +1,38 @@
 # Error Log
 
+## ERR-20260818-084 - AWS Security Group blocked public certificate validation
+
+### Context
+
+The production Nginx frontend and Caddy TLS proxy were deployed to the canonical AWS self-hosted development host after a verified encrypted backup.
+
+### Symptoms
+
+All containers and internal same-origin checks passed, but external HTTP/HTTPS timed out. Caddy reported ACME HTTP-01 and TLS-ALPN-01 connection timeouts for the resolved host address.
+
+### Root cause
+
+The instance Security Group `sg-02b31e6c73820cc33` does not allow inbound TCP 80/443. The instance role is intentionally backup-only and cannot read or change EC2 Security Groups; the operator workstation has no configured AWS CLI identity.
+
+### Correct solution
+
+Add only public TCP 80 and 443 ingress to the web Security Group through an authorized AWS identity, retain 8000/5432/6543 as loopback-only with no Security Group rules, restart Caddy if required, and rerun the public HTTPS/browser acceptance commands. Do not bypass certificate validation or expose the Supabase/PostgreSQL ports.
+
+### Prevention
+
+Include external reachability and certificate issuance in the environment preflight before declaring web deployment accepted. Keep infrastructure mutation under a separately authorized AWS operator identity rather than broadening the backup instance role.
+
+### Related files
+
+- `deploy/aws-development/configure.sh`
+- `deploy/aws-development/docker-compose.override.yml`
+- `deploy/aws-development/Caddyfile`
+
+### Related tests
+
+- `npm run smoke:aws-development:web`
+- `npm run e2e:aws-development:web`
+
 ## ERR-20260817-083 - Abuse-counter pgTAP assumed an empty persistent database
 
 ### Context
@@ -281,38 +314,6 @@ Tests that exercise mutable fixture identity must restore the exact synthetic co
 ### Related tests
 
 - `npm run e2e:local`
-
-## ERR-20260816-074 - First focused npx test wrapper did not return a final result
-
-### Context
-
-The newly added staging-infrastructure and existing deployment-foundation Vitest suites were first launched through the `npx vitest` wrapper on Windows.
-
-### Symptoms
-
-The command printed the Vitest start banner but reached the 30-second execution window without test results or a reusable session id. No Node process remained afterward.
-
-### Root cause
-
-No deterministic test or product failure was reproduced. The evidence is limited to wrapper/process startup behavior in this execution environment; the unchanged suites completed normally through the repository-local Vitest entry point.
-
-### Correct solution
-
-Invoke the already installed local entry point directly with one worker for the focused diagnostic, then run the ordinary complete project test command as the authoritative result.
-
-### Prevention
-
-Use direct repository-local Node entry points for narrow diagnostics when an `npx` wrapper fails before producing a test result. Do not weaken tests or extend assertions for a wrapper-only event.
-
-### Related files
-
-- `tests/staging-infrastructure.test.mjs`
-- `tests/deployment-foundation.test.mjs`
-
-### Related tests
-
-- `node node_modules/vitest/vitest.mjs run tests/staging-infrastructure.test.mjs tests/deployment-foundation.test.mjs --maxWorkers=1 --reporter=verbose`
-- `npm test`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

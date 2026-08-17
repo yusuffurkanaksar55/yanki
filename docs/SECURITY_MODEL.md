@@ -163,6 +163,8 @@ Restic encrypts and authenticates off-site snapshots before remote persistence. 
 
 In customer-managed installations, the customer controls the host, database, application code, and secrets. The operator is responsible for TLS, network isolation, patching, backups, restore drills, availability, monitoring, SMTP, and secret rotation. The product must not claim protection from an operator that controls both ciphertext and encryption keys. Browser runtime configuration still contains public values only.
 
+The canonical AWS development host now enforces the server-only sensitive gateway token in both Nginx and Functions. Direct sensitive-Function calls fail with `403`, oversized anonymous bodies fail at the outer gateway, and API/database/pooler ports bind only to loopback. Public TLS is not accepted until the AWS Security Group allows TCP 80/443 and the external HTTPS/browser gates pass; internal success is not a substitute for that evidence.
+
 ## Release Supply Chain
 
 Production installation must use the exact signed OCI digest from `release-manifest.json`; mutable tags are not deployment authority. The manifest signature is accepted only from the repository's release workflow at the exact version-tag ref through the GitHub Actions OIDC issuer. Manifest-bound SHA-256 values cover Compose, environment template, acceptance command, installation guide, SBOM, and provenance. Checksums alone are not a trust root.

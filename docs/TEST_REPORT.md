@@ -1,5 +1,47 @@
 # Test Report
 
+## 2026-08-18 - AWS Development Web And Internal Gateway Acceptance
+
+### Environment
+
+- Windows 11 operator workspace, Node.js 24, Docker Desktop, AWS EC2 Ubuntu 24.04, Docker Engine 29.7.2, Compose 5.4.0, self-hosted Supabase, production Nginx frontend, and digest-pinned Caddy 2.10.2.
+
+### Commands executed
+
+- `npm run check`
+- `npm run deployment:config`
+- `npm run staging:self-hosted:config`
+- Focused AWS deployment/gateway Vitest suite
+- Guarded `deploy/aws-development/configure.sh` after `yanki-backup.service`
+- Content-free internal HTTP, container, listener, gateway, and read-only PostgreSQL acceptance over SSH
+- External HTTP/HTTPS reachability and Caddy certificate-log inspection
+
+### Passed
+
+- Lint, typecheck, 60 Vitest files/275 tests, production build, and memory check passed; the existing roughly 628 kB chunk warning remains.
+- Both Docker Compose validation paths passed, including the pinned self-hosted Supabase package.
+- The pre-deployment encrypted backup passed and a mode-`0600` pre-change environment snapshot was retained outside Git.
+- Supabase API/DB/pooler listeners bind only to `127.0.0.1`; Caddy alone listens on host TCP 80/443.
+- Frontend health, CSP, public-only runtime configuration, same-origin Auth, gateway forwarding, direct sensitive-Function `403`, outer `413`, required-token configuration, and all container health checks passed internally.
+- Read-only preservation inventory remained 6 Auth users, 20 encrypted submissions, 20 legacy-key submissions, and 30 migrations.
+
+### Failed And Corrected
+
+- Docker Compose validation initially received workspace `docker.exe EPERM`; the unchanged command passed with scoped Docker permission.
+- The first AWS checkout status command was quoted incorrectly by PowerShell; an immediate read-only Git/status and shell-syntax check proved the new checkout clean.
+- Public certificate issuance failed because AWS TCP 80/443 ingress is closed, not because of Caddy, DNS, frontend, or container health. Caddy received ACME connection timeouts while both local web ports listened correctly.
+
+### Security checks
+
+- No service-role, database, encryption, or gateway secret was printed, committed, or written into browser configuration.
+- No migration ran and no existing user, ciphertext, or migration-history row changed.
+- The former Supabase Cloud project received no request.
+
+### Remaining risks
+
+- External HTTPS and Playwright acceptance cannot pass until AWS Security Group `sg-02b31e6c73820cc33` allows only inbound TCP 80/443 for the public web path.
+- The temporary `sslip.io` name and development key remain forbidden for live employee data.
+
 ## 2026-08-17 - AWS Baseline, Security And Encryption Runtime Acceptance
 
 ### Environment
@@ -194,47 +236,4 @@
 ### Remaining risks
 
 - Automatic retention is not active on a deployment until an operator installs and enables the included timer with valid server-only credentials.
-- The production build retains the known roughly 610 kB JavaScript chunk warning.
-
-## 2026-08-16 - AWS Staging Infrastructure Definition Acceptance
-
-### Environment
-
-- Windows 11, Node.js 24, OpenTofu 1.12.1, locked AWS provider 6.60.0, existing repository dependencies, and no AWS credentials or cloud resources.
-
-### Commands executed
-
-- `npm run staging:infra:tool:install`
-- `npm run staging:infra:check`
-- Focused staging-infrastructure and deployment-foundation Vitest suites through the local Vitest entry point with one worker
-- `npm run lint`
-- `npm run typecheck`
-- `npm test`
-- `npm run build`
-
-### Passed
-
-- The local OpenTofu executable matched both the pinned version and derived executable SHA-256; the installer retains the official archive SHA-256 pin.
-- OpenTofu format, locked-provider initialization with no backend, and configuration validation passed.
-- The infrastructure regression proved required files and locks, SSM administration, absence of SSH/RDP ingress, public web ports only, KMS-encrypted storage, IMDSv2, monitoring, termination protection, minimum host capacity, encrypted remote-state guidance, secret-free user data, and absence of automated plan/apply behavior.
-- Focused tests passed 2 files and 11 tests. The full suite passed 55 files and 249 tests; lint, typecheck, and the production build passed.
-
-### Failed And Corrected
-
-- The first focused `npx vitest` wrapper call reached the 30-second command window without returning a final result and left no process. The unchanged suites passed in 3.9 seconds when invoked through the local Vitest entry point with one worker; no application or infrastructure defect was reproduced.
-
-### Security checks
-
-- No AWS credential, application secret, database password, JWT value, SMTP credential, gateway token, backup credential, or evaluation key is present in OpenTofu inputs or cloud-init.
-- The EC2 security group contains no TCP/22, TCP/3389, database, Studio, or internal Supabase ingress rule.
-- Validation did not initialize a state backend, contact an AWS account, run a plan, apply resources, or create cloud cost.
-
-### Skipped
-
-- AWS account authentication, remote-state initialization, saved plan, second-person plan review, and resource apply were intentionally not performed because reviewed environment identifiers and operator approval are not available.
-- DNS/TLS, full pinned-stack runtime, SMTP, monitoring, capacity, remote backup, and isolated recovery acceptance remain assigned to the resulting staging environment.
-
-### Remaining risks
-
-- A valid infrastructure definition does not prove AWS service availability in the selected zone, routing, KMS/IAM permissions, cloud-init completion, public TLS, or runtime capacity.
 - The production build retains the known roughly 610 kB JavaScript chunk warning.

@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-08-18
+
+### Added
+
+- Added the AWS development production-frontend package with digest-pinned Caddy TLS termination, same-origin Supabase routing, guarded backup-first configuration, and repeatable public acceptance commands.
+- Added deployment regression coverage and a restrictive Content Security Policy for the production Nginx runtime.
+
+### Changed
+
+- Deployed frontend and same-origin gateway enforcement to the canonical AWS self-hosted development host; Auth/public URLs now target the temporary synthetic-development origin.
+- Restricted host-published Supabase API, PostgreSQL, and transaction-pooler ports to loopback-only bindings.
+
+### Security
+
+- Activated fail-closed server-only sensitive-gateway token enforcement in development and proved direct sensitive-Function denial without exposing the token.
+- Preserved all users, ciphertext, and migration history without schema or data mutation; external TLS acceptance remains pending the AWS web Security Group rule.
+
 ## 2026-08-17
 
 ### Added

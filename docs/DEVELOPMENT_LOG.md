@@ -1,5 +1,43 @@
 # Development Log
 
+## 2026-08-18 - AWS Development Web Ingress And Gateway Activation
+
+### Objective
+
+Deploy the production frontend shape to the canonical AWS self-hosted development host, enforce same-origin browser access and direct sensitive-Function denial, and preserve all imported data while preparing real HTTPS acceptance.
+
+### Changes
+
+- Added a pinned Caddy TLS proxy, production Nginx frontend container, AWS Compose override, guarded configuration script, and repeatable HTTPS/browser acceptance commands.
+- Changed published Supabase API, PostgreSQL, and transaction-pooler ports to loopback-only bindings; only web TCP 80/443 remain host-public.
+- Activated one generated server-only sensitive-gateway token in Nginx and Functions, enabled fail-closed enforcement, and updated self-hosted Auth/public URLs for same-origin `/supabase` routing.
+- Added a restrictive frontend Content Security Policy and documented the temporary synthetic-development hostname and production limitations.
+- Required a successful encrypted `yanki-backup.service` run plus a protected pre-change environment snapshot before applying runtime configuration.
+
+### Database changes
+
+None. No migration or application-data mutation was performed. Read-only post-deployment inventory remained 6 Auth users, 20 encrypted submissions, 20 preserved legacy-key submissions, and 30 migration-history rows.
+
+### Security impact
+
+Positive. Internal acceptance proved public-only runtime configuration, same-origin Auth, gateway token injection, `403 SENSITIVE_GATEWAY_REQUIRED` for direct sensitive-Function access, and `413` outer body rejection. Public certificate issuance remains blocked until AWS Security Group `sg-02b31e6c73820cc33` allows inbound TCP 80/443; the endpoint is not accepted for external use before that gate passes.
+
+### Tests performed
+
+- `npm run check` passed 60 files and 275 tests plus lint, typecheck, build, and bounded-memory verification.
+- `npm run deployment:config` and `npm run staging:self-hosted:config` passed with Docker Engine.
+- AWS internal frontend, runtime-config, Auth, gateway-forwarding, direct-denial, body-limit, container-health, port-binding, backup, and read-only data-preservation checks passed.
+- External HTTP/HTTPS and certificate acceptance correctly failed while AWS ingress remains closed.
+
+### Result
+
+The AWS development web and same-origin gateway layers are deployed at revision `d1aa91a535f1dd2dd2fe692e02da5cd574c933b1`. The final public HTTPS and Playwright gates are pending only the reviewed AWS Security Group web-ingress change.
+
+### Remaining work
+
+- Allow inbound TCP 80/443 only on the web Security Group, then rerun public HTTPS, header, Auth, gateway, direct-denial, accessibility, and responsive-browser acceptance.
+- Replace the temporary `sslip.io` hostname with reviewed product DNS and production controls before live data.
+
 ## 2026-08-17 - AWS Self-Hosted Baseline, ACL And Encryption Acceptance
 
 ### Objective
@@ -161,41 +199,3 @@ The administration workflow now explains where organization names and template c
 - Install and enable the included systemd timer on each production or dedicated customer host; saving the policy in the UI intentionally does not create host-level scheduling.
 - Complete the existing production-like staging, DNS/TLS, SMTP, monitoring, capacity, backup, and recovery acceptance gates before live employee data.
 - Add route-level code splitting for the known production JavaScript chunk warning.
-
-## 2026-08-16 - Reviewed AWS Staging Host Foundation
-
-### Objective
-
-Complete the next account-independent production-readiness step by defining a reproducible, reviewable AWS host for the full production-like staging acceptance without creating cloud resources or storing credentials.
-
-### Changes
-
-- Added an OpenTofu root stack for one EC2 staging host in a reviewed existing VPC/subnet, with a stable Elastic IPv4 address, public web ports only, SSM-only administration, IMDSv2, detailed monitoring, termination protection, and a customer-KMS-encrypted gp3 root volume.
-- Added secret-free Ubuntu cloud-init that installs Docker/Compose, enables unattended updates, applies conservative host sysctls, checks minimum memory/disk/tool/service state, and writes content-free readiness evidence.
-- Pinned OpenTofu `1.12.1`, the official Windows archive checksum, the extracted binary checksum, and AWS provider `6.60.0`; added account-free format/provider-lock/configuration validation.
-- Added ignored operator examples for encrypted S3 remote state and environment inputs, an explicit saved-plan/two-person-review procedure, static infrastructure regression tests, and ADR-0035.
-- Updated architecture, deployment, readiness, context, and known-issue documents to distinguish a validated infrastructure definition from an applied and accepted staging environment.
-
-### Database changes
-
-None.
-
-### Security impact
-
-Positive. No SSH/RDP ingress or key pair is created; application/database/Auth/SMTP/gateway/backup/evaluation secrets remain outside OpenTofu, user data, browser configuration, and Git. Infrastructure creation is not automated and requires short-lived AWS identity, encrypted remote state, a saved plan, and explicit review.
-
-### Tests performed
-
-- `npm run staging:infra:tool:install` verified the pinned local OpenTofu executable.
-- `npm run staging:infra:check` passed format, read-only provider-lock initialization, and configuration validation without backend initialization, plan, apply, AWS credentials, or resource creation.
-- Focused infrastructure/deployment regression passed 2 files and 11 tests.
-- `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` passed; Vitest reported 55 files and 249 tests. The existing roughly 610 kB production JavaScript chunk warning remains.
-
-### Result
-
-The repository can now generate a deterministic AWS staging-host plan once reviewed account values are available. No AWS resource, DNS record, certificate, secret, customer data, or cloud cost was created by this change.
-
-### Remaining work
-
-- Provide and review the dedicated staging account, region/zone, VPC/subnet, AMI, instance type, KMS, state backend, domain, cost owner, and operator identities; review and apply the exact saved plan.
-- Deploy DNS/TLS, the pinned Supabase set and signed Yanki image, then run the full migration/browser/gateway/SMTP/monitoring/capacity/backup/recovery acceptance with synthetic data.

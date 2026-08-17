@@ -24,6 +24,8 @@ Both topologies use the same migrations, Edge Functions, and tenant authorizatio
 
 The first production-like staging host is defined in `deploy/staging/aws` as an account-neutral OpenTofu root stack. It consumes a reviewed existing VPC, public subnet, exact zone, pinned Ubuntu AMI, instance type, KMS key, and domain rather than creating an unreviewed network. The host exposes only TCP/443 and optional TCP/80, uses Systems Manager Session Manager instead of SSH, requires IMDSv2, encrypts its root volume, and receives no application secret through OpenTofu or cloud-init. Infrastructure `apply` is deliberately outside automated quality commands and requires encrypted remote state plus review of a saved plan. See ADR-0035.
 
+The existing canonical AWS development host uses `deploy/aws-development` as an environment-specific Compose overlay. Caddy is the only public listener, Nginx serves the SPA and same-origin `/supabase` gateway, and the Supabase API/PostgreSQL/pooler host bindings are loopback-only. The web and direct-denial layers passed internal acceptance on 2026-08-18; public TLS/browser acceptance remains blocked by the separately managed AWS Security Group web-ingress rule. This development host does not replace the isolated OpenTofu staging design or production approval.
+
 ## Runtime Configuration
 
 `/app-config.js` is loaded before the Vite bundle. A container entrypoint writes only the public Supabase URL and anon or publishable key. Local Vite development falls back to `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. A partial runtime configuration is rejected to prevent accidental mixing between customer and build-time environments.
