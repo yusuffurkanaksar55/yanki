@@ -94,6 +94,8 @@ sudo env \
 
 The script refuses to continue unless `yanki-backup.service` succeeds. It takes a mode-`0600` pre-change environment snapshot, generates or reuses the server-only gateway token without printing it, updates the self-hosted public/Auth URLs, validates the merged Compose model, builds the checked-out frontend revision, starts the proxy path, and waits for HTTPS health. It performs no migration or application-data mutation. Detailed preconditions and acceptance commands are in `deploy/aws-development/README.md`.
 
+The temporary development origin passed external TLS, security-header, same-origin Auth/gateway, direct-denial, request-size, closed-internal-port, WCAG, keyboard, and responsive-overflow acceptance on 2026-08-18. This evidence covers synthetic development only and does not approve the temporary hostname, development keys, single host, or current operational controls for live employee data.
+
 ## Local Browser Acceptance
 
 Keep Docker Desktop and the local Supabase stack running, install Chromium once with `npm run e2e:install`, then execute:

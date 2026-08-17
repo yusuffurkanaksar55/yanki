@@ -98,7 +98,7 @@ The repository now pins the official Supabase Docker source in `deploy/staging/s
 
 The account-neutral host layer is now reproducible in `deploy/staging/aws`: OpenTofu is checksum-pinned, the AWS provider is locked, the host uses SSM instead of inbound SSH, only public web ingress is defined, IMDSv2 and KMS-encrypted storage are required, and cloud-init contains no application secret. Local format/provider/configuration validation passed on 2026-08-16. No AWS account plan or resource apply has occurred, so this closes only the infrastructure-definition substep, not the production-like staging gate.
 
-The existing AWS development host gained a backup-first production Nginx/Caddy web layer on 2026-08-18. Same-origin Auth, required gateway-token forwarding, direct sensitive-route denial, request-body limits, loopback-only internal ports, container health, and data preservation passed internal acceptance. External ACME and browser acceptance remain blocked because the host's separately managed Security Group does not yet allow TCP 80/443. This synthetic development evidence does not close the isolated production-like staging or production gate.
+The existing AWS development host gained a backup-first production Nginx/Caddy web layer on 2026-08-18. Same-origin Auth, required gateway-token forwarding, direct sensitive-route denial, request-body limits, loopback-only internal ports, valid public TLS, security headers, Chromium accessibility/responsive checks, container health, and data preservation passed internal and external acceptance. The separately managed Security Group exposes only TCP 80/443 for the web path. This synthetic development evidence does not close the isolated production-like staging or production gate.
 
 ## Priority Plan
 

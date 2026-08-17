@@ -16,7 +16,7 @@ The instance Security Group `sg-02b31e6c73820cc33` does not allow inbound TCP 80
 
 ### Correct solution
 
-Add only public TCP 80 and 443 ingress to the web Security Group through an authorized AWS identity, retain 8000/5432/6543 as loopback-only with no Security Group rules, restart Caddy if required, and rerun the public HTTPS/browser acceptance commands. Do not bypass certificate validation or expose the Supabase/PostgreSQL ports.
+An authorized AWS identity added only public TCP 80 and 443 ingress to the web Security Group while 8000/5432/6543 remained loopback-only with no Security Group rules. Caddy was restarted, obtained a valid certificate, and passed public HTTPS plus browser acceptance. Certificate validation was never bypassed and no Supabase/PostgreSQL port was exposed.
 
 ### Prevention
 

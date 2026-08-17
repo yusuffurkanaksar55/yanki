@@ -20,23 +20,25 @@ None. No migration or application-data mutation was performed. Read-only post-de
 
 ### Security impact
 
-Positive. Internal acceptance proved public-only runtime configuration, same-origin Auth, gateway token injection, `403 SENSITIVE_GATEWAY_REQUIRED` for direct sensitive-Function access, and `413` outer body rejection. Public certificate issuance remains blocked until AWS Security Group `sg-02b31e6c73820cc33` allows inbound TCP 80/443; the endpoint is not accepted for external use before that gate passes.
+Positive. Internal and external acceptance proved public-only runtime configuration, same-origin Auth, gateway token injection, `403 SENSITIVE_GATEWAY_REQUIRED` for direct sensitive-Function access, `413` outer body rejection, valid public TLS, HSTS/CSP, HTTP-to-HTTPS redirect, and closed public Supabase/PostgreSQL ports. AWS Security Group `sg-02b31e6c73820cc33` allows only the required public TCP 80/443 web ingress.
 
 ### Tests performed
 
 - `npm run check` passed 60 files and 275 tests plus lint, typecheck, build, and bounded-memory verification.
 - `npm run deployment:config` and `npm run staging:self-hosted:config` passed with Docker Engine.
 - AWS internal frontend, runtime-config, Auth, gateway-forwarding, direct-denial, body-limit, container-health, port-binding, backup, and read-only data-preservation checks passed.
-- External HTTP/HTTPS and certificate acceptance correctly failed while AWS ingress remains closed.
+- External HTTPS smoke acceptance passed every header, runtime-config, Auth, gateway, direct-denial, and request-size assertion after the reviewed web-ingress rule was added.
+- Chromium public/authentication WCAG, mobile/desktop overflow, clipped-control, and keyboard E2E acceptance passed 2/2 tests against the real HTTPS origin.
+- A valid Let's Encrypt certificate was issued for the temporary development hostname; all six required runtime containers are healthy.
 
 ### Result
 
-The AWS development web and same-origin gateway layers are deployed at revision `d1aa91a535f1dd2dd2fe692e02da5cd574c933b1`. The final public HTTPS and Playwright gates are pending only the reviewed AWS Security Group web-ingress change.
+The AWS development web and same-origin gateway layers are deployed and externally accepted at revision `d1aa91a535f1dd2dd2fe692e02da5cd574c933b1` through `https://18-194-171-29.sslip.io`. This is synthetic development evidence, not production approval.
 
 ### Remaining work
 
-- Allow inbound TCP 80/443 only on the web Security Group, then rerun public HTTPS, header, Auth, gateway, direct-denial, accessibility, and responsive-browser acceptance.
 - Replace the temporary `sslip.io` hostname with reviewed product DNS and production controls before live data.
+- Complete approved SMTP, infrastructure monitoring, alert receiver, capacity, and production key/custody acceptance before live employee use.
 
 ## 2026-08-17 - AWS Self-Hosted Baseline, ACL And Encryption Acceptance
 

@@ -23,13 +23,18 @@
 - The pre-deployment encrypted backup passed and a mode-`0600` pre-change environment snapshot was retained outside Git.
 - Supabase API/DB/pooler listeners bind only to `127.0.0.1`; Caddy alone listens on host TCP 80/443.
 - Frontend health, CSP, public-only runtime configuration, same-origin Auth, gateway forwarding, direct sensitive-Function `403`, outer `413`, required-token configuration, and all container health checks passed internally.
+- External HTTPS acceptance passed HSTS/CSP, public-only runtime configuration, same-origin Auth, gateway forwarding, direct sensitive-Function denial through the loopback operator path, and outer `413` enforcement.
+- HTTP redirects to HTTPS with `308`; public TCP 8000/5432/6543 remain closed while 80/443 serve the web path.
+- Chromium passed both public/authentication WCAG and keyboard scenarios, including desktop/mobile horizontal-overflow and clipped-control assertions.
+- Let's Encrypt issued a valid certificate for `18-194-171-29.sslip.io`; Caddy and all five dependent runtime containers report healthy.
 - Read-only preservation inventory remained 6 Auth users, 20 encrypted submissions, 20 legacy-key submissions, and 30 migrations.
 
 ### Failed And Corrected
 
 - Docker Compose validation initially received workspace `docker.exe EPERM`; the unchanged command passed with scoped Docker permission.
 - The first AWS checkout status command was quoted incorrectly by PowerShell; an immediate read-only Git/status and shell-syntax check proved the new checkout clean.
-- Public certificate issuance failed because AWS TCP 80/443 ingress is closed, not because of Caddy, DNS, frontend, or container health. Caddy received ACME connection timeouts while both local web ports listened correctly.
+- Public certificate issuance initially failed because AWS TCP 80/443 ingress was closed, not because of Caddy, DNS, frontend, or container health. After the reviewed Security Group rules were added, Caddy obtained the certificate and all public acceptance passed.
+- The first public smoke run used the unrelated local-stack anon key from `.env.local` and correctly failed exact runtime-key matching. The rerun loaded the AWS public anon key into process memory without printing or persisting it and passed all assertions.
 
 ### Security checks
 
@@ -39,8 +44,8 @@
 
 ### Remaining risks
 
-- External HTTPS and Playwright acceptance cannot pass until AWS Security Group `sg-02b31e6c73820cc33` allows only inbound TCP 80/443 for the public web path.
 - The temporary `sslip.io` name and development key remain forbidden for live employee data.
+- The production JavaScript build retains the known roughly 628 kB chunk warning.
 
 ## 2026-08-17 - AWS Baseline, Security And Encryption Runtime Acceptance
 
