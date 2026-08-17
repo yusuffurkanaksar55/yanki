@@ -4,6 +4,19 @@ create extension if not exists pgtap with schema extensions;
 
 select plan(54);
 
+create temporary table test_anonymous_abuse_baseline
+on commit drop
+as
+select
+  (
+    public.read_anonymous_submission_abuse_summary()
+      ->> 'invalid_credential_attempts_last_60_minutes'
+  )::integer as invalid_credential_attempts_last_60_minutes,
+  (
+    public.read_anonymous_submission_abuse_summary()
+      ->> 'rate_limited_requests_last_60_minutes'
+  )::integer as rate_limited_requests_last_60_minutes;
+
 select has_table(
   'public',
   'security_rate_limit_buckets',
@@ -526,18 +539,28 @@ select is(
 );
 
 select is(
-  public.get_anonymous_submission_abuse_summary(
-    '41111111-1111-4111-8111-111111111111'
-  ) ->> 'invalid_credential_attempts_last_60_minutes',
-  '121',
+  (
+    public.get_anonymous_submission_abuse_summary(
+      '41111111-1111-4111-8111-111111111111'
+    ) ->> 'invalid_credential_attempts_last_60_minutes'
+  )::integer,
+  (
+    select baseline.invalid_credential_attempts_last_60_minutes + 121
+    from test_anonymous_abuse_baseline baseline
+  ),
   'The system-admin summary reports aggregate invalid traffic without identifiers'
 );
 
 select is(
-  public.get_anonymous_submission_abuse_summary(
-    '41111111-1111-4111-8111-111111111111'
-  ) ->> 'rate_limited_requests_last_60_minutes',
-  '2',
+  (
+    public.get_anonymous_submission_abuse_summary(
+      '41111111-1111-4111-8111-111111111111'
+    ) ->> 'rate_limited_requests_last_60_minutes'
+  )::integer,
+  (
+    select baseline.rate_limited_requests_last_60_minutes + 2
+    from test_anonymous_abuse_baseline baseline
+  ),
   'The system-admin summary reports aggregate rejected request counts'
 );
 
@@ -592,9 +615,14 @@ select throws_ok(
 select set_config('request.jwt.claim.role', 'service_role', true);
 
 select is(
-  public.get_anonymous_submission_abuse_summary_for_operator()
-    ->> 'invalid_credential_attempts_last_60_minutes',
-  '121',
+  (
+    public.get_anonymous_submission_abuse_summary_for_operator()
+      ->> 'invalid_credential_attempts_last_60_minutes'
+  )::integer,
+  (
+    select baseline.invalid_credential_attempts_last_60_minutes + 121
+    from test_anonymous_abuse_baseline baseline
+  ),
   'The operator summary returns the same identifier-free aggregate count'
 );
 

@@ -7,7 +7,7 @@ This assessment prepares the current product for two supported deployment modes 
 1. Vendor-operated shared SaaS for many customer organizations.
 2. Customer-managed dedicated installation using the same application release and database migrations.
 
-The primary target is a central SaaS deployment on AWS EC2 with Docker Compose and self-hosted Supabase/PostgreSQL/Auth/Storage. The managed Supabase development project remains a valid development environment during the transition.
+The primary target is a central SaaS deployment on AWS EC2 with Docker Compose and self-hosted Supabase/PostgreSQL/Auth/Storage. The AWS self-hosted stack is also the canonical development and integration-test backend. The former managed Supabase project is retained only as historical context and must not receive development or test traffic.
 
 ## Executive Decision
 

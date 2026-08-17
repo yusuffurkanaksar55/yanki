@@ -1,5 +1,100 @@
 # Error Log
 
+## ERR-20260817-083 - Abuse-counter pgTAP assumed an empty persistent database
+
+### Context
+
+All database test suites were run against the canonical AWS self-hosted development database without deleting migrated data.
+
+### Symptoms
+
+Two assertions in `anonymous_encrypted_submission.test.sql` expected an absolute 60-minute invalid-credential count of `121`. Existing valid abuse-counter rows made the aggregate larger even though the test's own quota behavior was correct.
+
+### Root cause
+
+The test encoded a clean-database assumption for a deployment-global rolling aggregate. That assumption held in disposable local stacks but not in a persistent shared development environment.
+
+### Correct solution
+
+Capture the pre-test 60-minute invalid and rate-limited totals in a transaction-local temporary table, then assert the exact baseline plus the test's `121` and `2` contributions. No existing row is deleted or changed, and the whole fixture still ends with `ROLLBACK`.
+
+### Prevention
+
+Persistent-environment integration tests must compare their own delta or use uniquely scoped fixtures. Never require clearing valid operational counters to make an assertion deterministic.
+
+### Related files
+
+- `supabase/tests/database/anonymous_encrypted_submission.test.sql`
+
+### Related tests
+
+- AWS self-hosted pgTAP acceptance: 10 files, 210 assertions
+
+## ERR-20260817-082 - Imported ciphertext has no recoverable legacy key in reviewed sources
+
+### Context
+
+The AWS self-hosted development encryption health and synthetic report path were verified after activating a new additive key version.
+
+### Symptoms
+
+The active key configuration is valid and new submissions decrypt successfully, but global key health reports incomplete historical coverage. Eleven records reference `DEV_20260807_01` and nine reference `development-v1`; neither key value is configured.
+
+### Root cause
+
+The database migration preserved ciphertext and key identifiers, but the corresponding secrets were not transferred with the imported data. Read-only searches of ignored local files, server environment/history backups, S3 daily/golden environment backups, and available deployment records found no matching secret.
+
+### Correct solution
+
+Preserve all 20 records as `OLD_KEY_UNAVAILABLE`, activate a separate new key for future development submissions, and recover a legacy key only from a verified custody source. Never assign substitute key material, change identifiers, re-encrypt, or delete these records as an error workaround.
+
+### Prevention
+
+Require every environment to maintain a versioned key custody manifest, independent recovery reference, encrypted recovery canary, and database-plus-key restore drill before ciphertext is migrated or a key is retired.
+
+### Related files
+
+- `docs/SECURITY_MODEL.md`
+- `docs/KNOWN_ISSUES.md`
+- `docs/DEPLOYMENT.md`
+
+### Related tests
+
+- `npm run smoke:self-hosted:edge`
+- `npm run smoke:self-hosted:submission`
+
+## ERR-20260817-081 - Self-hosted migration CLI emitted tunnel TLS and catalog-helper errors
+
+### Context
+
+The approved 29-row baseline and one reconciliation migration were applied to AWS PostgreSQL through a loopback SSH tunnel.
+
+### Symptoms
+
+The CLI first attempted SSL against the non-TLS tunnel endpoint. After the migration transaction succeeded, its optional pg-delta catalog helper also reported a localhost certificate/cache connection warning.
+
+### Root cause
+
+The trusted SSH tunnel already supplies transport protection, while the CLI inferred a direct TLS database endpoint. The optional post-operation catalog path did not share the corrected tunnel TLS mode. PostgreSQL did not report a migration failure.
+
+### Correct solution
+
+Set `PGSSLMODE=disable` only for the loopback tunnel command, verify migration history directly in `supabase_migrations.schema_migrations`, rerun exact schema/ACL assertions, and require a clean migration dry-run. All checks passed with 30 exact timestamps.
+
+### Prevention
+
+Use an environment-specific wrapper for self-hosted tunnel connections and never infer success or failure solely from the optional catalog helper. Preserve direct SQL history and runtime authorization evidence for every apply.
+
+### Related files
+
+- `supabase/migrations/20260817174207_reconcile_self_hosted_security_acl.sql`
+- `docs/SELF_HOSTED_SECURITY_RECONCILIATION.md`
+
+### Related tests
+
+- `npm run security:self-hosted:acceptance`
+- `tests/self-hosted-security-reconciliation.test.mjs`
+
 ## ERR-20260816-080 - Linked migration cache warning recurred after successful apply
 
 ### Context
@@ -218,101 +313,6 @@ Use direct repository-local Node entry points for narrow diagnostics when an `np
 
 - `node node_modules/vitest/vitest.mjs run tests/staging-infrastructure.test.mjs tests/deployment-foundation.test.mjs --maxWorkers=1 --reporter=verbose`
 - `npm test`
-
-## ERR-20260812-073 - One full-suite profile assertion timed out after Docker acceptance
-
-### Context
-
-The full application quality gate ran immediately after image build, Playwright, pgTAP, and restore acceptance on the constrained workstation.
-
-### Symptoms
-
-One `App.test.tsx` case remained on the profile-loading screen until Testing Library's wait expired. The other 242 tests passed in that run. The unchanged focused file then passed the same case in 275 ms, and the unchanged complete quality gate passed all 243 tests.
-
-### Root cause
-
-No deterministic application defect was reproduced. The evidence indicates a transient test-scheduling delay under concurrent Vitest and recently completed Docker workload rather than an incorrect profile result or changed application behavior.
-
-### Correct solution
-
-Run the focused test unchanged to distinguish a deterministic failure, then repeat the complete quality gate. Do not weaken assertions or increase timeouts for a single non-reproducible event.
-
-### Prevention
-
-Keep the production-container lifecycle as an independent behavioral signal and monitor recurrence. If the same assertion repeats across clean runs, capture service mock timing and worker load before changing the test budget.
-
-### Related files
-
-- `src/app/App.test.tsx`
-
-### Related tests
-
-- `npx vitest run src/app/App.test.tsx --reporter=verbose`
-- `npm run check`
-
-## ERR-20260812-072 - Duplicate self-hosted image set exhausted workstation Docker headroom
-
-### Context
-
-The first clean self-hosted acceptance attempted to run the exact official Supabase Compose image set beside the already running Supabase CLI development stack on Docker Desktop.
-
-### Symptoms
-
-Before service creation completed, system-drive free space fell from approximately 13.9 GB to 6.5 GB and later reported 4.76 GB because the WSL virtual disk expanded. Stopping the parent command left one unstarted staging Mailpit container. Removing unused images reclaimed space inside Docker but did not immediately shrink the host VHD file.
-
-### Root cause
-
-The workstation acceptance duplicated multiple 1-1.7 GB Supabase images with different official tags. The runner had no explicit full-run confirmation or host storage policy, and terminating the outer shell prevented its normal `finally` cleanup while the Compose child briefly continued.
-
-### Correct solution
-
-Reserve the exact full stack for a properly sized isolated staging host and require explicit confirmation plus at least 20 GB of verified free Docker storage. For daily local evidence, hash-validate the official configuration but reuse the existing synthetic Supabase stack for migrations, pgTAP, production-container E2E, gateway denial, and restore. Remove only exact unused staging images/container remnants; never prune active project data.
-
-### Prevention
-
-Do not start a duplicate full Supabase stack on constrained Docker Desktop storage. Keep the full/local evidence distinction explicit, run the configuration-only preflight first, and allow the runner to complete its own cleanup instead of terminating its parent process.
-
-### Related files
-
-- `scripts/run-self-hosted-staging-acceptance.mjs`
-- `scripts/run-docker-acceptance.mjs`
-- `deploy/staging/supabase.lock.json`
-- `docs/decisions/ADR-0034-pin-self-hosted-supabase-and-separate-local-from-full-staging-acceptance.md`
-
-### Related tests
-
-- `npm run staging:self-hosted:config`
-- `npm run docker:acceptance`
-
-## ERR-20260812-071 - Nested npm command could not start in Docker acceptance orchestrator
-
-### Context
-
-The initial daily Docker acceptance runner invoked existing package scripts as nested `npm.cmd` child processes on Windows.
-
-### Symptoms
-
-The first check stopped before Docker configuration validation with `spawnSync npm.cmd EINVAL`.
-
-### Root cause
-
-The Node.js child-process boundary in this Windows environment could not start the command shim with the selected synchronous invocation. No application container, database operation, or test had run.
-
-### Correct solution
-
-Invoke the already reviewed Node entry points directly with `process.execPath`, including the Supabase CLI JavaScript entry, local E2E runner, Compose validator, and restore acceptance script.
-
-### Prevention
-
-Orchestration scripts should call stable executable entry points directly instead of recursively invoking the package manager. Retain package scripts as human-facing aliases only.
-
-### Related files
-
-- `scripts/run-docker-acceptance.mjs`
-
-### Related tests
-
-- `npm run docker:acceptance`
 
 ## ERR-YYYYMMDD-XXX - Short error title
 

@@ -2,32 +2,31 @@
 
 For customer-managed dedicated installation, use the official self-hosted Supabase Docker release and follow `docs/DEPLOYMENT.md`. The Supabase CLI local stack is a development tool and is not the production self-host topology.
 
-## Remote Project
+## Canonical Development Backend
 
-- Project ref: `daxaymcmtbmummrxdyjy`
-- Project URL: `https://daxaymcmtbmummrxdyjy.supabase.co`
-- Dashboard URL: `https://supabase.com/dashboard/project/daxaymcmtbmummrxdyjy`
+- Runtime: AWS EC2 self-hosted Supabase.
+- Local gateway: `http://localhost:8080` through the approved SSH tunnel.
+- Frontend URL: `VITE_SUPABASE_URL=http://localhost:8080`.
+- Database migration access uses the separate loopback PostgreSQL tunnel documented in the environment-specific operator notes.
+- The former Supabase Cloud project is inactive. Do not link the CLI to it or use its URL, keys, pooler, Auth, database, Functions, or MCP endpoint.
 
 ## Local CLI
 
-The Supabase CLI is installed as a development dependency and should be run through npm scripts or `npx`.
+The Supabase CLI is installed as a development dependency and should be run through npm scripts or `npx`. Local disposable-stack commands remain useful for isolated checks, while backend integration acceptance must target AWS self-hosted Supabase.
 
 ```bash
 npx supabase --version
 npx supabase init
-npx supabase login
-npx supabase link --project-ref daxaymcmtbmummrxdyjy
-npx supabase gen types typescript --linked > src/types/supabase.ts
 ```
 
-Do not commit access tokens, database passwords, service-role keys, encryption keys, or OAuth secrets.
+Do not commit access tokens, database passwords, service-role keys, encryption keys, or OAuth secrets. Do not run `--linked` commands unless an explicitly reviewed self-hosted-compatible connection has replaced the stale Cloud link.
 
 ## Frontend Environment
 
 Frontend code may use only public Supabase values:
 
 ```env
-VITE_SUPABASE_URL=https://daxaymcmtbmummrxdyjy.supabase.co
+VITE_SUPABASE_URL=http://localhost:8080
 VITE_SUPABASE_ANON_KEY=replace-with-public-anon-key
 ```
 
@@ -35,18 +34,18 @@ Local values belong in `.env.local`, which is ignored by Git. `.env.example` is 
 
 ## Migration Workflow
 
-Create schema changes through version-controlled migrations:
+Create schema changes through version-controlled migrations. Use the disposable local stack for clean replay and an explicit reviewed database URL through the AWS PostgreSQL tunnel for persistent development changes:
 
 ```bash
 npx supabase migration new descriptive_name
 npx supabase db reset
 npm run supabase:lint:local
 npm run supabase:test:local
-npx supabase db push --dry-run
-npx supabase db push
+npx supabase db push --db-url "$SELF_HOSTED_DATABASE_URL" --dry-run
+npx supabase db push --db-url "$SELF_HOSTED_DATABASE_URL"
 ```
 
-Use `db push --dry-run` before remote changes. Never run destructive linked reset commands against production.
+Always run `db push --dry-run` before AWS development changes, take a verified backup for migration-history or security-boundary work, and independently verify `supabase_migrations.schema_migrations` afterward. Never reset the AWS database, replay historical migrations over imported data, or fall back to the former Cloud project.
 
 ## Security Baseline
 
@@ -98,7 +97,7 @@ Current baseline rules:
 Synthetic test users can be created only with a local server-side service-role key:
 
 ```bash
-$env:SUPABASE_URL="https://daxaymcmtbmummrxdyjy.supabase.co"
+$env:SUPABASE_URL="http://localhost:8080"
 $env:SUPABASE_SERVICE_ROLE_KEY="never-commit-this-value"
 npm run fixture:demo
 ```

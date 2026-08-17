@@ -1,5 +1,102 @@
 # Test Report
 
+## 2026-08-17 - AWS Baseline, Security And Encryption Runtime Acceptance
+
+### Environment
+
+- Windows 11 operator workspace, Node.js 24, Supabase CLI 2.109.1, SSH tunnels to AWS EC2, self-hosted Supabase/PostgreSQL 17/Auth/PostgREST/Edge Runtime, and the server's IAM-scoped S3 backup mechanism.
+
+### Commands executed
+
+- Verified `yanki-backup.service` runs before baseline/apply, before encryption change, and after key activation
+- Supabase CLI migration repair/list/push dry-run through the loopback PostgreSQL tunnel with SSL disabled for the trusted tunnel
+- Read-only PostgreSQL ACL, function, default privilege, RLS, policy, migration-history, key-version, and fixture-residue assertions
+- `npm run security:self-hosted:acceptance`
+- `npm run smoke:self-hosted:edge`
+- `npm run smoke:self-hosted:submission`
+- Repository lint, typecheck, Vitest, build, deployment-configuration, and bounded-memory gates
+
+### Passed
+
+- Backup markers `20260817T151150Z`, `20260817T154405Z`, and `20260817T155214Z` reported success. The final set passed all ten SHA-256 checks, contains 11 S3 objects, and includes the server-only active-key entry without printing its value.
+- Direct migration-history SQL and CLI inventory match the exact 29 baseline timestamps plus real migration `20260817174207`; the final dry-run reports no pending migration.
+- The exact table ACL matrix passed for all 24 tables: no `PUBLIC`/`anon` privilege, authenticated own-profile SELECT only, reviewed service CRUD on 17 tables, and no direct service access to seven sensitive tables.
+- All 40 application SECURITY DEFINER functions deny `PUBLIC` and `anon`; authenticated execution is limited to two own-context RPCs. Default ACLs for the verified migration creator no longer recreate broad API grants.
+- AWS public-schema lint returned no errors. All ten pgTAP files passed all 210 assertions inside rollback-protected transactions against the persistent database.
+- Live HTTP checks passed 24 anonymous table denials, 23 authenticated direct-table denials, own-profile RLS success, two own-context RPC successes, seven sensitive-table denials, service-only RPC denial, and authenticated login.
+- Repository and AWS hashes match for all 12 required Edge Functions and five shared modules. The sample `hello` route is absent and the required `main` route remains.
+- The synthetic end-to-end flow completed an authenticated one-time credential, anonymous redemption, 544-byte encrypted payload persistence under `AWS_DEV_20260817_01`, replay denial, authorized report decryption, and strict fixture cleanup.
+- Post-cleanup residue counts are zero for every synthetic project/cycle/assignment/submission/platform-user fixture created by acceptance.
+- `npm run check` passed lint, typecheck, all 59 Vitest files and 270 tests, the production build, and bounded-memory verification. `npm run deployment:config` and `npm run staging:self-hosted:config` passed against Docker Engine.
+
+### Failed And Corrected
+
+- The CLI initially required explicit `PGSSLMODE=disable` because the database connection already ran inside a trusted SSH tunnel; the corrected mode was used for all migration operations.
+- Docker-backed configuration checks initially received workspace `docker.exe EPERM`; rerunning the same read-only validation with explicit Docker permission passed.
+- Supabase CLI's pgTAP helper could not reach a loopback-only SSH tunnel from its Docker test container. Tests were instead streamed without credentials into `psql` inside the AWS database container, and every TAP plan/result was checked.
+- The anonymous abuse test initially assumed empty global counters. It now captures a transaction-local pre-test baseline and verifies the exact test delta without deleting or changing existing rows; all 54 assertions in that suite then passed.
+- The first S3 key-entry verification command was interrupted after a quoting-related hang. Its temporary file was securely removed, and the result was proved instead by local backup checksum, key-name-only inspection, S3 object metadata, and object count.
+
+### Security checks
+
+- No secret value appeared in Git, frontend configuration, fixtures, logs, terminal evidence, or this report. The AWS `.env` and pre-change secret snapshot are root-controlled mode `0600`.
+- Existing ciphertext and key identifiers were never updated, re-encrypted, or deleted. Read-only inventory remains exactly 20 legacy records: 11 under `DEV_20260807_01` and 9 under `development-v1`.
+- Read-only recovery search found neither legacy secret. The new key was not reused as a substitute and only the Functions service was recreated.
+- No operation targeted the former Supabase Cloud project.
+
+### Remaining risks
+
+- `encryption-key-health` correctly reports active configuration valid but global historical coverage incomplete until the two missing development keys are recovered or every referencing record expires under an approved policy.
+- The production JavaScript build retains the known large-chunk warning.
+
+## 2026-08-17 - Self-Hosted ACL Reconciliation Static Acceptance
+
+### Environment
+
+- Windows 11, Node.js 24, Vitest 4, Vite 8, repository source, and the AWS self-hosted PostgreSQL metadata exposed through the `supabase-self-hosted` MCP over the local SSH tunnel.
+
+### Commands executed
+
+- Read-only `SELECT` inventory through `supabase-self-hosted/execute_sql`
+- `npx vitest run tests/self-hosted-security-reconciliation.test.mjs`
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run build`
+
+### Passed
+
+- Read-only inventory confirmed 24 application tables, 58 public functions, 40 SECURITY DEFINER functions, explicit search paths on every SECURITY DEFINER function, no untrusted public-schema CREATE privilege, and the imported broad API-role ACL drift.
+- `pg_default_acl` proved that both `postgres.public` and `supabase_admin.public` currently default new tables, sequences, and functions to broad API-role grants. All current public application objects and the migration connection are `postgres`; no current public object is owned by `supabase_admin`.
+- The focused suite passed all 9 tests. Its ACL interpreter simulated every migration GRANT/REVOKE from the observed broad starting state and proved the exact 24-table and 40-function target matrices plus the three schema-scoped future-object default revocations.
+- Static caller coverage proved all seven sensitive tables have no direct frontend/Edge/runtime-script `.from(...)` caller, all 32 service-role RPCs stay outside frontend database calls, the two authenticated own-context RPCs remain available, and the anonymous flow reaches tables only through trusted RPCs.
+- Static coverage also proved frontend source contains no service-role credential, invitation context checks precede identity writes, `rls_auto_enable()` and `supabase_admin` defaults are excluded, and no unreviewed top-level destructive statement exists.
+- `npm run lint` and `npm run typecheck` passed.
+- `npm test` passed all 59 files and 270 tests.
+- `npm run build` passed.
+
+### Failed And Corrected
+
+- The first focused run passed five security checks but the frontend-source scanner returned nested file contents as parent file paths. The test-only recursive reader was corrected and all six checks passed.
+- After adding default-privilege statements, the ACL parser initially crossed a semicolon from plural `ON TABLES` into the next singular `ON TABLE` statement. The parser was constrained to one SQL statement and all nine focused checks passed.
+
+### Security checks
+
+- AWS reads used only the self-hosted MCP and SELECT statements.
+- No migration, SQL mutation, migration-history repair, database push, Edge Function deployment, or old Supabase Cloud request occurred.
+- The proposed ACL leaves no table grant for `PUBLIC` or `anon`, grants authenticated users only own-profile SELECT plus two own-context RPCs, and preserves only reviewed service-role table/RPC boundaries.
+- Future defaults are changed only for `postgres` in `public`; Supabase platform creator roles, platform schemas, and existing platform objects remain untouched.
+
+### Skipped
+
+- The new migration was not parsed or executed by PostgreSQL because the requested phase is static design only.
+- Baseline repair, reconciliation apply, advisor rerun, and live authorization/anonymous-flow acceptance were intentionally not performed pending explicit approval.
+
+### Remaining risks
+
+- Static migration intent does not prove runtime behavior until baseline and apply are separately approved and the post-apply AWS acceptance plan passes.
+- The production build retains the known roughly 628 kB JavaScript chunk warning.
+
 ## 2026-08-16 - Responsive UI And Platform Tenant Acceptance
 
 ### Environment
@@ -141,99 +238,3 @@
 
 - A valid infrastructure definition does not prove AWS service availability in the selected zone, routing, KMS/IAM permissions, cloud-init completion, public TLS, or runtime capacity.
 - The production build retains the known roughly 610 kB JavaScript chunk warning.
-
-## 2026-08-12 - Docker And Pinned Self-Hosted Configuration Acceptance
-
-### Environment
-
-- Windows 11, Node.js 24, Docker Desktop 4.85.0 / Engine 29.6.2, Supabase CLI 2.109.1, existing synthetic local Supabase/PostgreSQL, production Nginx container, Mailpit, Playwright Chromium, and the pinned official Supabase Docker source at commit `b5462a96090949a4a39b2e8e10b3baedc8a10781`.
-
-### Commands executed
-
-- `npm run docker:acceptance`
-- Focused `src/app/App.test.tsx` Vitest retry
-- `npm run check`
-- Official self-hosted configuration-only acceptance through the Docker gate
-
-### Passed
-
-- Application Compose and the hash-verified official self-hosted Compose overlay both validated.
-- Local schema lint returned no errors and all 186 pgTAP assertions across eight database suites passed.
-- All three production-container Playwright tests passed: invitation/password/acceptance, immutable template and project assignment, encrypted anonymous submission, immediate subject-labelled reporting, system-admin/self denials, direct sensitive-endpoint denial, WCAG, keyboard use, and mobile overflow.
-- Synthetic cleanup removed one tenant and four users.
-- The compressed 702,350-byte database stream restored into a disposable target; all nine migration, table, function, and privilege invariants passed; the target and temporary frontend image/container were removed.
-- Browser runtime configuration contained only the same-origin public URL and anon key, never the service-role, gateway, database, or evaluation-encryption secret.
-- Final application checks passed 54 Vitest files and 243 tests, lint, typecheck, the production build, and bounded-memory verification.
-
-### Failed And Corrected
-
-- Starting a second complete Supabase image set expanded the Docker Desktop WSL disk and reduced system-drive headroom. The run was stopped before database creation, its unused images and one unstarted Mailpit container were removed, and the daily gate was changed to reuse the existing synthetic stack.
-- The first Docker orchestrator used nested `npm.cmd` processes and hit Windows `spawnSync EINVAL`. It now invokes each reviewed Node CLI directly.
-- The first full Vitest pass after Docker acceptance timed out once in the authenticated profile-loading assertion under concurrent test load. The unchanged focused file passed in 275 ms and the unchanged full quality gate then passed all 243 tests; no product defect or code change was indicated.
-
-### Security checks
-
-- Verified direct anonymous sensitive-endpoint access without the Nginx gateway token returns `403`.
-- Verified evaluated users and system administrators cannot read subject reports, while the scoped reviewer can read aggregate scores and identity-separated subject-labelled comments.
-- Verified browser and service roles retain no restored ciphertext, retention executor, or recovery-canary access.
-
-### Skipped
-
-- The duplicate full official stack was not retained on this storage-constrained workstation. Its configuration, source commit, and hashes passed; runtime acceptance remains assigned to a properly sized isolated staging host.
-- No production TLS/DNS, SMTP provider, live employee data, production key custody, alert receiver, capacity load, or remote backup provider was used.
-
-### Remaining risks
-
-- Full pinned-stack, real-network, and provider evidence remains a critical production gate.
-- Docker Desktop's WSL virtual disk may retain physical size after internal image deletion; local acceptance must continue reusing one Supabase stack.
-- The production build retains the known roughly 609 kB JavaScript chunk warning.
-
-## 2026-08-12 - SaaS Production Readiness And Platform Scope Regression
-
-### Environment
-
-- Windows 11, Node.js 24, React 19, Vite 8, Vitest, Docker Desktop, Supabase CLI 2.109.1, local Supabase/PostgreSQL, and the linked synthetic development project.
-
-### Commands executed
-
-- Focused administration, key-health, abuse-boundary, database-inventory, and deployment-foundation Vitest suites
-- `npm run check`
-- `npm run supabase:test:local`
-- `npm run supabase:lint:local`
-- `npm run supabase:lint:linked`
-- `npm run supabase:push:dry-run`
-- `npm run deployment:config`
-- `npx supabase db push --linked --include-all --yes`
-- Linked deployment of `encryption-key-health` and `security-abuse-monitoring`
-- `npx supabase migration list --linked`
-
-### Passed
-
-- Focused coverage passed 5 files and 22 tests.
-- Full application checks passed 54 Vitest files and 243 tests, lint, typecheck, the production build, and bounded-memory verification.
-- All 186 pgTAP assertions across eight database suites passed, including platform-scope positive access and organization-scope denial for global abuse monitoring.
-- Local and linked database lint found no schema errors, Compose configuration validation passed, and the linked dry-run selected only `20260812120000_platform_security_operations_scope.sql`.
-- The migration inventory confirmed RLS is enabled for every application table created in source-controlled migrations.
-- The linked project recorded migration `20260812120000` and both affected Edge Functions deployed successfully.
-
-### Failed And Corrected
-
-- The local database container was already stopped with the documented exit `137` condition. A data-preserving Supabase stop/start restored the full stack.
-- The first pgTAP command could not write the Supabase CLI telemetry file outside the workspace sandbox. The unchanged command passed in the approved local Supabase execution boundary.
-- The first Compose validation could not spawn Docker from the workspace sandbox. The unchanged command passed in the approved Docker execution boundary.
-- The remote push applied successfully but Supabase CLI 2.109.1 could not refresh its optional pg-delta catalog cache because a temporary CA file was missing. A separate linked migration-list query confirmed exact local/remote migration parity.
-
-### Security checks
-
-- Verified organization-scoped system administrators cannot see or invoke platform-global key-health and abuse diagnostics.
-- Verified platform-scoped system administrators retain content-free diagnostics without receiving keys, versions, identities, tenant identifiers, credentials, ciphertext, or evaluation content.
-- Verified no privileged secret or linked development project identifier remains in the checked-in browser environment example.
-
-### Skipped
-
-- No production employee data, AWS production account, public TLS/DNS environment, approved SMTP relay, production encryption key, or customer server was used.
-
-### Remaining risks
-
-- The production build passes with a roughly 610 kB JavaScript chunk warning; route-level code splitting remains planned.
-- Production approval still requires the critical staging, data-residency, secret custody, monitoring, backup/recovery, SMTP, and capacity evidence recorded in the readiness assessment.

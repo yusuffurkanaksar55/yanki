@@ -2,7 +2,7 @@
 
 ## Status
 
-Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The linked Supabase project now includes default-deny identity/configuration data, immutable templates, one-time anonymous eligibility credentials, and encrypted evaluation content persistence.
+Foundation architecture is documented. The frontend application scaffold is implemented with React, TypeScript, Vite, Tailwind CSS, ESLint, Vitest, and React Testing Library. The AWS self-hosted Supabase development environment now includes default-deny identity/configuration data, immutable templates, one-time anonymous eligibility credentials, and encrypted evaluation content persistence.
 
 ## Target System
 
@@ -220,7 +220,7 @@ User-facing Turkish strings must be centralized under a future localization modu
 - Demo fixture notes: `docs/TEST_FIXTURES.md`
 - Demo fixture script: `scripts/create-demo-fixture.mjs`
 - Production tenant bootstrap operator: `scripts/bootstrap-production-tenant.mjs`
-- Linked remote project ref: `daxaymcmtbmummrxdyjy`
+- Canonical development backend: AWS self-hosted Supabase through the local `http://localhost:8080` SSH tunnel
 
 The versioned-template migrations add logical template roots, immutable version snapshots, ordered typed questions, service-role-only lifecycle functions, and exact template-version foreign keys on cycles and assignments. Question mutation guards validate both the source and destination parent so a published question cannot be moved into a draft. Existing cycles are backfilled to archived compatibility versions; new cycles require a published active template through the trusted project boundary. Template tables have RLS enabled and no client-facing policies.
 

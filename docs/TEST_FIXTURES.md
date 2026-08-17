@@ -43,7 +43,7 @@ The evaluation cycle can be opened without a fixed participant count requirement
 The fixture script requires server-side Supabase privileges and must be run outside the browser:
 
 ```bash
-SUPABASE_URL=https://daxaymcmtbmummrxdyjy.supabase.co
+SUPABASE_URL=http://localhost:8080
 SUPABASE_SERVICE_ROLE_KEY=never-commit-this-value
 npm run fixture:demo
 ```
@@ -54,9 +54,9 @@ The script uses `SUPABASE_SERVICE_ROLE_KEY` only from the local environment. Do 
 
 When the fixture script succeeds, it prints a local credentials table for the tester. The output should be treated as temporary test credentials and rotated or deleted when no longer needed.
 
-## Linked Smoke Scenario
+## AWS Self-Hosted Smoke Scenario
 
-The linked test project was authenticated-smoke-tested with a synthetic project created through `admin-project-cycles`:
+The AWS self-hosted development environment was authenticated-smoke-tested with a synthetic project created through `admin-project-cycles`:
 
 | Fixture key | Value |
 | --- | --- |
@@ -73,6 +73,6 @@ These credentials were originally generated before the fixture script included i
 
 ## Immediate Reporting Fixtures
 
-`npm run smoke:reports` creates uniquely named `Immediate reporting smoke ...` projects and cycles in the linked synthetic organization. Each run uses the CEO as reviewer, the team leader as evaluated subject, and the CEO plus three employees as evaluators. Successful runs leave encrypted submissions and safe audit/configuration records because anonymous content is immutable and must not be linked back to evaluators for cleanup.
+`npm run smoke:reports` creates uniquely named `Immediate reporting smoke ...` projects and cycles in the synthetic AWS development organization. Each run uses the CEO as reviewer, the team leader as evaluated subject, and the CEO plus three employees as evaluators. Successful runs leave encrypted submissions and safe audit/configuration records because anonymous content is immutable and must not be linked back to evaluators for cleanup.
 
 The accepted live run verified `EMPTY` before participation, active-target discovery, immediate availability after the first encrypted submission while the cycle was active, the four-submission final aggregate with a synthetic `3.5` rating average, raw-text withholding, and system-admin/self/employee/anonymous denial. Historical thresholded-run evidence remains in the bounded operational logs and release notes.

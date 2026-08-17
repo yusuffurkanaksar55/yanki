@@ -1,5 +1,88 @@
 # Development Log
 
+## 2026-08-17 - AWS Self-Hosted Baseline, ACL And Encryption Acceptance
+
+### Objective
+
+Complete the explicitly approved AWS self-hosted development acceptance without replaying imported migrations or changing existing evaluation content, then establish a new recoverable development encryption key for future synthetic submissions.
+
+### Changes
+
+- Ran and verified physical PostgreSQL, logical PostgreSQL, configuration, Functions, image-manifest, and checksum backups before baseline/apply and before key activation; created a separate mode-`0600` pre-change server environment snapshot.
+- Marked the 29 repository migrations already present in the imported schema as applied without executing their SQL, independently verified the history, and applied only `20260817174207_reconcile_self_hosted_security_acl.sql` as migration 30.
+- Reconciled all 24 table ACLs, 40 application SECURITY DEFINER ACLs, the orphaned `rls_auto_enable()` API exposure, and future `postgres.public` table/sequence/function defaults while retaining only reviewed browser and trusted-service access.
+- Added repeatable live acceptance scripts for table/RPC denial, authenticated own-context success, trusted Edge Function routes, and the complete anonymous encrypted-submission flow.
+- Generated one cryptographically secure 32-byte base64 key as `AWS_DEV_20260817_01`, stored it only in the AWS Functions server environment, preserved additive keyring compatibility, recreated only the Functions service, and captured the active configuration in the verified encrypted S3 backup set.
+- Reclassified the former Supabase Cloud endpoint as inactive across current setup, environment, architecture, fixture, and readiness documentation.
+
+### Database changes
+
+Migration `20260817174207_reconcile_self_hosted_security_acl.sql` is applied. It changes function definitions/ACLs and existing/future privileges only; it performs no application data mutation. Direct SQL history contains the exact 30 repository timestamps.
+
+### Security impact
+
+Positive. Anonymous users have no direct table or application-function access; authenticated users retain only own-profile SELECT and two own-context RPCs; service-role direct table access is limited to 17 reviewed identity/configuration tables. The new key remains server-only and new ciphertext uses its unique version. The 20 imported records under `DEV_20260807_01` and `development-v1` remain unchanged and unavailable because their original secrets could not be found; no fake key or re-encryption was attempted.
+
+### Tests performed
+
+- Live HTTP authorization acceptance passed all anonymous/authenticated table and RPC denial/success checks plus real Auth login.
+- All required Edge Function administration, diagnostics, retention, template, bootstrap, reporting, and abuse-monitoring smoke calls passed against AWS.
+- The synthetic authenticated credential, anonymous redemption, AES-256-GCM persistence, replay denial, authorized reporting/decryption, and strict fixture cleanup flow passed under `AWS_DEV_20260817_01`.
+- AWS public-schema lint reported no errors, and all 210 pgTAP assertions across ten transaction-rollback suites passed against the persistent database after making the global abuse-counter test baseline-aware.
+- `npm run check` passed lint, typecheck, all 59 Vitest files and 270 tests, production build, and bounded-memory verification. Compose and pinned self-hosted staging configuration checks also passed.
+- Backup `20260817T155214Z` passed all ten checksum checks and uploaded 11 objects to S3; its `.env` object contains the active key entry without exposing the value.
+
+### Result
+
+AWS self-hosted development is the canonical accepted backend with exact migration history, least-privilege ACLs, matching Edge Function source, and working encryption for new synthetic submissions. Imported legacy ciphertext remains preserved as `OLD_KEY_UNAVAILABLE`.
+
+### Remaining work
+
+- Recover the two historical development keys only from a verified custody source or retain/expire those records under an approved development-data decision.
+- Move production keys into an approved independent secret manager and offline recovery escrow, then complete isolated database-plus-key restore acceptance before live employee data.
+- Complete production DNS/TLS, SMTP, monitoring, capacity, and customer-facing operational acceptance.
+
+## 2026-08-17 - Self-Hosted Security ACL Reconciliation Design
+
+### Objective
+
+Prepare one reviewable, data-preserving migration that reconciles the imported AWS self-hosted table and function ACLs with the repository's trusted-boundary design, without changing AWS schema, data, migration history, or Edge Functions.
+
+### Changes
+
+- Completed a read-only effective-privilege inventory for all 24 public tables and all 58 public functions, including explicit `PUBLIC` execution, owners, security mode, and `pg_proc.proconfig` search paths.
+- Confirmed through `pg_default_acl` that `postgres.public` and `supabase_admin.public` defaults recreate broad API grants; verified that `postgres` is the active migration role and owns every current public application object.
+- Added one unapplied reconciliation migration that converges table ACLs, converges 40 proven application function ACLs, and records the hardened AWS invitation-acceptance checks as the forward source of truth.
+- Scoped future-object default revocation to `FOR ROLE postgres IN SCHEMA public`, including PostgreSQL 17 table `MAINTAIN` and sequence privileges, while leaving every Supabase platform creator role and schema unchanged.
+- Added a behavioral ACL simulator and repository-wide caller scanner that verify the exact 24-table, 40-function, 32 service-role RPC, two authenticated RPC, and anonymous-submission boundaries instead of relying only on SQL string matches.
+- Documented the complete SECURITY DEFINER risk matrix, 24-table caller matrix, 32-RPC caller map, anonymous flow, platform-specific `rls_auto_enable()` exclusion, 29-timestamp baseline plan, post-apply acceptance sequence, and recovery approach.
+
+### Database changes
+
+Migration `20260817174207_reconcile_self_hosted_security_acl.sql` was created but deliberately not applied. It contains schema-scoped default-privilege hardening for the verified `postgres` application creator, but no top-level data mutation, destructive table/schema operation, migration-history change, or platform-role/function change.
+
+### Security impact
+
+Positive when approved and applied. The design removes direct broad API execution from sensitive functions, prevents the same grants from recurring on future `postgres.public` objects, preserves only the two authenticated own-context RPCs, keeps anonymous submission behind service-role Edge Function calls, limits trusted direct table access to reviewed CRUD tables, and preserves active organization/unit/manager invitation checks before identity writes.
+
+### Tests performed
+
+- The focused reconciliation suite passed 9 tests.
+- `npm run lint` passed.
+- `npm run typecheck` passed.
+- `npm test` passed all 59 files and 270 tests.
+- `npm run build` passed with the existing large-chunk warning.
+
+### Result
+
+The repository now contains a reviewable reconciliation artifact and acceptance plan. AWS remains unchanged pending explicit approval for the separate baseline and apply operations.
+
+### Remaining work
+
+- Review and explicitly approve the 29-timestamp baseline operation.
+- Verify the baseline history independently, then explicitly approve applying only migration `20260817174207`.
+- Repeat ACL, RLS, advisor, unauthorized, authenticated, anonymous, and trusted-boundary acceptance against AWS after apply.
+
 ## 2026-08-16 - Responsive Surface Audit And Platform Customer Onboarding
 
 ### Objective
@@ -116,80 +199,3 @@ The repository can now generate a deterministic AWS staging-host plan once revie
 
 - Provide and review the dedicated staging account, region/zone, VPC/subnet, AMI, instance type, KMS, state backend, domain, cost owner, and operator identities; review and apply the exact saved plan.
 - Deploy DNS/TLS, the pinned Supabase set and signed Yanki image, then run the full migration/browser/gateway/SMTP/monitoring/capacity/backup/recovery acceptance with synthetic data.
-
-## 2026-08-12 - Resource-Aware Docker And Self-Hosted Staging Acceptance
-
-### Objective
-
-Verify the complete application through Docker without duplicating the workstation's active Supabase image set, and make the future clean self-hosted staging boundary reproducible.
-
-### Changes
-
-- Pinned the official Supabase repository to an exact commit and critical file hashes, then added a Yanki Compose overlay for loopback-only ports, digest-pinned Mailpit, production Nginx, generated secrets, and the Edge Function gateway/encryption boundary.
-- Added an explicit full-stack acceptance runner that prepares an ignored official checkout, applies migrations, verifies container isolation, runs pgTAP/Playwright/restore checks, records content-free evidence, and removes disposable data.
-- Required explicit confirmation and verified Docker storage headroom for full-stack use; added a configuration-only mode that downloads no images.
-- Added `docker:acceptance` as the daily gate. It reuses the synthetic local Supabase stack while checking both Compose definitions, database lint, all pgTAP suites, the production frontend container, gateway denial, accessibility, responsive behavior, and streamed restore.
-- Extended E2E URL handling so browser and Auth traffic can use the production same-origin `/supabase` path while a separate loopback origin verifies direct sensitive-endpoint denial.
-
-### Database changes
-
-None. The local acceptance reused the migrated synthetic development database and removed the strictly recognized E2E tenant/users. The full runner applies existing migrations only to a disposable isolated database.
-
-### Security impact
-
-Positive. Official self-hosted inputs are reproducibly pinned, generated secrets remain under ignored temporary storage, direct sensitive endpoint bypass remains denied, published full-stack ports are required to bind only to loopback during acceptance, and the service-role/gateway/encryption secrets remain absent from browser runtime configuration.
-
-### Tests performed
-
-- `npm run docker:acceptance` passed both Compose validations, local database lint, 186 pgTAP assertions across eight suites, three production-container Playwright tests, direct gateway bypass denial, WCAG and keyboard checks, desktop/mobile overflow checks, and streamed backup/restore security verification.
-- Final `npm run check` passed lint, typecheck, 54 Vitest files and 243 tests, the production build, and bounded-memory verification.
-- The official full-stack configuration passed commit/hash and generated-secret Compose validation without downloading duplicate images.
-
-### Result
-
-Daily Docker acceptance now provides one repeatable command on the constrained workstation, while full clean self-hosted acceptance is reserved for a properly sized isolated staging host. No live employee data, production secret, or existing local database content was used or removed.
-
-### Remaining work
-
-- Run `staging:self-hosted:acceptance` on an isolated host with sufficient Docker storage and retain its report.
-- Complete real TLS/DNS, approved SMTP, alert receiver, capacity, secret custody, and remote recovery evidence before production approval.
-
-## 2026-08-12 - Multi-Tenant SaaS Production Readiness And Platform Operations Scope
-
-### Objective
-
-Audit the existing product for a central multi-tenant SaaS deployment on AWS EC2 with Docker Compose and self-hosted Supabase, preserve the current product behavior, and implement only defects that must be corrected before production.
-
-### Changes
-
-- Confirmed `organizations.id` and existing memberships are the canonical tenant model; no duplicate company tables were introduced.
-- Added a durable production-readiness assessment covering current controls, the target AWS topology, Istanbul Local Zone limitations, data-residency inventory, environment separation, self-hosted Supabase compatibility, and prioritized production work.
-- Separated deployment-global security operations from tenant administration. Organization-scoped system administrators retain users, hierarchy, templates, projects, cycles, and retention but no longer see the platform security module.
-- Required exact active `PLATFORM` scope in both global-diagnostics Edge Functions and added a database migration that repeats the abuse-summary scope check.
-- Updated global-diagnostics smoke clients to require a separate platform-operator identity instead of reusing a customer organization administrator.
-- Replaced the linked development URL in `.env.example` with a portable placeholder and added RLS/browser-environment inventory regression coverage.
-
-### Database changes
-
-Migration `20260812120000_platform_security_operations_scope.sql` replaces the abuse-summary authorization function so only an active platform-scoped system administrator can request deployment-global counters. Function execution remains service-role-only, and backing operational tables remain inaccessible.
-
-### Security impact
-
-Positive. A customer organization administrator can no longer inspect deployment-global key-health or abuse-monitoring aggregates. The authorization is enforced independently in the UI, Edge Functions, and PostgreSQL; no evaluation data model, report behavior, tenant workflow, or content boundary changed.
-
-### Tests performed
-
-- Focused Vitest coverage passed 5 files and 22 tests.
-- Full `npm run check` passed lint, typecheck, 54 Vitest files and 243 tests, production build, and bounded-memory verification.
-- Local pgTAP passed 186 tests across eight suites, including platform-admin success and organization-admin denial.
-- Local and linked database lint returned no schema errors; deployment Compose validation passed; linked migration dry-run listed only the new scope migration.
-
-### Result
-
-The current application architecture remains portable across shared SaaS and dedicated installations. The identified cross-scope operational visibility defect is closed locally and in the linked synthetic development project; both affected Edge Functions were redeployed. The remaining production work is explicitly classified without adding speculative infrastructure or changing product behavior.
-
-### Remaining work
-
-- Complete the Critical Before Production evidence in `docs/PRODUCTION_READINESS_ASSESSMENT.md` before live employee data.
-- Add production-like AWS staging, approved SMTP, infrastructure monitoring, independent secret/key custody, and validated remote recovery.
-- Evaluate EBS snapshots and WAL/PITR in addition to the existing encrypted logical backup workflow.

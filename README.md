@@ -74,7 +74,7 @@ These commands currently validate the React application scaffold, documentation 
 
 ## Supabase
 
-The remote Supabase project is linked to project ref `daxaymcmtbmummrxdyjy`. Public frontend environment examples are documented in `.env.example`; real local values belong in `.env.local`, which is ignored by Git.
+The canonical development and integration-test backend is AWS self-hosted Supabase, reached locally at `http://localhost:8080` through the approved SSH tunnel. The former Supabase Cloud project is inactive and must not be used. Public frontend environment examples are documented in `.env.example`; real local values belong in `.env.local`, which is ignored by Git.
 
 The applied migrations create default-deny onboarding, hierarchy, template, project, cycle, assignment, one-time credential, encrypted content, anonymous abuse-control, and identity-separated reporting boundaries. Every cycle and assignment preserves an exact published template version. Evaluation answers are stored only as AES-256-GCM ciphertext; the content table has no evaluator, assignment, credential, plaintext answer, or exact submission timestamp column. Active and completed reports become available after the first encrypted submission and are decrypted only in trusted code after scope, self-access, and administrator-deny checks.
 

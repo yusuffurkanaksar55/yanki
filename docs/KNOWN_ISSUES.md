@@ -16,7 +16,7 @@ Synthetic encrypted submissions and authorized aggregate results are supported, 
 
 ### Workaround
 
-Continue development and synthetic acceptance testing only. Do not use the linked development encryption key for live employee data and do not query ciphertext manually as a reporting workaround.
+Continue development and synthetic acceptance testing only. Do not use the AWS development encryption key for live employee data and do not query ciphertext manually as a reporting workaround.
 
 ### Planned resolution
 
@@ -25,6 +25,34 @@ Configure independent production key, Restic credentials, gateway token, and ale
 ### Related tests
 
 `tests/encryptionKeyring.test.ts`, `tests/encryption-key-custody.test.ts`, `tests/encryption-recovery-acceptance.test.mjs`, `tests/offsite-backup.test.ts`, `tests/gateway-security-alert-boundary.test.mjs`, `tests/security-alerting.test.ts`, `supabase/tests/database/anonymous_encrypted_submission.test.sql`, `npm run security:alerts:acceptance`, `npm run backup:offsite:restore:acceptance`, `npm run smoke:key-health`, `npm run smoke:abuse`, `npm run smoke:reports`
+
+## ISSUE-008 - Imported development ciphertext lacks legacy keys
+
+### Severity
+
+Medium
+
+### Description
+
+Twenty imported encrypted submissions reference `DEV_20260807_01` or `development-v1`. Read-only searches of ignored local files, server environment/history backups, S3 daily/golden environment backups, and available deployment records did not locate either secret. The active AWS development key `AWS_DEV_20260817_01` correctly encrypts and decrypts new synthetic submissions, but it cannot and must not be used as a substitute for either historical key.
+
+### Impact
+
+The 20 legacy development records are preserved but cannot currently be decrypted or included in a successful report. New records are unaffected. This is a development-data recovery limitation, not evidence of ciphertext corruption.
+
+### Workaround
+
+Treat the records as `OLD_KEY_UNAVAILABLE`. Do not update ciphertext, replace their key identifiers, invent key material, re-encrypt, or delete them. Use new synthetic evaluations for functional acceptance.
+
+### Planned resolution
+
+Recover a matching historical key only through an approved custody source, verify it against its exact identifier without logging the value, add it as a decrypt-only version, and repeat key-health plus authorized report checks. If recovery is impossible, retain or expire the records only under an approved development-data retention decision.
+
+### Related tests
+
+- `npm run smoke:self-hosted:submission`
+- `npm run smoke:self-hosted:edge`
+- AWS read-only key-version inventory
 
 ## ISSUE-005 - Remaining delegated administration actions are not implemented
 
@@ -178,7 +206,7 @@ The release and deployment packages can be tested as infrastructure foundations 
 
 ### Workaround
 
-None for production. Use managed development and synthetic fixture environments only.
+None for production. Use the AWS self-hosted development environment with synthetic fixtures only.
 
 ### Planned resolution
 

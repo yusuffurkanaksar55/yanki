@@ -16,7 +16,7 @@
 - Immediate one-person and sparse aggregates can permit contextual inference even though evaluator identity is not stored with content.
 - A stronger blind-signature or equivalent credential model may be introduced later.
 - Raw anonymous credentials live only in transient trusted-process and React component memory; browser persistence and request logging remain forbidden.
-- The linked Supabase encryption key is synthetic-development-only and must be replaced before any live employee content is accepted.
+- The AWS self-hosted development encryption key is synthetic-development-only and must be replaced before any live employee content is accepted.
 
 ## Operations
 
@@ -24,7 +24,7 @@
 - Only public Supabase frontend values are available in the workspace.
 - External dependencies were installed for the React/Vite scaffold after approval.
 - Local development uses Vite on `http://127.0.0.1:5173/` when the dev server is running.
-- The linked Supabase project ref is `daxaymcmtbmummrxdyjy`.
+- The canonical development and test backend is AWS self-hosted Supabase, reached locally through `http://localhost:8080`; the former Supabase Cloud project is inactive and must not be used.
 - Docker Desktop is required before local Supabase stack commands can run.
 - The commercial default is vendor-hosted shared SaaS; dedicated customer-managed installation is supported when contractual or compliance needs require it.
 - Dedicated deployments use one official self-hosted Supabase stack per customer and keep application tenant checks enabled.

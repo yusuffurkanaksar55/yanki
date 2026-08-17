@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-08-17
+
+### Added
+
+- Added the reviewed AWS self-hosted security ACL reconciliation migration, live authorization acceptance scripts, Edge Function smoke coverage, and a full synthetic credential-to-encrypted-submission-to-report verification path.
+- Added a new server-only AWS development AES-256-GCM key version, `AWS_DEV_20260817_01`, through the additive keyring without exposing key material or changing imported ciphertext.
+
+### Changed
+
+- Baselined the 29 imported migration timestamps without replaying SQL and applied the ACL reconciliation as the exact 30th migration.
+- Made AWS self-hosted Supabase through `http://localhost:8080` the canonical development and integration-test backend; the former Supabase Cloud project is now explicitly inactive.
+
+### Security
+
+- Removed broad imported table/function/default privileges, preserved only reviewed browser and trusted-service capabilities, and revoked API execution from the orphaned `rls_auto_enable()` helper.
+- Preserved all 20 imported legacy ciphertext records while recording their unavailable `DEV_20260807_01` and `development-v1` secrets as an explicit recovery risk.
+
 ## 2026-08-16
 
 ### Added
